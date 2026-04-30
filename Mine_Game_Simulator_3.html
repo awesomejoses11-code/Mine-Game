@@ -1,0 +1,757 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>MINES — Premium Edition</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@500;600;700&family=Orbitron:wght@700;900&family=Space+Mono&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #080b14;
+    --panel: #0d1220;
+    --panel2: #111827;
+    --border: #1e2d4a;
+    --accent: #00e5ff;
+    --accent2: #00ff88;
+    --accent3: #ff3c6e;
+    --gold: #ffd700;
+    --text: #cdd9f0;
+    --muted: #5a7099;
+    --tile: #0f1e33;
+    --tile-h: #162944;
+    --gem: #0a2e1e;
+    --gem-border: #00ff88;
+    --mine: #2a0a14;
+    --mine-border: #ff3c6e;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'Rajdhani', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 1rem;
+    overflow-x: hidden;
+  }
+
+  /* Animated background grid */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image:
+      linear-gradient(rgba(0,229,255,0.03) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(0,229,255,0.03) 1px, transparent 1px);
+    background-size: 40px 40px;
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  .game-container {
+    position: relative;
+    z-index: 1;
+    width: 100%;
+    max-width: 480px;
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    padding: 2rem 1.75rem;
+    box-shadow:
+      0 0 0 1px rgba(0,229,255,0.05),
+      0 30px 80px rgba(0,0,0,0.7),
+      inset 0 1px 0 rgba(255,255,255,0.04);
+  }
+
+  /* Corner decorations */
+  .game-container::before, .game-container::after {
+    content: '';
+    position: absolute;
+    width: 20px; height: 20px;
+    border-color: var(--accent);
+    border-style: solid;
+  }
+  .game-container::before {
+    top: 12px; left: 12px;
+    border-width: 2px 0 0 2px;
+    border-radius: 4px 0 0 0;
+  }
+  .game-container::after {
+    bottom: 12px; right: 12px;
+    border-width: 0 2px 2px 0;
+    border-radius: 0 0 4px 0;
+  }
+
+  /* Header */
+  .header {
+    text-align: center;
+    margin-bottom: 1.75rem;
+  }
+  .header h1 {
+    font-family: 'Orbitron', sans-serif;
+    font-size: 2.2rem;
+    font-weight: 900;
+    letter-spacing: 0.15em;
+    background: linear-gradient(135deg, var(--accent) 0%, var(--accent2) 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    text-shadow: none;
+    line-height: 1;
+  }
+  .header-sub {
+    font-family: 'Space Mono', monospace;
+    font-size: 0.65rem;
+    color: var(--muted);
+    letter-spacing: 0.3em;
+    margin-top: 4px;
+  }
+
+  /* Balance bar */
+  .balance-bar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background: var(--panel2);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 0.7rem 1rem;
+    margin-bottom: 1.25rem;
+  }
+  .balance-label {
+    font-family: 'Space Mono', monospace;
+    font-size: 0.7rem;
+    color: var(--muted);
+    letter-spacing: 0.1em;
+  }
+  .balance-value {
+    font-family: 'Orbitron', monospace;
+    font-size: 1.2rem;
+    font-weight: 700;
+    color: var(--gold);
+  }
+
+  /* Multiplier */
+  .multiplier-pill {
+    text-align: center;
+    margin-bottom: 1.25rem;
+  }
+  .multiplier-pill span {
+    display: inline-block;
+    font-family: 'Orbitron', sans-serif;
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: var(--accent2);
+    background: rgba(0,255,136,0.07);
+    border: 1px solid rgba(0,255,136,0.2);
+    border-radius: 100px;
+    padding: 0.4rem 1.5rem;
+    letter-spacing: 0.05em;
+    transition: all 0.3s;
+  }
+
+  /* Controls */
+  .controls {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0.75rem;
+    margin-bottom: 1.25rem;
+  }
+  .control-group {
+    background: var(--panel2);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 0.7rem 0.9rem;
+  }
+  .control-group label {
+    display: block;
+    font-family: 'Space Mono', monospace;
+    font-size: 0.6rem;
+    color: var(--muted);
+    letter-spacing: 0.15em;
+    margin-bottom: 0.3rem;
+  }
+  .control-group input {
+    width: 100%;
+    background: transparent;
+    border: none;
+    outline: none;
+    color: var(--text);
+    font-family: 'Orbitron', sans-serif;
+    font-size: 1.1rem;
+    font-weight: 700;
+  }
+  .control-group input:disabled {
+    opacity: 0.4;
+  }
+
+  /* Grid */
+  .grid {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 6px;
+    margin-bottom: 1.25rem;
+  }
+  .tile {
+    aspect-ratio: 1;
+    cursor: pointer;
+    background: var(--tile);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.3rem;
+    position: relative;
+    overflow: hidden;
+    transition: background 0.15s, border-color 0.15s, transform 0.12s;
+    user-select: none;
+  }
+  .tile::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(135deg, rgba(255,255,255,0.04) 0%, transparent 60%);
+    pointer-events: none;
+  }
+  .tile:hover:not(.revealed-gem):not(.revealed-mine) {
+    background: var(--tile-h);
+    border-color: rgba(0,229,255,0.3);
+    transform: scale(1.06);
+  }
+  .tile.revealed-gem {
+    background: var(--gem);
+    border-color: var(--gem-border);
+    box-shadow: 0 0 10px rgba(0,255,136,0.25), inset 0 0 12px rgba(0,255,136,0.08);
+    cursor: default;
+  }
+  .tile.revealed-mine {
+    background: var(--mine);
+    border-color: var(--mine-border);
+    box-shadow: 0 0 12px rgba(255,60,110,0.35), inset 0 0 12px rgba(255,60,110,0.1);
+    cursor: default;
+  }
+
+  /* Buttons */
+  .btn-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0.6rem;
+    margin-bottom: 0.6rem;
+  }
+  .btn-row-2 {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 0.6rem;
+    margin-bottom: 1rem;
+  }
+  button {
+    font-family: 'Rajdhani', sans-serif;
+    font-weight: 700;
+    font-size: 0.95rem;
+    letter-spacing: 0.08em;
+    border: none;
+    border-radius: 10px;
+    padding: 0.75rem 1rem;
+    cursor: pointer;
+    transition: transform 0.12s, box-shadow 0.12s, opacity 0.15s;
+    position: relative;
+    overflow: hidden;
+    text-transform: uppercase;
+  }
+  button:disabled {
+    opacity: 0.35;
+    cursor: not-allowed;
+    transform: none !important;
+  }
+  button:not(:disabled):hover {
+    transform: translateY(-2px);
+  }
+  button:not(:disabled):active {
+    transform: translateY(0);
+  }
+
+  #start-button {
+    background: linear-gradient(135deg, #00c853, #00e676);
+    color: #001a0d;
+    box-shadow: 0 4px 20px rgba(0,200,83,0.3);
+  }
+  #cashout-button {
+    background: linear-gradient(135deg, #ff8f00, #ffd740);
+    color: #1a0900;
+    box-shadow: 0 4px 20px rgba(255,143,0,0.3);
+  }
+  #tip-button {
+    background: linear-gradient(135deg, #0288d1, #00b0ff);
+    color: #001a2e;
+    box-shadow: 0 4px 20px rgba(2,136,209,0.3);
+    width: 100%;
+  }
+
+  /* Message */
+  #message-box {
+    display: none;
+    border-radius: 10px;
+    padding: 0.9rem 1rem;
+    text-align: center;
+    font-size: 0.95rem;
+    font-weight: 600;
+    line-height: 1.4;
+    letter-spacing: 0.02em;
+  }
+  #message-box.success {
+    background: rgba(0,255,136,0.08);
+    border: 1px solid rgba(0,255,136,0.25);
+    color: var(--accent2);
+  }
+  #message-box.error {
+    background: rgba(255,60,110,0.08);
+    border: 1px solid rgba(255,60,110,0.25);
+    color: #ff7094;
+  }
+  #message-box.info {
+    background: rgba(0,176,255,0.08);
+    border: 1px solid rgba(0,176,255,0.25);
+    color: #60c4ff;
+  }
+  #message-box.loading {
+    background: rgba(0,229,255,0.06);
+    border: 1px solid rgba(0,229,255,0.15);
+    color: var(--muted);
+    font-family: 'Space Mono', monospace;
+    font-size: 0.75rem;
+  }
+
+  /* Animations */
+  @keyframes pop { 0%{transform:scale(.7)} 60%{transform:scale(1.15)} 100%{transform:scale(1)} }
+  @keyframes shake { 0%,100%{transform:translateX(0)} 20%{transform:translateX(-5px)} 40%{transform:translateX(5px)} 60%{transform:translateX(-3px)} 80%{transform:translateX(3px)} }
+  @keyframes gemGlow { 0%{box-shadow:0 0 0 rgba(0,255,136,0)} 50%{box-shadow:0 0 20px rgba(0,255,136,.6),inset 0 0 15px rgba(0,255,136,.15)} 100%{box-shadow:0 0 10px rgba(0,255,136,.25),inset 0 0 12px rgba(0,255,136,.08)} }
+  @keyframes cashPulse { 0%,100%{box-shadow:0 4px 20px rgba(255,143,0,0.3)} 50%{box-shadow:0 4px 30px rgba(255,143,0,0.7), 0 0 0 3px rgba(255,215,64,0.3)} }
+  @keyframes multiplierBump { 0%{transform:scale(1)} 50%{transform:scale(1.12)} 100%{transform:scale(1)} }
+  @keyframes fadeIn { from{opacity:0;transform:translateY(6px)} to{opacity:1;transform:translateY(0)} }
+  @keyframes tipDots { 0%{content:'.'} 33%{content:'..'} 66%{content:'...'} 100%{content:'.'} }
+
+  .animate-pop { animation: pop .25s cubic-bezier(.34,1.56,.64,1) forwards; }
+  .animate-shake { animation: shake .4s ease-in-out; }
+  .animate-gem-glow { animation: gemGlow .5s ease-out forwards; }
+  .animate-cash-pulse { animation: cashPulse 1s ease-in-out infinite; }
+  .animate-mult-bump { animation: multiplierBump .3s ease-out; }
+  .animate-fade-in { animation: fadeIn .3s ease-out; }
+
+  .dots-loader::after {
+    content: '.';
+    animation: tipDots 1s steps(1) infinite;
+  }
+
+  /* Gem streak counter */
+  .streak-bar {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    margin-bottom: 0.75rem;
+    min-height: 24px;
+  }
+  .streak-dot {
+    width: 8px; height: 8px;
+    border-radius: 50%;
+    background: var(--border);
+    transition: all 0.2s;
+  }
+  .streak-dot.active {
+    background: var(--accent2);
+    box-shadow: 0 0 6px var(--accent2);
+  }
+</style>
+</head>
+<body>
+<div class="game-container">
+
+  <div class="header">
+    <h1>MINES</h1>
+    <div class="header-sub">PREMIUM EDITION · PRESS YOUR LUCK</div>
+  </div>
+
+  <div class="balance-bar">
+    <span class="balance-label">BALANCE</span>
+    <span class="balance-value" id="balance-display">$10.00</span>
+  </div>
+
+  <div class="multiplier-pill">
+    <span id="multiplier-display">1.00×</span>
+  </div>
+
+  <div class="controls">
+    <div class="control-group">
+      <label>MINES COUNT</label>
+      <input type="number" id="mine-count" min="1" max="24" value="3"/>
+    </div>
+    <div class="control-group">
+      <label>WAGER ($)</label>
+      <input type="number" id="wager" min="0.01" step="0.01" value="1.00"/>
+    </div>
+  </div>
+
+  <div class="streak-bar" id="streak-bar">
+    <!-- dots filled in by JS -->
+  </div>
+
+  <div id="game-grid" class="grid"></div>
+
+  <div class="btn-row">
+    <button id="start-button">▶ Start</button>
+    <button id="cashout-button" disabled>💰 Cash Out</button>
+  </div>
+  <div class="btn-row-2">
+    <button id="tip-button">✨ Get AI Strategy</button>
+  </div>
+
+  <div id="message-box"></div>
+</div>
+
+<script>
+// ─── Audio Engine ───────────────────────────────────────────────────────────
+const AudioCtx = window.AudioContext || window.webkitAudioContext;
+let audioCtx;
+
+function getAudioCtx() {
+  if (!audioCtx) audioCtx = new AudioCtx();
+  return audioCtx;
+}
+
+function playGemChime() {
+  try {
+    const ctx = getAudioCtx();
+    const now = ctx.currentTime;
+    // Bright sparkling ascending tones
+    const notes = [523.25, 659.25, 783.99, 1046.5]; // C5 E5 G5 C6
+    notes.forEach((freq, i) => {
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      const t = now + i * 0.06;
+      osc.type = 'sine';
+      osc.frequency.setValueAtTime(freq, t);
+      gain.gain.setValueAtTime(0, t);
+      gain.gain.linearRampToValueAtTime(0.28, t + 0.02);
+      gain.gain.exponentialRampToValueAtTime(0.001, t + 0.35);
+      osc.connect(gain);
+      gain.connect(ctx.destination);
+      osc.start(t);
+      osc.stop(t + 0.4);
+    });
+    // Shimmer overtone
+    const shimmer = ctx.createOscillator();
+    const sGain = ctx.createGain();
+    shimmer.type = 'triangle';
+    shimmer.frequency.setValueAtTime(2093, now + 0.15);
+    sGain.gain.setValueAtTime(0.12, now + 0.15);
+    sGain.gain.exponentialRampToValueAtTime(0.001, now + 0.6);
+    shimmer.connect(sGain);
+    sGain.connect(ctx.destination);
+    shimmer.start(now + 0.15);
+    shimmer.stop(now + 0.7);
+  } catch(e) {}
+}
+
+function playBombBuzzer() {
+  try {
+    const ctx = getAudioCtx();
+    const now = ctx.currentTime;
+    // Deep boom + harsh buzz
+    const boom = ctx.createOscillator();
+    const boomGain = ctx.createGain();
+    boom.type = 'sine';
+    boom.frequency.setValueAtTime(80, now);
+    boom.frequency.exponentialRampToValueAtTime(30, now + 0.5);
+    boomGain.gain.setValueAtTime(0.9, now);
+    boomGain.gain.exponentialRampToValueAtTime(0.001, now + 0.6);
+    boom.connect(boomGain);
+    boomGain.connect(ctx.destination);
+    boom.start(now);
+    boom.stop(now + 0.65);
+
+    // Harsh sawtooth buzz
+    const buzz = ctx.createOscillator();
+    const buzzGain = ctx.createGain();
+    buzz.type = 'sawtooth';
+    buzz.frequency.setValueAtTime(120, now);
+    buzz.frequency.linearRampToValueAtTime(55, now + 0.45);
+    buzzGain.gain.setValueAtTime(0.4, now);
+    buzzGain.gain.exponentialRampToValueAtTime(0.001, now + 0.55);
+    buzz.connect(buzzGain);
+    buzzGain.connect(ctx.destination);
+    buzz.start(now);
+    buzz.stop(now + 0.6);
+
+    // Crackle noise
+    const bufferSize = ctx.sampleRate * 0.3;
+    const buffer = ctx.createBuffer(1, bufferSize, ctx.sampleRate);
+    const data = buffer.getChannelData(0);
+    for (let i = 0; i < bufferSize; i++) data[i] = (Math.random() * 2 - 1) * (1 - i/bufferSize);
+    const noise = ctx.createBufferSource();
+    const nFilter = ctx.createBiquadFilter();
+    const nGain = ctx.createGain();
+    nFilter.type = 'lowpass';
+    nFilter.frequency.value = 400;
+    noise.buffer = buffer;
+    nGain.gain.setValueAtTime(0.5, now);
+    nGain.gain.exponentialRampToValueAtTime(0.001, now + 0.35);
+    noise.connect(nFilter);
+    nFilter.connect(nGain);
+    nGain.connect(ctx.destination);
+    noise.start(now);
+    noise.stop(now + 0.4);
+  } catch(e) {}
+}
+
+function playCashoutSound() {
+  try {
+    const ctx = getAudioCtx();
+    const now = ctx.currentTime;
+    const notes = [523.25, 659.25, 783.99, 1046.5, 1318.5, 1567.98];
+    notes.forEach((freq, i) => {
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      const t = now + i * 0.07;
+      osc.type = i % 2 === 0 ? 'sine' : 'triangle';
+      osc.frequency.setValueAtTime(freq, t);
+      gain.gain.setValueAtTime(0.25, t);
+      gain.gain.exponentialRampToValueAtTime(0.001, t + 0.5);
+      osc.connect(gain);
+      gain.connect(ctx.destination);
+      osc.start(t);
+      osc.stop(t + 0.55);
+    });
+  } catch(e) {}
+}
+
+// ─── Game State ──────────────────────────────────────────────────────────────
+let balance = 10;
+let gameOver = false;
+let minePositions = [];
+let gemsFound = 0;
+let isGameActive = false;
+let initialWager = 0;
+const GRID_SIZE = 25;
+
+const grid       = document.getElementById('game-grid');
+const startBtn   = document.getElementById('start-button');
+const cashoutBtn = document.getElementById('cashout-button');
+const tipBtn     = document.getElementById('tip-button');
+const mineInput  = document.getElementById('mine-count');
+const wagerInput = document.getElementById('wager');
+const multDisp   = document.getElementById('multiplier-display');
+const balDisp    = document.getElementById('balance-display');
+const msgBox     = document.getElementById('message-box');
+const streakBar  = document.getElementById('streak-bar');
+
+// ─── UI Helpers ──────────────────────────────────────────────────────────────
+function showMessage(msg, type='info') {
+  msgBox.className = `animate-fade-in ${type}`;
+  msgBox.textContent = msg;
+  msgBox.style.display = 'block';
+}
+
+function hideMessage() {
+  msgBox.style.display = 'none';
+}
+
+function updateBalance() {
+  balDisp.textContent = `$${balance.toFixed(2)}`;
+}
+
+function updateMultiplier() {
+  const m = calcMultiplier();
+  multDisp.textContent = `${m.toFixed(2)}×`;
+  multDisp.parentElement.querySelector('span').classList.remove('animate-mult-bump');
+  void multDisp.parentElement.querySelector('span').offsetWidth;
+  multDisp.parentElement.querySelector('span').classList.add('animate-mult-bump');
+}
+
+function buildStreakBar() {
+  streakBar.innerHTML = '';
+  const totalSafe = GRID_SIZE - minePositions.length;
+  const dots = Math.min(totalSafe, 20);
+  for (let i = 0; i < dots; i++) {
+    const d = document.createElement('div');
+    d.className = 'streak-dot' + (i < gemsFound ? ' active' : '');
+    streakBar.appendChild(d);
+  }
+}
+
+// ─── Game Logic ──────────────────────────────────────────────────────────────
+function calcMultiplier() {
+  if (gemsFound === 0) return 1;
+  const mineFactor = minePositions.length / GRID_SIZE;
+  const raw = Math.pow(1.08 + mineFactor, gemsFound);
+  return Math.min(raw, 50);
+}
+
+function placeMines(count) {
+  minePositions = [];
+  const arr = [...Array(GRID_SIZE).keys()];
+  for (let i = 0; i < count; i++) {
+    const ri = Math.floor(Math.random() * arr.length);
+    minePositions.push(arr.splice(ri, 1)[0]);
+  }
+}
+
+function createGrid() {
+  grid.innerHTML = '';
+  for (let i = 0; i < GRID_SIZE; i++) {
+    const t = document.createElement('div');
+    t.className = 'tile';
+    t.dataset.index = i;
+    t.onclick = tileClick;
+    grid.appendChild(t);
+  }
+}
+
+function tileClick(e) {
+  if (!isGameActive || gameOver) return;
+  const t = e.currentTarget;
+  if (t.classList.contains('revealed-gem') || t.classList.contains('revealed-mine')) return;
+  const idx = +t.dataset.index;
+
+  if (minePositions.includes(idx)) {
+    t.classList.add('revealed-mine', 'animate-shake');
+    t.textContent = '💣';
+    playBombBuzzer();
+    gameOver = true;
+    endGame(false);
+  } else {
+    t.classList.add('revealed-gem', 'animate-pop', 'animate-gem-glow');
+    t.textContent = '💎';
+    gemsFound++;
+    playGemChime();
+    cashoutBtn.disabled = false;
+    cashoutBtn.classList.add('animate-cash-pulse');
+    updateMultiplier();
+    buildStreakBar();
+    setTimeout(() => t.classList.remove('animate-pop'), 300);
+    if (gemsFound === GRID_SIZE - minePositions.length) {
+      // Auto-win - all safe tiles revealed
+      setTimeout(() => endGame(true), 200);
+    }
+  }
+}
+
+function startGame() {
+  const mines  = +mineInput.value;
+  const wager  = +wagerInput.value;
+  if (mines < 1 || mines > 24)        return showMessage('Mine count must be 1–24.', 'error');
+  if (wager <= 0 || wager > balance)  return showMessage('Invalid wager amount.', 'error');
+
+  balance -= wager;
+  updateBalance();
+  initialWager = wager;
+  gemsFound = 0;
+  gameOver = false;
+  isGameActive = true;
+
+  startBtn.disabled = true;
+  cashoutBtn.disabled = true;
+  cashoutBtn.classList.remove('animate-cash-pulse');
+  mineInput.disabled = true;
+  wagerInput.disabled = true;
+
+  createGrid();
+  placeMines(mines);
+  updateMultiplier();
+  buildStreakBar();
+  showMessage('💫 Game on — tap tiles carefully.', 'info');
+}
+
+function endGame(win) {
+  isGameActive = false;
+  gameOver = true;
+  startBtn.disabled = false;
+  mineInput.disabled = false;
+  wagerInput.disabled = false;
+  cashoutBtn.disabled = true;
+  cashoutBtn.classList.remove('animate-cash-pulse');
+
+  // Reveal all
+  document.querySelectorAll('.tile').forEach(t => {
+    const idx = +t.dataset.index;
+    if (minePositions.includes(idx)) {
+      if (!t.classList.contains('revealed-mine')) {
+        t.classList.add('revealed-mine');
+        t.textContent = '💣';
+      }
+    } else if (!t.classList.contains('revealed-gem')) {
+      t.classList.add('revealed-gem');
+      t.textContent = '💎';
+    }
+  });
+
+  if (win) {
+    const winAmt = initialWager * calcMultiplier();
+    balance += winAmt;
+    updateBalance();
+    playCashoutSound();
+    showMessage(`🏆 Cashed out $${winAmt.toFixed(2)} at ${calcMultiplier().toFixed(2)}×!`, 'success');
+  } else {
+    showMessage('💥 Mine hit! Better luck next round.', 'error');
+  }
+  buildStreakBar();
+}
+
+// ─── AI Strategy Tip ─────────────────────────────────────────────────────────
+async function getAITip() {
+  tipBtn.disabled = true;
+  msgBox.className = 'loading';
+  msgBox.innerHTML = '<span class="dots-loader">Consulting strategy AI</span>';
+  msgBox.style.display = 'block';
+
+  const mines     = +mineInput.value || minePositions.length;
+  const safeTiles = GRID_SIZE - mines;
+  const remaining = safeTiles - gemsFound;
+  const revealed  = gemsFound;
+  const mult      = calcMultiplier().toFixed(2);
+  const risk      = ((mines / (GRID_SIZE - revealed)) * 100).toFixed(1);
+  const inGame    = isGameActive && !gameOver;
+
+  const userPrompt = inGame
+    ? `Mines game state: ${mines} mines in 25 tiles. I've revealed ${revealed} safe gems. Current multiplier is ${mult}×. Remaining unrevealed tiles: ${GRID_SIZE - revealed}. Mine probability per remaining tile: ${risk}%. Should I cash out or keep going? Give me a sharp, direct 1–2 sentence strategy recommendation.`
+    : `I'm about to start a Mines game with ${mines} mines in a 5×5 grid (25 tiles). Give me a 1–2 sentence opening strategy tip.`;
+
+  try {
+    const res = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        model: 'claude-sonnet-4-20250514',
+        max_tokens: 1000,
+        system: 'You are a concise, sharp gambling strategy advisor for a mines game. Speak directly and confidently. Never hedge with disclaimers. Keep responses to 1–2 punchy sentences max.',
+        messages: [{ role: 'user', content: userPrompt }]
+      })
+    });
+
+    const data = await res.json();
+    const tip = data?.content?.[0]?.text?.trim() || 'Trust your gut — variance is high in any mine density.';
+    showMessage(`✨ ${tip}`, 'info');
+  } catch(err) {
+    showMessage('⚠️ Strategy AI unavailable. Rule of thumb: cash out before hitting 50% mine probability.', 'info');
+  } finally {
+    tipBtn.disabled = false;
+  }
+}
+
+// ─── Event Listeners ─────────────────────────────────────────────────────────
+startBtn.onclick   = startGame;
+cashoutBtn.onclick = () => endGame(true);
+tipBtn.onclick     = getAITip;
+
+// Init
+createGrid();
+updateBalance();
+buildStreakBar();
+</script>
+</body>
+</html>
