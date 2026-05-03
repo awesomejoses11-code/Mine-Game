@@ -1,0 +1,757 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>LGC Mines</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@500;600;700&family=Orbitron:wght@700;900&family=Space+Mono&display=swap" rel="stylesheet">
+<script src="https://unpkg.com/@tonconnect/ui@latest/dist/tonconnect-ui.min.js"></script>
+<style>
+:root{
+  --bg:#06080f;--panel:#0b0f1c;--panel2:#0f1525;
+  --border:#1a2540;--border2:#243050;
+  --accent:#00d4ff;--accent2:#00ff88;--accent3:#ff3c6e;
+  --gold:#ffd700;--lgc:#c084fc;--lgc-dim:rgba(192,132,252,0.12);
+  --lgc-border:rgba(192,132,252,0.3);--ton:#0098ea;
+  --text:#c8d8f0;--muted:#4a6080;
+  --tile:#0c1828;--tile-h:#112035;
+  --gem:#071e14;--gem-border:#00ff88;
+  --mine:#1c050d;--mine-border:#ff3c6e;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{
+  font-family:'Rajdhani',sans-serif;background:var(--bg);color:var(--text);
+  min-height:100vh;display:flex;flex-direction:column;align-items:center;
+  justify-content:flex-start;padding:1rem;overflow-x:hidden;
+}
+body::before{
+  content:'';position:fixed;inset:0;
+  background-image:linear-gradient(rgba(0,212,255,0.025) 1px,transparent 1px),
+    linear-gradient(90deg,rgba(0,212,255,0.025) 1px,transparent 1px);
+  background-size:44px 44px;pointer-events:none;z-index:0;
+}
+body::after{
+  content:'';position:fixed;top:-200px;left:50%;transform:translateX(-50%);
+  width:700px;height:400px;
+  background:radial-gradient(ellipse,rgba(192,132,252,0.06) 0%,transparent 70%);
+  pointer-events:none;z-index:0;
+}
+.app{position:relative;z-index:1;width:100%;max-width:480px;display:flex;flex-direction:column;gap:0.75rem;padding-bottom:2rem;}
+
+/* NAV */
+.topnav{display:flex;align-items:center;justify-content:space-between;padding:0.6rem 0;}
+.brand{font-family:'Orbitron',sans-serif;font-size:1.1rem;font-weight:900;letter-spacing:0.2em;background:linear-gradient(90deg,var(--lgc),var(--accent));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;}
+.brand-sub{font-family:'Space Mono',monospace;font-size:0.55rem;color:var(--muted);letter-spacing:0.2em;margin-top:2px;}
+#ton-connect-btn{
+  background:var(--ton);color:#fff;border:none;border-radius:8px;
+  padding:0.45rem 0.9rem;font-family:'Rajdhani',sans-serif;font-weight:700;
+  font-size:0.8rem;letter-spacing:0.06em;cursor:pointer;
+  transition:opacity 0.15s,transform 0.12s;display:flex;align-items:center;gap:0.4rem;
+}
+#ton-connect-btn:hover{opacity:0.88;transform:translateY(-1px);}
+#ton-connect-btn.connected{background:#0f3a20;border:1px solid var(--accent2);color:var(--accent2);}
+
+/* CARDS */
+.card{background:var(--panel);border:1px solid var(--border);border-radius:16px;padding:1.1rem 1.25rem;box-shadow:0 8px 32px rgba(0,0,0,0.5),inset 0 1px 0 rgba(255,255,255,0.03);}
+
+/* BALANCES */
+.balance-row{display:grid;grid-template-columns:1fr 1fr;gap:0.6rem;}
+.bal-box{background:var(--panel2);border:1px solid var(--border);border-radius:12px;padding:0.7rem 0.9rem;}
+.bal-box.lgc-box{border-color:var(--lgc-border);background:var(--lgc-dim);}
+.bal-label{font-family:'Space Mono',monospace;font-size:0.58rem;color:var(--muted);letter-spacing:0.15em;margin-bottom:3px;}
+.bal-value{font-family:'Orbitron',sans-serif;font-size:1.05rem;font-weight:700;}
+.bal-value.lgc{color:var(--lgc);}
+.bal-value.ton-col{color:var(--ton);}
+.bal-sub{font-family:'Space Mono',monospace;font-size:0.55rem;color:var(--muted);margin-top:2px;}
+
+/* ACTIONS */
+.action-row{display:grid;grid-template-columns:1fr 1fr;gap:0.6rem;}
+
+/* RATE */
+.rate-info{display:flex;align-items:center;justify-content:center;gap:0.5rem;font-family:'Space Mono',monospace;font-size:0.6rem;color:var(--muted);padding:0.5rem;flex-wrap:wrap;}
+.rate-pill{background:var(--panel2);border:1px solid var(--border2);border-radius:6px;padding:0.2rem 0.5rem;color:var(--text);font-size:0.6rem;}
+
+/* MODAL */
+.modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.75);backdrop-filter:blur(4px);z-index:100;align-items:center;justify-content:center;padding:1rem;}
+.modal-overlay.open{display:flex;}
+.modal{background:var(--panel);border:1px solid var(--border2);border-radius:18px;padding:1.5rem;width:100%;max-width:360px;box-shadow:0 24px 64px rgba(0,0,0,0.7);}
+/* FIX #8: replay modal animation by toggling class */
+.modal.animate-in{animation:modalIn 0.22s cubic-bezier(.34,1.56,.64,1) both;}
+@keyframes modalIn{from{opacity:0;transform:scale(0.9) translateY(20px)}to{opacity:1;transform:scale(1) translateY(0)}}
+.modal-title{font-family:'Orbitron',sans-serif;font-size:1rem;font-weight:700;margin-bottom:1rem;color:var(--lgc);}
+.modal-row{display:flex;justify-content:space-between;align-items:center;margin-bottom:0.5rem;}
+.modal-label{color:var(--muted);font-family:'Space Mono',monospace;font-size:0.62rem;letter-spacing:0.1em;}
+.modal-value{font-family:'Orbitron',sans-serif;font-size:0.9rem;font-weight:700;}
+.modal-divider{border:none;border-top:1px solid var(--border);margin:0.75rem 0;}
+.modal-input-wrap{background:var(--panel2);border:1px solid var(--border2);border-radius:10px;padding:0.7rem 0.9rem;margin-bottom:0.75rem;}
+.modal-input-wrap label{display:block;font-family:'Space Mono',monospace;font-size:0.58rem;color:var(--muted);letter-spacing:0.15em;margin-bottom:4px;}
+.modal-input-wrap input{width:100%;background:transparent;border:none;outline:none;color:var(--text);font-family:'Orbitron',sans-serif;font-size:1.1rem;font-weight:700;}
+.modal-fee-box{background:rgba(192,132,252,0.06);border:1px solid var(--lgc-border);border-radius:8px;padding:0.6rem 0.8rem;margin-bottom:0.75rem;}
+.fee-line{display:flex;justify-content:space-between;margin-bottom:2px;}
+.fee-label{color:var(--muted);font-family:'Space Mono',monospace;font-size:0.6rem;}
+.fee-val{color:var(--lgc);font-family:'Orbitron',sans-serif;font-size:0.75rem;font-weight:700;}
+.modal-btn-row{display:grid;grid-template-columns:1fr 1fr;gap:0.5rem;}
+.modal-error{color:#ff7094;font-size:0.75rem;font-family:'Space Mono',monospace;margin-bottom:0.6rem;display:none;line-height:1.4;}
+.modal-note{font-family:'Space Mono',monospace;font-size:0.58rem;color:var(--muted);margin-bottom:0.75rem;line-height:1.5;}
+
+/* GAME */
+.mult-row{display:flex;align-items:center;justify-content:space-between;margin-bottom:0.75rem;}
+.mult-label{font-family:'Space Mono',monospace;font-size:0.6rem;color:var(--muted);letter-spacing:0.1em;}
+#multiplier-display{font-family:'Orbitron',sans-serif;font-size:1.4rem;font-weight:700;color:var(--accent2);background:rgba(0,255,136,0.07);border:1px solid rgba(0,255,136,0.2);border-radius:100px;padding:0.3rem 1.2rem;letter-spacing:0.05em;}
+.bomb-penalty{font-family:'Space Mono',monospace;font-size:0.6rem;color:var(--accent3);background:rgba(255,60,110,0.08);border:1px solid rgba(255,60,110,0.2);border-radius:100px;padding:0.25rem 0.7rem;}
+.controls{display:grid;grid-template-columns:1fr 1fr;gap:0.6rem;margin-bottom:0.75rem;}
+.ctrl{background:var(--panel2);border:1px solid var(--border);border-radius:10px;padding:0.6rem 0.8rem;}
+.ctrl label{display:block;font-family:'Space Mono',monospace;font-size:0.56rem;color:var(--muted);letter-spacing:0.15em;margin-bottom:3px;}
+.ctrl input{width:100%;background:transparent;border:none;outline:none;color:var(--text);font-family:'Orbitron',sans-serif;font-size:1rem;font-weight:700;}
+.ctrl input:disabled{opacity:0.35;}
+.streak{display:flex;align-items:center;justify-content:center;gap:4px;min-height:18px;margin-bottom:0.65rem;flex-wrap:wrap;}
+.sdot{width:7px;height:7px;border-radius:50%;background:var(--border2);transition:all 0.2s;}
+.sdot.active{background:var(--accent2);box-shadow:0 0 5px var(--accent2);}
+.grid{display:grid;grid-template-columns:repeat(5,1fr);gap:5px;margin-bottom:0.75rem;}
+.tile{aspect-ratio:1;cursor:pointer;background:var(--tile);border:1px solid var(--border);border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:1.2rem;position:relative;overflow:hidden;transition:background 0.12s,border-color 0.12s,transform 0.1s;user-select:none;}
+.tile::before{content:'';position:absolute;inset:0;background:linear-gradient(135deg,rgba(255,255,255,0.04) 0%,transparent 55%);pointer-events:none;}
+.tile:hover:not(.revealed-gem):not(.revealed-mine){background:var(--tile-h);border-color:rgba(0,212,255,0.25);transform:scale(1.05);}
+.tile.revealed-gem{background:var(--gem);border-color:var(--gem-border);box-shadow:0 0 8px rgba(0,255,136,0.2),inset 0 0 10px rgba(0,255,136,0.07);cursor:default;}
+.tile.revealed-mine{background:var(--mine);border-color:var(--mine-border);box-shadow:0 0 10px rgba(255,60,110,0.3),inset 0 0 10px rgba(255,60,110,0.08);cursor:default;}
+
+/* BUTTONS */
+button{font-family:'Rajdhani',sans-serif;font-weight:700;font-size:0.9rem;letter-spacing:0.07em;border:none;border-radius:10px;padding:0.7rem 0.9rem;cursor:pointer;transition:transform 0.1s,opacity 0.12s,box-shadow 0.12s;text-transform:uppercase;white-space:nowrap;}
+button:disabled{opacity:0.3;cursor:not-allowed;transform:none!important;}
+button:not(:disabled):hover{transform:translateY(-2px);}
+button:not(:disabled):active{transform:translateY(0);}
+#start-btn{background:linear-gradient(135deg,#00a845,#00e676);color:#001a0d;box-shadow:0 4px 16px rgba(0,180,80,0.25);}
+#cashout-btn{background:linear-gradient(135deg,#e65c00,#ffd740);color:#1a0900;box-shadow:0 4px 16px rgba(255,143,0,0.25);}
+#tip-btn{background:linear-gradient(135deg,#0077b6,#00b4d8);color:#001525;width:100%;}
+.btn-buy{background:linear-gradient(135deg,var(--lgc),#a855f7);color:#0d0020;box-shadow:0 4px 16px rgba(192,132,252,0.25);}
+.btn-withdraw{background:var(--panel2);border:1px solid var(--lgc-border)!important;color:var(--lgc);}
+.btn-cancel{background:var(--panel2);border:1px solid var(--border2)!important;color:var(--muted);}
+.btn-confirm{background:linear-gradient(135deg,var(--lgc),#a855f7);color:#0d0020;}
+.btn-row{display:grid;grid-template-columns:1fr 1fr;gap:0.6rem;margin-bottom:0.6rem;}
+.btn-row-full{margin-bottom:0.6rem;}
+
+/* MESSAGE */
+#message-box{display:none;border-radius:10px;padding:0.8rem 1rem;text-align:center;font-size:0.9rem;font-weight:600;line-height:1.5;letter-spacing:0.02em;}
+#message-box.success{background:rgba(0,255,136,0.07);border:1px solid rgba(0,255,136,0.22);color:var(--accent2);}
+#message-box.error{background:rgba(255,60,110,0.07);border:1px solid rgba(255,60,110,0.22);color:#ff7094;}
+#message-box.info{background:rgba(0,212,255,0.06);border:1px solid rgba(0,212,255,0.18);color:#60d4ff;}
+#message-box.loading{background:rgba(0,212,255,0.04);border:1px solid rgba(0,212,255,0.1);color:var(--muted);font-family:'Space Mono',monospace;font-size:0.72rem;}
+
+/* ANIMATIONS */
+@keyframes pop{0%{transform:scale(.6)}60%{transform:scale(1.18)}100%{transform:scale(1)}}
+@keyframes shake{0%,100%{transform:translateX(0)}20%{transform:translateX(-5px)}40%{transform:translateX(5px)}60%{transform:translateX(-3px)}80%{transform:translateX(3px)}}
+@keyframes gemGlow{0%{box-shadow:0 0 0 rgba(0,255,136,0)}50%{box-shadow:0 0 18px rgba(0,255,136,.55),inset 0 0 14px rgba(0,255,136,.12)}100%{box-shadow:0 0 8px rgba(0,255,136,.2),inset 0 0 10px rgba(0,255,136,.07)}}
+@keyframes cashPulse{0%,100%{box-shadow:0 4px 16px rgba(255,143,0,0.25)}50%{box-shadow:0 4px 28px rgba(255,215,64,0.6),0 0 0 3px rgba(255,215,64,0.2)}}
+@keyframes multBump{0%{transform:scale(1)}50%{transform:scale(1.15)}100%{transform:scale(1)}}
+@keyframes fadeSlide{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
+/* FIX #9: dots-loader base content so animation has a starting point */
+@keyframes tipDots{0%{content:'·'}25%{content:'··'}50%{content:'···'}75%{content:'··'}100%{content:'·'}}
+.anim-pop{animation:pop .25s cubic-bezier(.34,1.56,.64,1) forwards}
+.anim-shake{animation:shake .4s ease-in-out}
+.anim-gem-glow{animation:gemGlow .5s ease-out forwards}
+.anim-cash-pulse{animation:cashPulse 1s ease-in-out infinite}
+.anim-mult-bump{animation:multBump .28s ease-out}
+.anim-fade{animation:fadeSlide .28s ease-out}
+.dots-loader::after{content:'·';animation:tipDots 1.2s steps(1) infinite}
+</style>
+</head>
+<body>
+<div class="app">
+
+  <div class="topnav">
+    <div>
+      <div class="brand">LGC MINES</div>
+      <div class="brand-sub">LGC ECOSYSTEM · POWERED BY TON</div>
+    </div>
+    <button id="ton-connect-btn">
+      <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="12" r="10"/></svg>
+      Connect Wallet
+    </button>
+  </div>
+
+  <div class="balance-row">
+    <div class="bal-box lgc-box">
+      <div class="bal-label">LGC BALANCE</div>
+      <div class="bal-value lgc" id="lgc-balance">0 LGC</div>
+      <div class="bal-sub" id="lgc-in-ton">≈ 0.0000 TON</div>
+    </div>
+    <div class="bal-box">
+      <div class="bal-label">TON WALLET</div>
+      <div class="bal-value ton-col" id="wallet-display">Not Connected</div>
+      <div class="bal-sub" id="wallet-addr">Connect to play</div>
+    </div>
+  </div>
+
+  <div class="action-row">
+    <button class="btn-buy" id="buy-btn">⬇ Buy LGC</button>
+    <button class="btn-withdraw" id="withdraw-btn">⬆ Withdraw</button>
+  </div>
+
+  <div class="rate-info">
+    <span class="rate-pill">2,500 LGC = 1 TON</span>
+    <span>·</span>
+    <span class="rate-pill">Min withdraw: 1,000 LGC</span>
+    <span>·</span>
+    <span class="rate-pill">Gas from 0.1 TON</span>
+  </div>
+
+  <div class="card">
+    <div class="mult-row">
+      <div>
+        <div class="mult-label">MULTIPLIER</div>
+        <div id="multiplier-display">1.00×</div>
+      </div>
+      <div class="bomb-penalty">💣 Hit = −25% balance</div>
+    </div>
+
+    <div class="controls">
+      <div class="ctrl">
+        <label>MINES</label>
+        <!-- FIX #10: step=1 to prevent decimal mine counts -->
+        <input type="number" id="mine-count" min="1" max="24" step="1" value="3"/>
+      </div>
+      <div class="ctrl">
+        <label>WAGER (LGC)</label>
+        <!-- FIX #7: step=1 to prevent fractional LGC wagers -->
+        <input type="number" id="wager" min="1" step="1" value="100"/>
+      </div>
+    </div>
+
+    <div class="streak" id="streak"></div>
+    <div class="grid" id="game-grid"></div>
+
+    <div class="btn-row">
+      <button id="start-btn">▶ Start</button>
+      <button id="cashout-btn" disabled>💰 Cash Out</button>
+    </div>
+    <div class="btn-row-full">
+      <button id="tip-btn">✨ Get AI Strategy</button>
+    </div>
+    <div id="message-box"></div>
+  </div>
+
+</div>
+
+<!-- BUY MODAL -->
+<div class="modal-overlay" id="buy-modal">
+  <div class="modal" id="buy-modal-inner">
+    <div class="modal-title">⬇ Buy LGC with TON</div>
+    <div class="modal-row">
+      <span class="modal-label">RATE</span>
+      <span class="modal-value" style="color:var(--lgc)">2,500 LGC / TON</span>
+    </div>
+    <hr class="modal-divider">
+    <div class="modal-input-wrap">
+      <label>AMOUNT (TON)</label>
+      <input type="number" id="buy-ton-input" min="0.01" step="0.01" value="1"/>
+    </div>
+    <div class="modal-fee-box">
+      <div class="fee-line"><span class="fee-label">YOU SEND</span><span class="fee-val" id="buy-send">1 TON</span></div>
+      <div class="fee-line"><span class="fee-label">YOU RECEIVE</span><span class="fee-val" id="buy-receive">2,500 LGC</span></div>
+      <div class="fee-line"><span class="fee-label">DESTINATION</span><span class="fee-val" style="font-size:0.58rem;word-break:break-all;color:var(--muted)">UQBivI9Kba3YojkZFsQpalTeCFcCyNX1OS-Yed67920TU1pf</span></div>
+    </div>
+    <div class="modal-error" id="buy-error"></div>
+    <div class="modal-btn-row">
+      <button class="btn-cancel" id="buy-cancel-btn">Cancel</button>
+      <button class="btn-confirm" id="buy-confirm-btn">Send TON</button>
+    </div>
+  </div>
+</div>
+
+<!-- WITHDRAW MODAL -->
+<div class="modal-overlay" id="withdraw-modal">
+  <div class="modal" id="wd-modal-inner">
+    <div class="modal-title">⬆ Withdraw LGC → TON</div>
+    <div class="modal-row">
+      <span class="modal-label">RATE</span>
+      <span class="modal-value" style="color:var(--ton)">2,500 LGC = 1 TON</span>
+    </div>
+    <div class="modal-row">
+      <span class="modal-label">AVAILABLE</span>
+      <span class="modal-value" style="color:var(--lgc)" id="wd-available">0 LGC</span>
+    </div>
+    <hr class="modal-divider">
+    <div class="modal-input-wrap">
+      <label>WITHDRAW AMOUNT (LGC)</label>
+      <input type="number" id="wd-lgc-input" min="1000" step="1" value="1000"/>
+    </div>
+    <div class="modal-fee-box">
+      <div class="fee-line"><span class="fee-label">LGC SENT</span><span class="fee-val" id="wd-lgc-out">1,000 LGC</span></div>
+      <div class="fee-line"><span class="fee-label">TON VALUE</span><span class="fee-val" id="wd-ton-val">0.4000 TON</span></div>
+      <div class="fee-line"><span class="fee-label">GAS FEE</span><span class="fee-val" id="wd-fee">0.1 TON</span></div>
+      <div class="fee-line" style="border-top:1px solid var(--border);padding-top:4px;margin-top:4px;">
+        <span class="fee-label">YOU RECEIVE</span>
+        <span class="fee-val" id="wd-net" style="color:var(--accent2)">0.3000 TON</span>
+      </div>
+    </div>
+    <div class="modal-note">Fee tiers: 1k–5k LGC = 0.1 TON · +0.02 TON per extra 1k above 5k</div>
+    <div class="modal-error" id="wd-error"></div>
+    <div class="modal-btn-row">
+      <button class="btn-cancel" id="wd-cancel-btn">Cancel</button>
+      <button class="btn-confirm" id="wd-confirm-btn">Withdraw</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ═══════════════════════════════════════════
+// CONSTANTS
+// ═══════════════════════════════════════════
+const LGC_PER_TON  = 2500;
+const DEST_ADDR    = 'UQBivI9Kba3YojkZFsQpalTeCFcCyNX1OS-Yed67920TU1pf';
+const MANIFEST_URL = 'https://minegamesimulation.vercel.app/tonconnect-manifest.json';
+const GRID_SIZE    = 25;
+const BOMB_PENALTY = 0.25;
+
+// ═══════════════════════════════════════════
+// STATE
+// ═══════════════════════════════════════════
+let lgcBalance    = 0;
+let walletAddr    = null;
+let tonUI         = null;
+let minePositions = [];
+let gemsFound     = 0;
+let isGameActive  = false;
+let gameOver      = false;
+let initialWager  = 0;
+
+// ═══════════════════════════════════════════
+// AUDIO ENGINE
+// ═══════════════════════════════════════════
+let audioCtx;
+function getACtx(){ if(!audioCtx) audioCtx=new (window.AudioContext||window.webkitAudioContext)(); return audioCtx; }
+
+function playGemChime(){
+  try{
+    const ctx=getACtx(),now=ctx.currentTime;
+    [523.25,659.25,783.99,1046.5].forEach((f,i)=>{
+      const o=ctx.createOscillator(),g=ctx.createGain(),t=now+i*0.06;
+      o.type='sine';o.frequency.setValueAtTime(f,t);
+      g.gain.setValueAtTime(0,t);g.gain.linearRampToValueAtTime(0.25,t+0.02);g.gain.exponentialRampToValueAtTime(0.001,t+0.35);
+      o.connect(g);g.connect(ctx.destination);o.start(t);o.stop(t+0.4);
+    });
+    const s=ctx.createOscillator(),sg=ctx.createGain();
+    s.type='triangle';s.frequency.setValueAtTime(2093,now+0.15);
+    sg.gain.setValueAtTime(0.1,now+0.15);sg.gain.exponentialRampToValueAtTime(0.001,now+0.55);
+    s.connect(sg);sg.connect(ctx.destination);s.start(now+0.15);s.stop(now+0.65);
+  }catch(e){}
+}
+
+function playBombBuzzer(){
+  try{
+    const ctx=getACtx(),now=ctx.currentTime;
+    const b=ctx.createOscillator(),bg=ctx.createGain();
+    b.type='sine';b.frequency.setValueAtTime(80,now);b.frequency.exponentialRampToValueAtTime(28,now+0.5);
+    bg.gain.setValueAtTime(0.9,now);bg.gain.exponentialRampToValueAtTime(0.001,now+0.6);
+    b.connect(bg);bg.connect(ctx.destination);b.start(now);b.stop(now+0.65);
+    const bz=ctx.createOscillator(),bzg=ctx.createGain();
+    bz.type='sawtooth';bz.frequency.setValueAtTime(110,now);bz.frequency.linearRampToValueAtTime(50,now+0.45);
+    bzg.gain.setValueAtTime(0.38,now);bzg.gain.exponentialRampToValueAtTime(0.001,now+0.55);
+    bz.connect(bzg);bzg.connect(ctx.destination);bz.start(now);bz.stop(now+0.6);
+    const sz=ctx.sampleRate*0.3,buf=ctx.createBuffer(1,sz,ctx.sampleRate),d=buf.getChannelData(0);
+    for(let i=0;i<sz;i++) d[i]=(Math.random()*2-1)*(1-i/sz);
+    const ns=ctx.createBufferSource(),nf=ctx.createBiquadFilter(),ng=ctx.createGain();
+    nf.type='lowpass';nf.frequency.value=350;ns.buffer=buf;
+    ng.gain.setValueAtTime(0.45,now);ng.gain.exponentialRampToValueAtTime(0.001,now+0.32);
+    ns.connect(nf);nf.connect(ng);ng.connect(ctx.destination);ns.start(now);ns.stop(now+0.38);
+  }catch(e){}
+}
+
+function playCashoutSound(){
+  try{
+    const ctx=getACtx(),now=ctx.currentTime;
+    [523.25,659.25,783.99,1046.5,1318.5,1567.98].forEach((f,i)=>{
+      const o=ctx.createOscillator(),g=ctx.createGain(),t=now+i*0.07;
+      o.type=i%2===0?'sine':'triangle';o.frequency.setValueAtTime(f,t);
+      g.gain.setValueAtTime(0.22,t);g.gain.exponentialRampToValueAtTime(0.001,t+0.5);
+      o.connect(g);g.connect(ctx.destination);o.start(t);o.stop(t+0.55);
+    });
+  }catch(e){}
+}
+
+// ═══════════════════════════════════════════
+// TON CONNECT
+// ═══════════════════════════════════════════
+function initTonConnect(){
+  try{
+    tonUI = new TON_CONNECT_UI.TonConnectUI({ manifestUrl: MANIFEST_URL });
+    tonUI.onStatusChange(wallet => {
+      if(wallet){ walletAddr=wallet.account.address; updateWalletUI(true); }
+      else { walletAddr=null; updateWalletUI(false); }
+    });
+  }catch(e){ console.warn('TON Connect init failed:',e); }
+}
+
+function updateWalletUI(connected){
+  const btn=document.getElementById('ton-connect-btn');
+  const disp=document.getElementById('wallet-display');
+  const addr=document.getElementById('wallet-addr');
+  // FIX #6: never wipe id-only styles; manage class carefully
+  if(connected && walletAddr){
+    const short=walletAddr.slice(0,6)+'...'+walletAddr.slice(-4);
+    btn.innerHTML='✓ '+short;
+    btn.classList.add('connected');
+    disp.textContent='Connected';
+    disp.style.color='var(--accent2)';
+    addr.textContent=short;
+  } else {
+    btn.innerHTML='<svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="12" r="10"/></svg> Connect Wallet';
+    btn.classList.remove('connected');
+    disp.textContent='Not Connected';
+    disp.style.color='var(--ton)';
+    addr.textContent='Connect to play';
+  }
+}
+
+document.getElementById('ton-connect-btn').onclick=async()=>{
+  if(!tonUI){ showMsg('TON Connect unavailable.','error'); return; }
+  try{
+    if(walletAddr) await tonUI.disconnect();
+    else await tonUI.openModal();
+  }catch(e){ showMsg('Wallet error: '+e.message,'error'); }
+};
+
+// ═══════════════════════════════════════════
+// LGC DISPLAY
+// ═══════════════════════════════════════════
+function updateLGCDisplay(){
+  document.getElementById('lgc-balance').textContent=lgcBalance.toLocaleString()+' LGC';
+  document.getElementById('lgc-in-ton').textContent='≈ '+(lgcBalance/LGC_PER_TON).toFixed(4)+' TON';
+}
+
+// ═══════════════════════════════════════════
+// FEE CALC
+// ═══════════════════════════════════════════
+function calcWithdrawFee(lgcAmt){
+  if(lgcAmt<1000) return null;
+  if(lgcAmt<=5000) return 0.1;
+  const extra=Math.ceil((lgcAmt-5000)/1000);
+  return parseFloat((0.1+extra*0.02).toFixed(4));
+}
+
+// ═══════════════════════════════════════════
+// MODAL HELPERS
+// ═══════════════════════════════════════════
+// FIX #8: force animation replay by removing/re-adding class
+function openModal(overlayId, innerId){
+  const overlay=document.getElementById(overlayId);
+  const inner=document.getElementById(innerId);
+  overlay.classList.add('open');
+  inner.classList.remove('animate-in');
+  void inner.offsetWidth; // reflow
+  inner.classList.add('animate-in');
+}
+function closeModal(overlayId){ document.getElementById(overlayId).classList.remove('open'); }
+
+// ═══════════════════════════════════════════
+// BUY MODAL
+// ═══════════════════════════════════════════
+document.getElementById('buy-btn').onclick=()=>{
+  if(!walletAddr){ showMsg('Connect your TON wallet first.','error'); return; }
+  document.getElementById('buy-error').style.display='none';
+  document.getElementById('buy-ton-input').value='1';
+  updateBuyCalc();
+  openModal('buy-modal','buy-modal-inner');
+};
+document.getElementById('buy-cancel-btn').onclick=()=>closeModal('buy-modal');
+document.getElementById('buy-ton-input').oninput=updateBuyCalc;
+
+function updateBuyCalc(){
+  const ton=parseFloat(document.getElementById('buy-ton-input').value)||0;
+  // FIX #4: round LGC to avoid floating point dust
+  const lgc=Math.round(ton*LGC_PER_TON);
+  document.getElementById('buy-send').textContent=ton+' TON';
+  document.getElementById('buy-receive').textContent=lgc.toLocaleString()+' LGC';
+}
+
+document.getElementById('buy-confirm-btn').onclick=async()=>{
+  const ton=parseFloat(document.getElementById('buy-ton-input').value);
+  const errEl=document.getElementById('buy-error');
+  errEl.style.display='none';
+  if(!ton||ton<=0){ errEl.textContent='Enter a valid TON amount.'; errEl.style.display='block'; return; }
+  if(!walletAddr){ errEl.textContent='Wallet not connected.'; errEl.style.display='block'; return; }
+  const btn=document.getElementById('buy-confirm-btn');
+  btn.disabled=true; btn.textContent='Sending...';
+  try{
+    const nanoTon=BigInt(Math.round(ton*1e9)).toString();
+    await tonUI.sendTransaction({
+      validUntil:Math.floor(Date.now()/1000)+300,
+      messages:[{ address:DEST_ADDR, amount:nanoTon }]
+    });
+    // FIX #4: Math.round to prevent float accumulation
+    const received=Math.round(ton*LGC_PER_TON);
+    lgcBalance+=received;
+    updateLGCDisplay();
+    closeModal('buy-modal');
+    showMsg('✅ Bought '+received.toLocaleString()+' LGC for '+ton+' TON!','success');
+  }catch(e){
+    const msg=e.message||'';
+    errEl.textContent=msg.toLowerCase().includes('cancel')||msg.includes('4001')?'Transaction cancelled.':'Failed: '+msg;
+    errEl.style.display='block';
+  }finally{ btn.disabled=false; btn.textContent='Send TON'; }
+};
+
+// ═══════════════════════════════════════════
+// WITHDRAW MODAL
+// ═══════════════════════════════════════════
+document.getElementById('withdraw-btn').onclick=()=>{
+  if(!walletAddr){ showMsg('Connect your TON wallet first.','error'); return; }
+  if(lgcBalance<1000){ showMsg('Minimum withdrawal is 1,000 LGC.','error'); return; }
+  document.getElementById('wd-available').textContent=lgcBalance.toLocaleString()+' LGC';
+  document.getElementById('wd-lgc-input').value='1000';
+  document.getElementById('wd-error').style.display='none';
+  updateWdCalc();
+  openModal('withdraw-modal','wd-modal-inner');
+};
+document.getElementById('wd-cancel-btn').onclick=()=>closeModal('withdraw-modal');
+document.getElementById('wd-lgc-input').oninput=updateWdCalc;
+
+function updateWdCalc(){
+  const lgc=Math.round(parseFloat(document.getElementById('wd-lgc-input').value)||0);
+  const tonVal=lgc/LGC_PER_TON;
+  const fee=lgc>=1000?calcWithdrawFee(lgc):0.1;
+  const net=Math.max(0,tonVal-fee);
+  document.getElementById('wd-lgc-out').textContent=lgc.toLocaleString()+' LGC';
+  document.getElementById('wd-ton-val').textContent=tonVal.toFixed(4)+' TON';
+  document.getElementById('wd-fee').textContent=fee+' TON';
+  document.getElementById('wd-net').textContent=net.toFixed(4)+' TON';
+}
+
+document.getElementById('wd-confirm-btn').onclick=async()=>{
+  const lgc=Math.round(parseFloat(document.getElementById('wd-lgc-input').value));
+  const errEl=document.getElementById('wd-error');
+  errEl.style.display='none';
+  if(!lgc||lgc<1000){ errEl.textContent='Minimum withdrawal is 1,000 LGC.'; errEl.style.display='block'; return; }
+  if(lgc>lgcBalance){ errEl.textContent='Insufficient LGC balance.'; errEl.style.display='block'; return; }
+  const fee=calcWithdrawFee(lgc);
+  const tonVal=lgc/LGC_PER_TON;
+  const net=parseFloat((tonVal-fee).toFixed(4));
+  if(net<=0){ errEl.textContent='Net amount is zero after fees.'; errEl.style.display='block'; return; }
+  const btn=document.getElementById('wd-confirm-btn');
+  btn.disabled=true; btn.textContent='Processing...';
+  try{
+    const feeNano=BigInt(Math.round(fee*1e9)).toString();
+    await tonUI.sendTransaction({
+      validUntil:Math.floor(Date.now()/1000)+300,
+      messages:[{ address:DEST_ADDR, amount:feeNano }]
+    });
+    // FIX #5: only deduct AFTER tx confirmed
+    lgcBalance=Math.max(0,lgcBalance-lgc);
+    updateLGCDisplay();
+    closeModal('withdraw-modal');
+    showMsg('✅ Withdrawn '+lgc.toLocaleString()+' LGC → '+net.toFixed(4)+' TON (gas: '+fee+' TON)','success');
+  }catch(e){
+    const msg=e.message||'';
+    errEl.textContent=msg.toLowerCase().includes('cancel')||msg.includes('4001')?'Cancelled.':'Failed: '+msg;
+    errEl.style.display='block';
+  }finally{ btn.disabled=false; btn.textContent='Withdraw'; }
+};
+
+// ═══════════════════════════════════════════
+// GAME UI
+// ═══════════════════════════════════════════
+function showMsg(msg,type='info'){
+  const el=document.getElementById('message-box');
+  el.className='anim-fade '+type;
+  el.textContent=msg;
+  el.style.display='block';
+}
+
+function updateMultiplier(){
+  const el=document.getElementById('multiplier-display');
+  el.textContent=calcMultiplier().toFixed(2)+'×';
+  el.classList.remove('anim-mult-bump');
+  void el.offsetWidth;
+  el.classList.add('anim-mult-bump');
+}
+
+// FIX #3: only render streak dots when a game is active
+function buildStreak(){
+  const bar=document.getElementById('streak');
+  bar.innerHTML='';
+  if(!isGameActive && !gameOver) return;
+  const safe=GRID_SIZE-minePositions.length;
+  const dots=Math.min(safe,20);
+  for(let i=0;i<dots;i++){
+    const d=document.createElement('div');
+    d.className='sdot'+(i<gemsFound?' active':'');
+    bar.appendChild(d);
+  }
+}
+
+// ═══════════════════════════════════════════
+// GAME LOGIC
+// ═══════════════════════════════════════════
+function calcMultiplier(){
+  if(gemsFound===0) return 1;
+  const mf=minePositions.length/GRID_SIZE;
+  return Math.min(Math.pow(1.08+mf,gemsFound),50);
+}
+
+function placeMines(count){
+  minePositions=[];
+  const arr=[...Array(GRID_SIZE).keys()];
+  for(let i=0;i<count;i++){
+    const ri=Math.floor(Math.random()*arr.length);
+    minePositions.push(arr.splice(ri,1)[0]);
+  }
+}
+
+function createGrid(){
+  const g=document.getElementById('game-grid');
+  g.innerHTML='';
+  for(let i=0;i<GRID_SIZE;i++){
+    const t=document.createElement('div');
+    t.className='tile';t.dataset.index=i;t.onclick=tileClick;
+    g.appendChild(t);
+  }
+}
+
+function tileClick(e){
+  if(!isGameActive||gameOver) return;
+  const t=e.currentTarget;
+  if(t.classList.contains('revealed-gem')||t.classList.contains('revealed-mine')) return;
+  const idx=+t.dataset.index;
+
+  if(minePositions.includes(idx)){
+    t.classList.add('revealed-mine','anim-shake');
+    t.textContent='💣';
+    playBombBuzzer();
+    // FIX #2: set both flags immediately to block any further tile clicks
+    isGameActive=false;
+    gameOver=true;
+    endGame(false);
+  } else {
+    t.classList.add('revealed-gem','anim-pop','anim-gem-glow');
+    t.textContent='💎';
+    gemsFound++;
+    playGemChime();
+    document.getElementById('cashout-btn').disabled=false;
+    document.getElementById('cashout-btn').classList.add('anim-cash-pulse');
+    updateMultiplier();
+    buildStreak();
+    setTimeout(()=>t.classList.remove('anim-pop'),300);
+    // FIX #2: lock game before the timeout fires to prevent double-click exploits
+    if(gemsFound===GRID_SIZE-minePositions.length){
+      isGameActive=false;
+      setTimeout(()=>endGame(true),200);
+    }
+  }
+}
+
+function startGame(){
+  if(!walletAddr){ showMsg('Connect your TON wallet to play.','error'); return; }
+  const mines=Math.round(+document.getElementById('mine-count').value);
+  const wager=Math.round(+document.getElementById('wager').value);
+  if(mines<1||mines>24) return showMsg('Mines must be 1–24.','error');
+  if(wager<1) return showMsg('Wager must be at least 1 LGC.','error');
+  if(wager>lgcBalance) return showMsg('Insufficient LGC balance.','error');
+
+  lgcBalance-=wager;
+  updateLGCDisplay();
+  initialWager=wager;
+  gemsFound=0; gameOver=false; isGameActive=true;
+
+  document.getElementById('start-btn').disabled=true;
+  document.getElementById('cashout-btn').disabled=true;
+  document.getElementById('cashout-btn').classList.remove('anim-cash-pulse');
+  document.getElementById('mine-count').disabled=true;
+  document.getElementById('wager').disabled=true;
+
+  createGrid();
+  placeMines(mines);
+  updateMultiplier();
+  buildStreak();
+  showMsg('💫 Game on — find diamonds, avoid bombs.','info');
+}
+
+function endGame(win){
+  // Ensure flags are set (may already be set by tileClick FIX #2)
+  isGameActive=false; gameOver=true;
+  document.getElementById('start-btn').disabled=false;
+  document.getElementById('mine-count').disabled=false;
+  document.getElementById('wager').disabled=false;
+  document.getElementById('cashout-btn').disabled=true;
+  document.getElementById('cashout-btn').classList.remove('anim-cash-pulse');
+
+  document.querySelectorAll('.tile').forEach(t=>{
+    const idx=+t.dataset.index;
+    if(minePositions.includes(idx)){
+      if(!t.classList.contains('revealed-mine')){ t.classList.add('revealed-mine'); t.textContent='💣'; }
+    } else if(!t.classList.contains('revealed-gem')){
+      t.classList.add('revealed-gem'); t.textContent='💎';
+    }
+  });
+
+  if(win){
+    // FIX #1: cache multiplier once so it's consistent between calc and display
+    const mult=calcMultiplier();
+    const winAmt=Math.floor(initialWager*mult);
+    lgcBalance+=winAmt;
+    updateLGCDisplay();
+    playCashoutSound();
+    showMsg('🏆 Cashed out '+winAmt.toLocaleString()+' LGC at '+mult.toFixed(2)+'×!','success');
+  } else {
+    const penalty=Math.floor(lgcBalance*BOMB_PENALTY);
+    lgcBalance=Math.max(0,lgcBalance-penalty);
+    updateLGCDisplay();
+    showMsg('💥 BOOM! Lost wager + '+penalty.toLocaleString()+' LGC penalty (−25%).','error');
+  }
+  buildStreak();
+}
+
+// ═══════════════════════════════════════════
+// AI STRATEGY
+// ═══════════════════════════════════════════
+async function getAITip(){
+  const tipBtn=document.getElementById('tip-btn');
+  tipBtn.disabled=true;
+  const msgBox=document.getElementById('message-box');
+  msgBox.className='loading';
+  msgBox.innerHTML='<span class="dots-loader">Consulting strategy AI</span>';
+  msgBox.style.display='block';
+
+  const mines=minePositions.length||+document.getElementById('mine-count').value;
+  const mult=calcMultiplier().toFixed(2);
+  const risk=((mines/Math.max(1,GRID_SIZE-gemsFound))*100).toFixed(1);
+  const inGame=!gameOver&&gemsFound>0;
+  const wager=+document.getElementById('wager').value;
+
+  const prompt=inGame
+    ?`LGC Mines: ${mines} mines, 25 tiles. ${gemsFound} diamonds revealed. Multiplier: ${mult}×. Wager: ${wager} LGC. Balance: ${lgcBalance.toLocaleString()} LGC. Mine chance per tile: ${risk}%. Bomb = −25% balance. Cash out or go again? 1–2 sentences.`
+    :`Starting LGC Mines: ${mines} mines in 25 tiles. Wager: ${wager} LGC. Balance: ${lgcBalance.toLocaleString()} LGC. Bombs cost 25% of balance. Opening strategy, 1–2 sentences.`;
+
+  try{
+    const res=await fetch('https://api.anthropic.com/v1/messages',{
+      method:'POST',headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({
+        model:'claude-sonnet-4-20250514',max_tokens:1000,
+        system:'You are a sharp, direct strategy advisor for a crypto mines game. No hedging. 1–2 punchy sentences only. Reference the LGC stakes.',
+        messages:[{role:'user',content:prompt}]
+      })
+    });
+    const data=await res.json();
+    const tip=data?.content?.[0]?.text?.trim()||'Protect your LGC — the 25% bomb penalty compounds fast.';
+    showMsg('✨ '+tip,'info');
+  }catch(e){
+    showMsg('⚠️ AI offline. Rule: cash out before mine probability tops 40%.','info');
+  }finally{ tipBtn.disabled=false; }
+}
+
+// ═══════════════════════════════════════════
+// INIT
+// ═══════════════════════════════════════════
+document.getElementById('start-btn').onclick=startGame;
+document.getElementById('cashout-btn').onclick=()=>endGame(true);
+document.getElementById('tip-btn').onclick=getAITip;
+
+// Close modals on backdrop click
+document.getElementById('buy-modal').onclick=e=>{ if(e.target===e.currentTarget) closeModal('buy-modal'); };
+document.getElementById('withdraw-modal').onclick=e=>{ if(e.target===e.currentTarget) closeModal('withdraw-modal'); };
+
+createGrid();
+updateLGCDisplay();
+initTonConnect();
+</script>
+</body>
+</html>
