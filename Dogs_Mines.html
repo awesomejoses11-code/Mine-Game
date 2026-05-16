@@ -531,7 +531,7 @@ async function sbApplyReferral(refereeAddr, referralCode){
     if(!referrer || referrer.wallet_addr === refereeAddr) return;
 
     const REFERRER_BONUS = 2500;
-    const REFEREE_BONUS  = 2500;
+    const REFEREE_BONUS  = 1000;
 
     // Credit referee
     dogsBalance += REFEREE_BONUS;
@@ -548,16 +548,6 @@ async function sbApplyReferral(refereeAddr, referralCode){
       referral_count  : newCount,
       referral_earned : newEarned
     }).eq('wallet_addr', referrer.wallet_addr);
-
-    // Log referral event
-    await sb.from('referrals').insert({
-      referrer_addr: referrer.wallet_addr,
-      referee_addr : refereeAddr,
-      ref_code     : referralCode,
-      referrer_bonus: REFERRER_BONUS,
-      referee_bonus : REFEREE_BONUS,
-      created_at   : new Date().toISOString()
-    });
 
     showToast('🎁 Referral bonus: +' + REFEREE_BONUS.toLocaleString() + ' DOGS!');
     setTimeout(()=>showMsg('🐾 Referral bonus of ' + REFEREE_BONUS.toLocaleString() + ' DOGS credited!','success'), 600);
