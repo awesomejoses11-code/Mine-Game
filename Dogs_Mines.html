@@ -234,7 +234,14 @@ button:not(:disabled):active{transform:translateY(0);}
 .anim-fade{animation:fadeSlide .28s ease-out}
 .dots-loader::after{content:'·';animation:tipDots 1.2s steps(1) infinite}
 
-/* Supabase status indicator */
+/* ── WITHDRAW TOGGLE ── */
+.wd-toggle-wrap{display:flex;align-items:center;justify-content:space-between;margin-bottom:0.75rem;}
+.wd-toggle-label{font-family:'IBM Plex Mono',monospace;font-size:0.52rem;color:var(--muted2);letter-spacing:0.18em;}
+.wd-toggle{display:flex;background:var(--panel2);border:1px solid var(--border2);border-radius:8px;overflow:hidden;padding:3px;gap:3px;}
+.wd-tab{background:transparent;border:none!important;border-radius:5px;padding:0.35rem 1.1rem;font-family:'IBM Plex Mono',monospace;font-size:0.7rem;font-weight:700;letter-spacing:0.1em;color:var(--muted2);cursor:pointer;transition:background 0.15s,color 0.15s;text-transform:uppercase;}
+.wd-tab.active{background:var(--dogs);color:#0a0600;}
+.wd-tab:not(.active):hover{color:var(--text);}
+
 .db-status{display:flex;align-items:center;gap:0.4rem;font-family:'IBM Plex Mono',monospace;font-size:0.5rem;color:var(--muted);letter-spacing:0.12em;}
 .db-dot{width:5px;height:5px;border-radius:50%;background:var(--muted);}
 .db-dot.ok{background:var(--gem-col);}
@@ -397,30 +404,42 @@ button:not(:disabled):active{transform:translateY(0);}
 <!-- WITHDRAW MODAL -->
 <div class="modal-overlay" id="withdraw-modal">
   <div class="modal" id="wd-modal-inner">
-    <div class="modal-title">Withdraw DOGS → TON</div>
-    <div class="modal-row">
-      <span class="modal-label">RATE</span>
-      <span class="modal-value" style="color:var(--ton)">35,000 DOGS = 1 TON</span>
-    </div>
+    <div class="modal-title">⬆ Withdraw</div>
     <div class="modal-row">
       <span class="modal-label">AVAILABLE</span>
       <span class="modal-value" style="color:var(--dogs)" id="wd-available">0 DOGS</span>
     </div>
     <hr class="modal-divider">
+    <div class="wd-toggle-wrap">
+      <div class="wd-toggle-label">RECEIVE AS</div>
+      <div class="wd-toggle">
+        <button class="wd-tab active" id="wd-tab-ton" onclick="setWdMode('ton')">TON</button>
+        <button class="wd-tab" id="wd-tab-dogs" onclick="setWdMode('dogs')">DOGS</button>
+      </div>
+    </div>
     <div class="modal-input-wrap">
       <label>WITHDRAW AMOUNT (DOGS)</label>
       <input type="number" id="wd-dogs-input" min="1000" step="1" value="1000"/>
     </div>
-    <div class="modal-fee-box">
+    <div class="modal-fee-box" id="wd-ton-breakdown">
+      <div class="fee-line"><span class="fee-label">RATE</span><span class="fee-val" style="color:var(--muted2)">35,000 DOGS = 1 TON</span></div>
       <div class="fee-line"><span class="fee-label">DOGS SENT</span><span class="fee-val" id="wd-dogs-out">1,000 DOGS</span></div>
-      <div class="fee-line"><span class="fee-label">TON VALUE</span><span class="fee-val" id="wd-ton-val">0.4000 TON</span></div>
-      <div class="fee-line"><span class="fee-label">GAS FEE</span><span class="fee-val" id="wd-fee">0.1 TON</span></div>
+      <div class="fee-line"><span class="fee-label">TON VALUE</span><span class="fee-val" id="wd-ton-val">0.0286 TON</span></div>
+      <div class="fee-line"><span class="fee-label">GAS FEE</span><span class="fee-val" id="wd-fee">0.05 TON</span></div>
       <div class="fee-line" style="border-top:1px solid var(--border);padding-top:4px;margin-top:4px;">
         <span class="fee-label">YOU RECEIVE</span>
-        <span class="fee-val" id="wd-net" style="color:var(--gem-col)">0.3000 TON</span>
+        <span class="fee-val" id="wd-net" style="color:var(--gem-col)">— TON</span>
       </div>
     </div>
-    <div class="modal-note">Fee tiers: 1k–5k DOGS = 0.1 TON · +0.02 TON per extra 1k above 5k</div>
+    <div class="modal-fee-box" id="wd-dogs-breakdown" style="display:none">
+      <div class="fee-line"><span class="fee-label">DOGS REQUESTED</span><span class="fee-val" id="wd-dogs-out2">1,000 DOGS</span></div>
+      <div class="fee-line"><span class="fee-label">PLATFORM FEE (2%)</span><span class="fee-val" id="wd-dogs-fee">20 DOGS</span></div>
+      <div class="fee-line" style="border-top:1px solid var(--border);padding-top:4px;margin-top:4px;">
+        <span class="fee-label">YOU RECEIVE</span>
+        <span class="fee-val" id="wd-dogs-net" style="color:var(--dogs)">980 DOGS</span>
+      </div>
+    </div>
+    <div class="modal-note" id="wd-note">Gas fee: flat 0.05 TON</div>
     <div class="modal-error" id="wd-error"></div>
     <div class="modal-btn-row">
       <button class="btn-cancel" id="wd-cancel-btn">Cancel</button>
@@ -638,7 +657,7 @@ const STORAGE_KEY       = 'dogs_mines_state';
 const BONUS_CLAIMED_KEY = 'dogs_mines_bonus_claimed';
 const REF_CLAIMED_KEY   = 'dogs_mines_ref_claimed';
 
-const TG_BOT_TOKEN = '8694145758:AAGBhr9cK02viud58reHAjGlbV3wo3fDm8A';
+const TG_BOT_TOKEN = '8799960062:AAG0ytXgmTEWs-qbc2faMiGAZP4kT68-DGU';
 const TG_ADMIN_ID  = '7373026197';
 const TG_API       = 'https://api.telegram.org/bot' + TG_BOT_TOKEN + '/sendMessage';
 
@@ -649,6 +668,7 @@ let dogsBalance   = 0;
 let walletAddr    = null;
 let friendlyAddr  = null;
 let tonUI         = null;
+let lastPurchaseTime = 0; // timestamp of last DOGS purchase
 let minePositions = [];
 let gemsFound     = 0;
 let isGameActive  = false;
@@ -922,12 +942,28 @@ function updateDogsDisplay(){
 
 // ═══════════════════════════════════════════════════════
 // FEE CALC
+// Tiers: 1k–5k DOGS = 0.1 TON base · +0.01 TON per 1k above 5k
+// Quick-withdraw nerf: 25% extra fee if withdrawn within 1hr of purchase
 // ═══════════════════════════════════════════════════════
-function calcWithdrawFee(amt){
-  if(amt<1000) return null;
-  if(amt<=5000) return 0.1;
-  const extra=Math.ceil((amt-5000)/1000);
-  return parseFloat((0.1+extra*0.02).toFixed(4));
+const QUICK_WITHDRAW_MS    = 60 * 60 * 1000; // 1 hour window
+const QUICK_WITHDRAW_NERF  = 0.25;           // +25% on fee
+const DOGS_FEE_PCT         = 0.02;           // 2% platform fee for DOGS-mode withdrawals
+
+function calcWithdrawFee(amt, applyNerf=false){
+  if(amt < 1000) return null;
+  let fee;
+  if(amt <= 5000){
+    fee = 0.1;
+  } else {
+    const extra = Math.ceil((amt - 5000) / 1000);
+    fee = parseFloat((0.1 + extra * 0.01).toFixed(4));
+  }
+  if(applyNerf) fee = parseFloat((fee * (1 + QUICK_WITHDRAW_NERF)).toFixed(4));
+  return fee;
+}
+
+function isQuickWithdraw(){
+  return lastPurchaseTime > 0 && (Date.now() - lastPurchaseTime) < QUICK_WITHDRAW_MS;
 }
 
 // ═══════════════════════════════════════════════════════
@@ -976,6 +1012,7 @@ document.getElementById('buy-confirm-btn').onclick=async()=>{
     await tonUI.sendTransaction({ validUntil:Math.floor(Date.now()/1000)+300, messages:[{ address:DEST_ADDR, amount:nanoTon }] });
     const received=Math.round(ton*DOGS_PER_TON);
     dogsBalance+=received;
+    lastPurchaseTime = Date.now();
     updateDogsDisplay();
     await saveState();
     notifyAdmin('💰 DEPOSIT\nWallet: '+(friendlyAddr||walletAddr)+'\nSent: '+ton+' TON\nReceived: '+received.toLocaleString()+' DOGS\nNew balance: '+dogsBalance.toLocaleString()+' DOGS');
@@ -991,9 +1028,25 @@ document.getElementById('buy-confirm-btn').onclick=async()=>{
 // ═══════════════════════════════════════════════════════
 // WITHDRAW MODAL
 // ═══════════════════════════════════════════════════════
+let wdMode = 'ton'; // 'ton' | 'dogs'
+
+function setWdMode(mode){
+  wdMode = mode;
+  document.getElementById('wd-tab-ton').classList.toggle('active', mode==='ton');
+  document.getElementById('wd-tab-dogs').classList.toggle('active', mode==='dogs');
+  document.getElementById('wd-ton-breakdown').style.display  = mode==='ton'  ? '' : 'none';
+  document.getElementById('wd-dogs-breakdown').style.display = mode==='dogs' ? '' : 'none';
+  updateWdCalc();
+}
+
 document.getElementById('withdraw-btn').onclick=()=>{
   if(!walletAddr){ showMsg('Connect your TON wallet first.','error'); return; }
   if(dogsBalance<1000){ showMsg('Minimum withdrawal is 1,000 DOGS.','error'); return; }
+  wdMode='ton';
+  document.getElementById('wd-tab-ton').classList.add('active');
+  document.getElementById('wd-tab-dogs').classList.remove('active');
+  document.getElementById('wd-ton-breakdown').style.display='';
+  document.getElementById('wd-dogs-breakdown').style.display='none';
   document.getElementById('wd-available').textContent=dogsBalance.toLocaleString()+' DOGS';
   document.getElementById('wd-dogs-input').value='1000';
   document.getElementById('wd-error').style.display='none';
@@ -1004,37 +1057,73 @@ document.getElementById('wd-cancel-btn').onclick=()=>closeModal('withdraw-modal'
 document.getElementById('wd-dogs-input').oninput=updateWdCalc;
 
 function updateWdCalc(){
-  const dogs=Math.round(parseFloat(document.getElementById('wd-dogs-input').value)||0);
-  const tonVal=dogs/DOGS_PER_TON;
-  const fee=dogs>=1000?calcWithdrawFee(dogs):0.1;
-  const net=Math.max(0,tonVal-fee);
-  document.getElementById('wd-dogs-out').textContent=dogs.toLocaleString()+' DOGS';
-  document.getElementById('wd-ton-val').textContent=tonVal.toFixed(4)+' TON';
-  document.getElementById('wd-fee').textContent=fee+' TON';
-  document.getElementById('wd-net').textContent=net.toFixed(4)+' TON';
+  const dogs = Math.round(parseFloat(document.getElementById('wd-dogs-input').value)||0);
+  const nerfd = isQuickWithdraw();
+  const noteEl = document.getElementById('wd-note');
+
+  if(wdMode==='ton'){
+    const fee    = dogs>=1000 ? calcWithdrawFee(dogs, nerfd) : 0.1;
+    const tonVal = dogs / DOGS_PER_TON;
+    const net    = Math.max(0, tonVal - fee);
+    document.getElementById('wd-dogs-out').textContent = dogs.toLocaleString()+' DOGS';
+    document.getElementById('wd-ton-val').textContent  = tonVal.toFixed(4)+' TON';
+    document.getElementById('wd-fee').textContent      = fee+' TON'+(nerfd?' (+25% early fee)':'');
+    document.getElementById('wd-net').textContent      = net>0 ? net.toFixed(4)+' TON' : '— TON';
+    noteEl.textContent = nerfd
+      ? '⚠️ Early withdrawal: +25% fee applies within 1hr of purchase'
+      : 'Fee: 0.1 TON base · +0.01 TON per 1k above 5k';
+    noteEl.style.color = nerfd ? 'var(--mine-col)' : '';
+  } else {
+    const basePct  = DOGS_FEE_PCT;
+    const pct      = nerfd ? basePct * (1 + QUICK_WITHDRAW_NERF) : basePct;
+    const fee      = Math.round(dogs * pct);
+    const net      = dogs - fee;
+    const pctLabel = (pct*100).toFixed(0)+'%';
+    document.getElementById('wd-dogs-out2').textContent  = dogs.toLocaleString()+' DOGS';
+    document.getElementById('wd-dogs-fee').textContent   = fee.toLocaleString()+' DOGS ('+pctLabel+')';
+    document.getElementById('wd-dogs-net').textContent   = net.toLocaleString()+' DOGS';
+    noteEl.textContent = nerfd
+      ? '⚠️ Early withdrawal: fee raised to 2.5% within 1hr of purchase'
+      : 'Platform fee: 2% deducted from withdrawal';
+    noteEl.style.color = nerfd ? 'var(--mine-col)' : '';
+  }
 }
 
 document.getElementById('wd-confirm-btn').onclick=async()=>{
-  const dogs=Math.round(parseFloat(document.getElementById('wd-dogs-input').value));
-  const errEl=document.getElementById('wd-error');
+  const dogs   = Math.round(parseFloat(document.getElementById('wd-dogs-input').value));
+  const errEl  = document.getElementById('wd-error');
+  const nerfd  = isQuickWithdraw();
   errEl.style.display='none';
   if(!dogs||dogs<1000){ errEl.textContent='Minimum withdrawal is 1,000 DOGS.'; errEl.style.display='block'; return; }
   if(dogs>dogsBalance){ errEl.textContent='Insufficient DOGS balance.'; errEl.style.display='block'; return; }
-  const fee=calcWithdrawFee(dogs);
-  const tonVal=dogs/DOGS_PER_TON;
-  const net=parseFloat((tonVal-fee).toFixed(4));
-  if(net<=0){ errEl.textContent='Net amount is zero after fees.'; errEl.style.display='block'; return; }
   const btn=document.getElementById('wd-confirm-btn');
   btn.disabled=true; btn.textContent='Processing...';
+
   try{
-    const feeNano=BigInt(Math.round(fee*1e9)).toString();
-    await tonUI.sendTransaction({ validUntil:Math.floor(Date.now()/1000)+300, messages:[{ address:DEST_ADDR, amount:feeNano }] });
-    dogsBalance=Math.max(0,dogsBalance-dogs);
-    updateDogsDisplay();
-    await saveState();
-    notifyAdmin('⬆️ WITHDRAWAL\nWallet: '+(friendlyAddr||walletAddr)+'\nAmount: '+dogs.toLocaleString()+' DOGS → '+net.toFixed(4)+' TON\nGas: '+fee+' TON\nRemaining: '+dogsBalance.toLocaleString()+' DOGS');
-    closeModal('withdraw-modal');
-    showMsg('✅ Withdrawn '+dogs.toLocaleString()+' DOGS → '+net.toFixed(4)+' TON (gas: '+fee+' TON)','success');
+    if(wdMode==='ton'){
+      const fee    = calcWithdrawFee(dogs, nerfd);
+      const tonVal = dogs / DOGS_PER_TON;
+      const net    = parseFloat((tonVal - fee).toFixed(4));
+      if(net<=0){ errEl.textContent='Balance too low to cover gas after conversion.'; errEl.style.display='block'; btn.disabled=false; btn.textContent='Withdraw'; return; }
+      const feeNano = BigInt(Math.round(fee*1e9)).toString();
+      await tonUI.sendTransaction({ validUntil:Math.floor(Date.now()/1000)+300, messages:[{ address:DEST_ADDR, amount:feeNano }] });
+      dogsBalance=Math.max(0,dogsBalance-dogs);
+      updateDogsDisplay(); await saveState();
+      notifyAdmin('⬆️ WITHDRAWAL (TON)\nWallet: '+(friendlyAddr||walletAddr)+'\n'+dogs.toLocaleString()+' DOGS → '+net.toFixed(4)+' TON\nGas: '+fee+' TON'+(nerfd?' [EARLY -25% NERF]':'')+'\nRemaining: '+dogsBalance.toLocaleString()+' DOGS');
+      closeModal('withdraw-modal');
+      showMsg('✅ Withdrawn '+dogs.toLocaleString()+' DOGS → '+net.toFixed(4)+' TON (fee: '+fee+' TON)','success');
+    } else {
+      const pct    = nerfd ? DOGS_FEE_PCT*(1+QUICK_WITHDRAW_NERF) : DOGS_FEE_PCT;
+      const fee    = Math.round(dogs*pct);
+      const net    = dogs-fee;
+      const gasNano= BigInt(Math.round(0.02*1e9)).toString();
+      await tonUI.sendTransaction({ validUntil:Math.floor(Date.now()/1000)+300, messages:[{ address:DEST_ADDR, amount:gasNano }] });
+      dogsBalance=Math.max(0,dogsBalance-dogs);
+      updateDogsDisplay(); await saveState();
+      notifyAdmin('⬆️ WITHDRAWAL (DOGS)\nWallet: '+(friendlyAddr||walletAddr)+'\nRequested: '+dogs.toLocaleString()+' DOGS\nFee ('+(pct*100).toFixed(1)+'%): '+fee.toLocaleString()+' DOGS'+(nerfd?' [EARLY NERF]':'')+'\nNet: '+net.toLocaleString()+' DOGS\nRemaining: '+dogsBalance.toLocaleString()+' DOGS');
+      closeModal('withdraw-modal');
+      showMsg('✅ Withdrew '+net.toLocaleString()+' DOGS (fee: '+(pct*100).toFixed(1)+'%)','success');
+    }
   }catch(e){
     const msg=e.message||'';
     errEl.textContent=msg.toLowerCase().includes('cancel')||msg.includes('4001')?'Cancelled.':'Failed: '+msg;
