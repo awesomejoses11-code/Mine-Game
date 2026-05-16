@@ -939,19 +939,6 @@ function updateDogsDisplay(){
 const QUICK_WITHDRAW_MS    = 60 * 60 * 1000; // 1 hour window
 const QUICK_WITHDRAW_NERF  = 0.25;           // +25% on fee
 
-function calcWithdrawFee(amt, applyNerf=false){
-  if(amt < 1000) return null;
-  let fee;
-  if(amt <= 5000){
-    fee = 0.1;
-  } else {
-    const extra = Math.ceil((amt - 5000) / 1000);
-    fee = parseFloat((0.1 + extra * 0.01).toFixed(4));
-  }
-  if(applyNerf) fee = parseFloat((fee * (1 + QUICK_WITHDRAW_NERF)).toFixed(4));
-  return fee;
-}
-
 function isQuickWithdraw(){
   return lastPurchaseTime > 0 && (Date.now() - lastPurchaseTime) < QUICK_WITHDRAW_MS;
 }
@@ -1047,26 +1034,33 @@ function updateWdCalc(){
   const nerfd = isQuickWithdraw();
   const noteEl = document.getElementById('wd-note');
 
-  // Calculate fee in TON: 0.1 TON base + 0.025 TON per 1k DOGS above 1k
-  let fee = 0.1;
-  if(dogs > 1000){
-    const extraThousands = Math.ceil((dogs - 1000) / 1000);
-    fee = parseFloat((0.1 + extraThousands * 0.025).toFixed(4));
+  if(dogs < 1000){
+    document.getElementById('wd-dogs-out2').textContent = dogs.toLocaleString()+' DOGS';
+    document.getElementById('wd-ton-val').textContent = (dogs/DOGS_PER_TON).toFixed(4)+' TON';
+    document.getElementById('wd-fee').textContent = '—';
+    document.getElementById('wd-dogs-net').textContent = '0 DOGS';
+    noteEl.textContent = 'Minimum withdrawal: 1,000 DOGS';
+    noteEl.style.color = 'var(--mine-col)';
+    return;
   }
-  if(nerfd) fee = parseFloat((fee * (1 + QUICK_WITHDRAW_NERF)).toFixed(4));
+
+  // Calculate fee in TON: 0.1 TON base + 0.025 TON per each full 1k above 1k
+  const fullThousands = Math.floor(dogs / 1000); // Full 1k tiers
+  let feeTon = 0.1 + (fullThousands - 1) * 0.025;
   
+  if(nerfd) feeTon = parseFloat((feeTon * (1 + QUICK_WITHDRAW_NERF)).toFixed(4));
+  
+  // Fee is paid separately in TON - DOGS received = DOGS requested (no deduction)
   const tonVal = dogs / DOGS_PER_TON;
-  const net = Math.max(0, tonVal - fee);
-  const dogsReceived = Math.round(net * DOGS_PER_TON);
   
   document.getElementById('wd-dogs-out2').textContent  = dogs.toLocaleString()+' DOGS';
   document.getElementById('wd-ton-val').textContent    = tonVal.toFixed(4)+' TON';
-  document.getElementById('wd-fee').textContent        = fee+' TON'+(nerfd?' (+25%)':'');
-  document.getElementById('wd-dogs-net').textContent   = dogsReceived.toLocaleString()+' DOGS';
+  document.getElementById('wd-fee').textContent        = feeTon+' TON'+(nerfd?' (+25%)':'');
+  document.getElementById('wd-dogs-net').textContent   = dogs.toLocaleString()+' DOGS';
   
   noteEl.textContent = nerfd
     ? '⚠️ Early withdrawal: +25% fee applies within 1hr of purchase'
-    : 'Fee: 0.1 TON base · +0.025 TON per 1k DOGS';
+    : 'Fee: 0.1 TON base · +0.025 TON per 1k tier';
   noteEl.style.color = nerfd ? 'var(--mine-col)' : '';
 }
 
@@ -1081,25 +1075,25 @@ document.getElementById('wd-confirm-btn').onclick=async()=>{
   btn.disabled=true; btn.textContent='Processing...';
 
   try{
-    // Calculate fee: 0.1 TON base + 0.025 TON per 1k DOGS above 1k
-    let fee = 0.1;
-    if(dogs > 1000){
-      const extraThousands = Math.ceil((dogs - 1000) / 1000);
-      fee = parseFloat((0.1 + extraThousands * 0.025).toFixed(4));
-    }
-    if(nerfd) fee = parseFloat((fee * (1 + QUICK_WITHDRAW_NERF)).toFixed(4));
+    // Calculate fee in TON using tier system: 0.1 base + 0.025 per full 1k
+    const fullThousands = Math.floor(dogs / 1000);
+    let feeTon = 0.1 + (fullThousands - 1) * 0.025;
+    if(nerfd) feeTon = parseFloat((feeTon * (1 + QUICK_WITHDRAW_NERF)).toFixed(4));
     
-    const tonVal = dogs / DOGS_PER_TON;
-    const net = parseFloat((tonVal - fee).toFixed(4));
-    if(net<=0){ errEl.textContent='Balance too low to cover gas after conversion.'; errEl.style.display='block'; btn.disabled=false; btn.textContent='Withdraw'; return; }
-    
-    const feeNano = BigInt(Math.round(fee*1e9)).toString();
+    // Fee is paid separately in TON - user receives full DOGS amount
+    const feeNano = BigInt(Math.round(feeTon*1e9)).toString();
     await tonUI.sendTransaction({ validUntil:Math.floor(Date.now()/1000)+300, messages:[{ address:DEST_ADDR, amount:feeNano }] });
-    dogsBalance=Math.max(0,dogsBalance-dogs);
-    updateDogsDisplay(); await saveState();
-    notifyAdmin('⬆️ WITHDRAWAL (DOGS)\nWallet: '+(friendlyAddr||walletAddr)+'\n'+dogs.toLocaleString()+' DOGS → '+net.toFixed(4)+' TON\nGas: '+fee+' TON'+(nerfd?' [EARLY -25% NERF]':'')+'\nRemaining: '+dogsBalance.toLocaleString()+' DOGS');
+    
+    // Deduct DOGS from balance (full amount, no fee deduction)
+    dogsBalance = Math.max(0, dogsBalance - dogs);
+    updateDogsDisplay(); 
+    await saveState();
+    
+    // Log and notify admin
+    notifyAdmin('⬆️ WITHDRAWAL\nWallet: '+(friendlyAddr||walletAddr)+'\nRequested: '+dogs.toLocaleString()+' DOGS\nFee: '+feeTon+' TON'+(nerfd?' [EARLY +25%]':'')+'\nReceived: '+dogs.toLocaleString()+' DOGS\nRemaining: '+dogsBalance.toLocaleString()+' DOGS');
+    
     closeModal('withdraw-modal');
-    showMsg('✅ Withdrawn '+dogs.toLocaleString()+' DOGS → '+net.toFixed(4)+' TON (fee: '+fee+' TON)','success');
+    showMsg('✅ Withdrew '+dogs.toLocaleString()+' DOGS (fee: '+feeTon+' TON)','success');
   }catch(e){
     const msg=e.message||'';
     errEl.textContent=msg.toLowerCase().includes('cancel')||msg.includes('4001')?'Cancelled.':'Failed: '+msg;
