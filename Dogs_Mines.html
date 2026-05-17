@@ -627,11 +627,13 @@ button:not(:disabled):active{transform:translateY(0);}
       <div id="lb-list"><div class="lb-empty">Loading leaderboard…</div></div>
     </div>
 
-    <!-- Support Email Section -->
-    <div style="background:var(--panel2);border:1px solid var(--border);border-radius:12px;padding:0.9rem 1rem;text-align:center;margin-top:0.5rem;">
+    <!-- ═══ SUPPORT EMAIL ═══ -->
+    <div style="background:var(--panel2);border:1px solid var(--border);border-radius:12px;padding:0.9rem 1rem;text-align:center;">
       <div style="font-family:'IBM Plex Mono',monospace;font-size:0.52rem;color:var(--muted2);letter-spacing:0.1em;margin-bottom:0.4rem;text-transform:uppercase;">Support</div>
       <a href="mailto:dogsminesupport@ozsaip.com" style="font-family:'IBM Plex Mono',monospace;font-size:0.75rem;color:var(--dogs);text-decoration:none;word-break:break-all;transition:opacity 0.2s;" onmouseover="this.style.opacity='0.7'" onmouseout="this.style.opacity='1'">dogsminesupport@ozsaip.com</a>
     </div>
+
+  </div><!-- /tab-weekly -->
 
   <!-- ═══ TAB: HISTORY ═══ -->
   <div id="tab-history" class="tab-panel">
@@ -1040,39 +1042,29 @@ function copyRefLink(){
 async function sbLogGame(addr, wager, mineCount, gemsRevealed, result, payout){
   if(!sb || !addr) return;
 
+  // Insert session row (fire-and-forget)
+  sb.from('game_sessions').insert({
+    wallet_addr  : addr,
+    wager        : wager,
+    mine_count   : mineCount,
+    gems_revealed: gemsRevealed,
+    result       : result,
+    payout       : payout,
+    played_at    : new Date().toISOString()
+  }).then(({error})=>{ if(error) console.warn('sbLogGame insert:', error); });
+
+  // Directly increment total_wager_volume — no trigger needed.
+  // Fetch current value then add, so the leaderboard stays accurate
+  // even if the DB trigger hasn't been applied to Supabase yet.
   try{
-    // Insert game session - trigger will automatically update player's total_wager_volume
-    const { error } = await sb.from('game_sessions').insert({
-      wallet_addr  : addr,
-      wager        : wager,
-      mine_count   : mineCount,
-      gems_revealed: gemsRevealed,
-      result       : result,
-      payout       : payout,
-      played_at    : new Date().toISOString()
-    });
-    
-    if(error) {
-      console.warn('❌ sbLogGame insert failed:', error);
-      // Fallback: try to update directly if insert fails
-      await sb.from('players')
-        .update({ dogs_balance: dogsBalance, updated_at: new Date().toISOString() })
-        .eq('wallet_addr', addr);
-      return;
-    }
-    
-    // Ensure player record exists (for trigger to work on)
-    await sb.from('players').upsert({
-      wallet_addr: addr,
-      dogs_balance: dogsBalance,
-      last_saved: new Date().toISOString()
-    }, { onConflict: 'wallet_addr' });
-    
-    console.log('✅ Game logged to Supabase:', {wager, result});
-  }catch(e){
-    console.warn('❌ sbLogGame error:', e);
-  }
-}
+    const { data } = await sb
+      .from('players')
+      .select('total_wager_volume')
+      .eq('wallet_addr', addr)
+      .single();
+    const current = (data?.total_wager_volume) || 0;
+    await sb.from('players')
+      .update({ total_wager_volume: current + wager })
       .eq('wallet_addr', addr);
   }catch(e){ console.warn('sbTrackWager:', e); }
 }
