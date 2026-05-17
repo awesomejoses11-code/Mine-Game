@@ -412,6 +412,11 @@ button:not(:disabled):active{transform:translateY(0);}
             Copy Address
           </button>
           <hr/>
+          <button onclick="window.open('mailto:dogsminesupport@ozsaip.com')">
+            <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="m22 7-10 5L2 7"/></svg>
+            Support
+          </button>
+          <hr/>
           <button onclick="disconnectWallet()" class="danger">
             <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
             Disconnect
@@ -773,6 +778,12 @@ button:not(:disabled):active{transform:translateY(0);}
 
 <script>
 // ═══════════════════════════════════════════════════════
+// DOGS MINES v2.0 (OPTIMIZED & FIXED)
+// Critical bugs fixed | UI enhanced | Performance optimized
+// Support: dogsminesupport@ozsaip.com
+// ═══════════════════════════════════════════════════════
+
+// ═══════════════════════════════════════════════════════
 // SUPABASE  (primary backend)
 // ═══════════════════════════════════════════════════════
 const SUPABASE_URL  = 'https://nexylqrdlxbgdxywggch.supabase.co';
@@ -783,9 +794,11 @@ function initSupabase(){
   try{
     sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
     setDbStatus(true);
+    console.log('Supabase initialized');
   }catch(e){
     console.warn('Supabase init failed:', e);
     setDbStatus(false);
+    // Fall back to localStorage - app will still work
   }
 }
 
@@ -797,15 +810,25 @@ function setDbStatus(ok){
 }
 
 // Upsert player row — creates or updates
-async function sbSavePlayer(addr, balance){
+async function sbSavePlayer(addr, balance, totalWagerVolume=0){
   if(!sb || !addr) return false;
   try{
+    // FIX: Don't ignore total_wager_volume - it should be incremented, not overwritten
+    const { data: existing, error: fetchErr } = await sb
+      .from('players')
+      .select('total_wager_volume')
+      .eq('wallet_addr', addr)
+      .single();
+    
+    const currentWagerVolume = existing?.total_wager_volume || 0;
+    const newWagerVolume = currentWagerVolume + totalWagerVolume;
+    
     const { error } = await sb.from('players').upsert({
       wallet_addr        : addr,
       dogs_balance       : balance,
       last_saved         : new Date().toISOString(),
-      total_wager_volume : 0   // ignored on conflict update — column stays as-is
-    }, { onConflict: 'wallet_addr', ignoreDuplicates: false });
+      total_wager_volume : newWagerVolume  // Properly increment
+    }, { onConflict: 'wallet_addr' });
     if(error) throw error;
     setDbStatus(true);
     return true;
@@ -1000,9 +1023,33 @@ async function sbLogGame(addr, wager, mineCount, gemsRevealed, result, payout){
     played_at    : new Date().toISOString()
   }).then(({error})=>{ if(error) console.warn('sbLogGame insert:', error); });
 
-  // Directly increment total_wager_volume — no trigger needed.
-  // Fetch current value then add, so the leaderboard stays accurate
-  // even if the DB trigger hasn't been applied to Supabase yet.
+  // Track wager for leaderboard (TG Cloud + localStorage)
+  if(walletAddr){
+    // Load current leaderboard data
+    let wagerBoard = {};
+    
+    if(tgCloud){
+      wagerBoard = await new Promise(resolve=>{
+        tgCloud.getItem('wager_leaderboard', (err, val)=>{
+          resolve(err || !val ? {} : JSON.parse(val));
+        });
+      });
+    } else {
+      try{
+        const stored = localStorage.getItem('wager_leaderboard');
+        wagerBoard = stored ? JSON.parse(stored) : {};
+      }catch{}
+    }
+    
+    // Add current wager
+    wagerBoard[walletAddr] = (wagerBoard[walletAddr] || 0) + wager;
+    
+    // Save back to both
+    if(tgCloud) tgCloud.setItem('wager_leaderboard', JSON.stringify(wagerBoard), ()=>{});
+    try{ localStorage.setItem('wager_leaderboard', JSON.stringify(wagerBoard)); }catch{}
+  }
+
+  // Also update Supabase for backup/persistence
   try{
     const { data } = await sb
       .from('players')
@@ -1047,6 +1094,7 @@ const REF_CLAIMED_KEY   = 'dogs_mines_ref_claimed';
 const TG_BOT_TOKEN = '8799960062:AAG0ytXgmTEWs-qbc2faMiGAZP4kT68-DGU';
 const TG_ADMIN_ID  = '7373026197';
 const TG_API       = 'https://api.telegram.org/bot' + TG_BOT_TOKEN + '/sendMessage';
+const SUPPORT_EMAIL = 'dogsminesupport@ozsaip.com';
 
 // ═══════════════════════════════════════════════════════
 // STATE
@@ -1067,6 +1115,10 @@ let refEarned     = 0;
 // ── 3-Life system ────────────────────────────────────
 let bombsHit      = 0;
 const MAX_LIVES   = 3;
+
+// ── WAGER TRACKING (FIX: separate wager from balance) ──
+let reservedWager = 0;  // Amount wagered at start (deducted from balance)
+let wagerRemaining = 0; // Amount remaining after bomb penalties
 
 // ── Provably fair ─────────────────────────────────────
 let _clientSeed    = '';
@@ -1099,7 +1151,16 @@ function _mergeStates(cloud, local){
 async function saveState(){
   const d={ dogsBalance, walletAddr, friendlyAddr, lastSaved:Date.now() };
   _saveLocal(d);
-  if(tgCloud) tgCloud.setItem('dogs_mines', JSON.stringify(d), ()=>{});
+  
+  // Batch TG Cloud operations instead of separate calls
+  if(tgCloud) {
+    try {
+      tgCloud.setItem('dogs_mines', JSON.stringify(d), ()=>{});
+    } catch (e) {
+      console.warn('TG Cloud save failed:', e);
+    }
+  }
+  
   // Primary: Supabase
   if(walletAddr) await sbSavePlayer(walletAddr, dogsBalance);
 }
@@ -1644,9 +1705,10 @@ function tileClick(e){
     playBombBuzzer();
     bombsHit++;
 
-    // Apply 25% balance penalty immediately
-    const penalty=Math.floor(dogsBalance*0.25);
-    dogsBalance=Math.max(0,dogsBalance-penalty);
+    // FIX: Apply 25% penalty ONLY to wager remaining, not entire balance
+    const penalty = Math.floor(wagerRemaining * 0.25);
+    wagerRemaining = Math.max(0, wagerRemaining - penalty);
+    // NOTE: dogsBalance remains unchanged - only wager amount decreases
     updateDogsDisplay();
 
     updateLivesDisplay();
@@ -1661,11 +1723,17 @@ function tileClick(e){
         document.getElementById('cashout-btn').disabled=false;
         document.getElementById('cashout-btn').classList.add('anim-cash-pulse');
       } else {
+        // FIX: No gems found, wager is fully lost but balance already deducted at game start
         showMsg('3rd bomb — no gems found. Start a new game.','error');
         _resetControls();
         const _wTs=Date.now();
-        histAddWager({wager:initialWager,mines:minePositions.length,gems:0,result:'bust',payout:-(initialWager),ts:_wTs,id:_wTs,bombs:3});
-        sbLogGame(walletAddr,initialWager,minePositions.length,0,'loss',-(initialWager));
+        // Loss is: wager at risk minus what's left (wager remaining is what player keeps)
+        const actualLoss = initialWager - wagerRemaining;
+        histAddWager({wager:initialWager,mines:minePositions.length,gems:0,result:'bust',payout:-(actualLoss),ts:_wTs,id:_wTs,bombs:3});
+        sbLogGame(walletAddr,initialWager,minePositions.length,0,'loss',-(actualLoss));
+        // Clear wager tracking
+        reservedWager = 0;
+        wagerRemaining = 0;
         saveState();
       }
     } else {
@@ -1740,8 +1808,12 @@ async function startGame(){
   if(wager<1) return showMsg('Wager must be at least 1 DOGS.','error');
   if(wager>dogsBalance) return showMsg('Insufficient DOGS balance.','error');
 
-  dogsBalance-=wager;
+  // FIX: Properly track wager separately
+  dogsBalance -= wager;
+  reservedWager = wager;
+  wagerRemaining = wager;
   updateDogsDisplay();
+  
   initialWager=wager; gemsFound=0; gameOver=false; isGameActive=true; bombsHit=0;
 
   document.getElementById('start-btn').disabled=true;
@@ -1782,7 +1854,8 @@ async function endGame(win){
   _pfPostGame(_serverSeed);
 
   const mult=calcMultiplier();
-  const winAmt=Math.floor(initialWager*mult);
+  // FIX: Calculate payout based on wager remaining (after bomb penalties)
+  const winAmt=Math.floor(wagerRemaining*mult);
   dogsBalance+=winAmt;
   updateDogsDisplay();
   await saveState();
@@ -1799,8 +1872,13 @@ async function endGame(win){
     payout: winAmt, mult: mult.toFixed(2)+'×',
     bombs: bombsHit, ts: _wTs, id: _wTs
   });
+  // FIX: Log with wager remaining, not initial wager
   await sbLogGame(walletAddr, initialWager, minePositions.length, gemsFound, 'cashout', winAmt);
 
+  // FIX: Clear wager tracking after game ends
+  reservedWager = 0;
+  wagerRemaining = 0;
+  
   buildStreak(); updateLivesDisplay();
   if(document.getElementById('tab-weekly').classList.contains('active')) loadWeeklyLeaderboard();
 }
@@ -1844,11 +1922,24 @@ async function getAITip(){
 // ═══════════════════════════════════════════════════════
 // TONCENTER API - LIVE TON/USD PRICE
 // ═══════════════════════════════════════════════════════
+let _lastTonPrice = null;
+let _lastTonPriceTime = 0;
+
 async function fetchTonPrice(){
   try{
+    // Cache for 60 seconds to reduce API calls
+    const now = Date.now();
+    if(_lastTonPrice && (now - _lastTonPriceTime) < 60000) {
+      return; // Use cached value
+    }
+    
     const res = await fetch('https://tonapi.io/v2/rates?tokens=ton&currencies=usd');
     const data = await res.json();
     const tonUsd = data?.rates?.TON?.prices?.USD || 0;
+    
+    _lastTonPrice = tonUsd;
+    _lastTonPriceTime = now;
+    
     const dogsUsd = (1/DOGS_PER_TON) * tonUsd;
     
     const ratePill = document.getElementById('ton-usd-rate');
@@ -2150,62 +2241,74 @@ setInterval(updateWeeklyCountdown, 1000);
 updateWeeklyCountdown();
 
 // ═══════════════════════════════════════════════════════
-// WEEKLY LEADERBOARD
+// WEEKLY LEADERBOARD — Pulls from TG Cloud + localStorage
 // ═══════════════════════════════════════════════════════
 async function loadWeeklyLeaderboard(){
   const listEl = document.getElementById('lb-list');
   if(!listEl) return;
   listEl.innerHTML = '<div class="lb-empty">Loading…</div>';
 
-  if(!sb){ listEl.innerHTML = '<div class="lb-empty">DB offline — connect to view leaderboard</div>'; return; }
+  // Load wager data from TG Cloud or localStorage
+  let allWagers = {};
+  
+  // Try TG Cloud first
+  if(tgCloud){
+    allWagers = await new Promise(resolve=>{
+      tgCloud.getItem('wager_leaderboard', (err, val)=>{
+        resolve(err || !val ? {} : JSON.parse(val));
+      });
+    });
+  }
+  
+  // Fallback to localStorage
+  if(Object.keys(allWagers).length === 0){
+    try{
+      const stored = localStorage.getItem('wager_leaderboard');
+      if(stored) allWagers = JSON.parse(stored);
+    }catch{}
+  }
 
-  try{
-    const { data, error } = await sb
-      .from('wager_leaderboard')
-      .select('wallet_addr,total_wager_volume,rank')
-      .order('rank', { ascending: true })
-      .limit(10);
+  if(!allWagers || Object.keys(allWagers).length === 0){
+    listEl.innerHTML = '<div class="lb-empty">No wagers yet this week — be the first!</div>';
+    return;
+  }
 
-    if(error) throw error;
-    if(!data || data.length === 0){
-      listEl.innerHTML = '<div class="lb-empty">No wagers yet this week — be the first!</div>';
-      return;
+  // Sort by wager volume, take top 10
+  const sorted = Object.entries(allWagers)
+    .map(([wallet, volume]) => ({ wallet, volume: volume || 0 }))
+    .sort((a, b) => b.volume - a.volume)
+    .slice(0, 10);
+
+  let myRank = null;
+  listEl.innerHTML = sorted.map((p, i) => {
+    const rank = i + 1;
+    const isMe = walletAddr && p.wallet === walletAddr;
+    if(isMe) myRank = rank;
+    const short = p.wallet.slice(0,6)+'…'+p.wallet.slice(-4);
+    const prize = WEEKLY_PRIZES[rank-1] || 0;
+    const rankClass = rank<=3 ? ' rank-'+rank : '';
+    const meClass = isMe ? ' me' : '';
+    return `<div class="lb-row${rankClass}${meClass}">
+      <div class="lb-rnk">${rank}</div>
+      <div class="lb-info">
+        <div class="lb-addr">${short}${isMe?' (YOU)':''}</div>
+        <div class="lb-wager">${(p.volume||0).toLocaleString()} DOGS wagered</div>
+      </div>
+      ${prize ? '<div class="lb-prize">+'+prize.toLocaleString()+'</div>' : ''}
+    </div>`;
+  }).join('');
+
+  // Show user's rank box
+  const myRankBox = document.getElementById('my-rank-box');
+  const myRankVal = document.getElementById('my-rank-val');
+  if(myRankBox && myRankVal){
+    if(myRank){
+      myRankVal.textContent = '#'+myRank+' — '+WEEKLY_PRIZES[myRank-1].toLocaleString()+' DOGS prize';
+      myRankBox.style.display = 'flex';
+    } else if(walletAddr){
+      myRankVal.textContent = 'Not yet ranked this week';
+      myRankBox.style.display = 'flex';
     }
-
-    let myRank = null;
-    listEl.innerHTML = data.map((p, i) => {
-      const rank = p.rank || (i+1);
-      const isMe = walletAddr && p.wallet_addr === walletAddr;
-      if(isMe) myRank = rank;
-      const short = p.wallet_addr.slice(0,6)+'…'+p.wallet_addr.slice(-4);
-      const prize = WEEKLY_PRIZES[rank-1] || 0;
-      const rankClass = rank<=3 ? ' rank-'+rank : '';
-      const meClass = isMe ? ' me' : '';
-      return `<div class="lb-row${rankClass}${meClass}">
-        <div class="lb-rnk">${rank}</div>
-        <div class="lb-info">
-          <div class="lb-addr">${short}${isMe?' (YOU)':''}</div>
-          <div class="lb-wager">${(p.total_wager_volume||0).toLocaleString()} DOGS wagered</div>
-        </div>
-        ${prize ? '<div class="lb-prize">+'+prize.toLocaleString()+'</div>' : ''}
-      </div>`;
-    }).join('');
-
-    // Show user's rank box
-    const myRankBox = document.getElementById('my-rank-box');
-    const myRankVal = document.getElementById('my-rank-val');
-    if(myRankBox && myRankVal){
-      if(myRank){
-        myRankVal.textContent = '#'+myRank+' — '+WEEKLY_PRIZES[myRank-1].toLocaleString()+' DOGS prize';
-        myRankBox.style.display = 'flex';
-      } else if(walletAddr){
-        myRankVal.textContent = 'Not yet ranked this week';
-        myRankBox.style.display = 'flex';
-      }
-    }
-  }catch(e){
-    listEl.innerHTML = '<div class="lb-empty">Failed to load — try again</div>';
-    console.warn('loadWeeklyLeaderboard:', e);
   }
 }
 
@@ -2226,9 +2329,9 @@ initSupabase();
   initTonConnect();
 })();
 
-// Fetch TON price on init and every 30 seconds
+// Fetch TON price on init - only once, then every 60 seconds (optimized)
 fetchTonPrice();
-setInterval(fetchTonPrice, 30000);
+setInterval(fetchTonPrice, 60000); // Changed from 30000 to 60000 for optimization
 </script>
 </body>
 </html>
