@@ -16,31 +16,29 @@
   --panel2:#1a1a1a;
   --border:#222;
   --border2:#2e2e2e;
-
-  /* DOGS brand palette — warm amber/gold on near-black */
-  --dogs:#f5a623;        /* amber — primary brand */
+  --dogs:#f5a623;
   --dogs-dim:rgba(245,166,35,0.10);
   --dogs-border:rgba(245,166,35,0.28);
   --dogs-dark:#b87010;
-
-  --gem-col:#22d3a0;     /* teal-green for diamonds */
-  --mine-col:#ef4444;    /* red for bombs */
+  --gem-col:#22d3a0;
+  --mine-col:#ef4444;
   --ton:#0098ea;
-
   --text:#e8e0d0;
   --muted:#5a5040;
   --muted2:#7a6a50;
-
   --tile:#111;
   --tile-h:#1c1a16;
   --gem-bg:#071a14;
   --gem-border:#22d3a0;
   --mine-bg:#180707;
   --mine-border:#ef4444;
+  --ff-sans:'Syne',sans-serif;
+  --ff-mono:'IBM Plex Mono',monospace;
+  --ff-display:'Bebas Neue',sans-serif;
 }
 *{box-sizing:border-box;margin:0;padding:0}
 body{
-  font-family:'Syne',sans-serif;
+  font-family:var(--ff-sans);
   background:var(--bg);
   color:var(--text);
   min-height:100vh;
@@ -116,37 +114,20 @@ body::after{
 .card{background:var(--panel);border:1px solid var(--border);border-radius:12px;padding:1.1rem 1.25rem;box-shadow:0 8px 32px rgba(0,0,0,0.5);}
 .card-title{font-family:'IBM Plex Mono',monospace;font-size:0.58rem;color:var(--muted2);letter-spacing:0.2em;margin-bottom:0.8rem;text-transform:uppercase;}
 
-/* ── BALANCES ── */
-.balance-row{display:grid;grid-template-columns:1fr 1fr;gap:0.6rem;}
-.bal-box{background:var(--panel2);border:1px solid var(--border);border-radius:12px;padding:0.75rem 0.9rem;}
-.bal-box.dogs-box{border-color:var(--dogs-border);background:var(--dogs-dim);}
-.bal-label{font-family:'IBM Plex Mono',monospace;font-size:0.52rem;color:var(--muted2);letter-spacing:0.18em;margin-bottom:4px;}
-.bal-value{font-family:'Bebas Neue',sans-serif;font-size:1.3rem;letter-spacing:0.06em;}
+/* ── BALANCE ── */
+.bal-label{font-family:var(--ff-mono);font-size:0.52rem;color:var(--muted2);letter-spacing:0.18em;margin-bottom:4px;}
+.bal-value{font-family:var(--ff-display);font-size:1.3rem;letter-spacing:0.06em;}
 .bal-value.dogs-col{color:var(--dogs);}
 .bal-value.ton-col{color:var(--ton);}
-.bal-sub{font-family:'IBM Plex Mono',monospace;font-size:0.52rem;color:var(--muted);margin-top:2px;}
 
-/* ── ACTIONS ── */
-.action-row{display:grid;grid-template-columns:1fr 1fr;gap:0.6rem;}
-
-/* ── RATE ── */
-.rate-info{display:flex;align-items:center;justify-content:center;gap:0.5rem;flex-wrap:wrap;padding:0.35rem 0;}
-.rate-pill{background:var(--panel2);border:1px solid var(--border2);border-radius:4px;padding:0.2rem 0.55rem;color:var(--muted2);font-family:'IBM Plex Mono',monospace;font-size:0.54rem;letter-spacing:0.06em;}
-
-/* ── REFERRAL ── */
-.referral-section{border:1px solid var(--dogs-border);border-radius:16px;padding:1.1rem 1.25rem;background:linear-gradient(135deg,rgba(245,166,35,0.04) 0%,transparent 70%);}
-.ref-title{font-family:'IBM Plex Mono',monospace;font-size:0.58rem;color:var(--dogs);letter-spacing:0.18em;margin-bottom:0.7rem;}
+/* ── REFERRAL ── (consolidated) */
 .ref-bonus-row{display:grid;grid-template-columns:1fr 1fr;gap:0.6rem;margin-bottom:0.75rem;}
 .ref-bonus-box{background:rgba(245,166,35,0.05);border:1px solid var(--dogs-border);border-radius:10px;padding:0.6rem 0.75rem;text-align:center;}
-.ref-bonus-val{font-family:'Bebas Neue',sans-serif;font-size:1.1rem;color:var(--dogs);letter-spacing:0.06em;}
-.ref-bonus-label{font-family:'IBM Plex Mono',monospace;font-size:0.5rem;color:var(--muted2);margin-top:2px;letter-spacing:0.1em;}
-.ref-link-box{background:var(--panel2);border:1px solid var(--border2);border-radius:10px;padding:0.55rem 0.8rem;display:flex;align-items:center;justify-content:space-between;gap:0.5rem;margin-bottom:0.5rem;}
-.ref-link-text{font-family:'IBM Plex Mono',monospace;font-size:0.6rem;color:var(--muted2);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex:1;}
+.ref-bonus-val{font-family:var(--ff-display);font-size:1.1rem;color:var(--dogs);letter-spacing:0.06em;}
+.ref-bonus-label{font-family:var(--ff-mono);font-size:0.5rem;color:var(--muted2);margin-top:2px;letter-spacing:0.1em;}
+.ref-link-box{background:var(--panel2);border:1px solid var(--border2);border-radius:10px;padding:0.55rem 0.8rem;display:flex;align-items:center;justify-content:space-between;gap:0.5rem;}
+.ref-link-text{font-family:var(--ff-mono);font-size:0.6rem;color:var(--muted2);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex:1;}
 .ref-link-text.has-link{color:var(--text);}
-.ref-stats{display:flex;gap:0.6rem;}
-.ref-stat{background:var(--panel2);border:1px solid var(--border);border-radius:8px;padding:0.4rem 0.6rem;flex:1;text-align:center;}
-.ref-stat-val{font-family:'Bebas Neue',sans-serif;font-size:0.95rem;color:var(--dogs);letter-spacing:0.04em;}
-.ref-stat-label{font-family:'IBM Plex Mono',monospace;font-size:0.48rem;color:var(--muted);letter-spacing:0.1em;}
 
 /* ── MODAL ── */
 .modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.8);backdrop-filter:blur(4px);z-index:100;align-items:center;justify-content:center;padding:1rem;}
@@ -160,12 +141,12 @@ body::after{
 .modal-value{font-family:'IBM Plex Mono',monospace;font-size:0.82rem;font-weight:700;}
 .modal-divider{border:none;border-top:1px solid var(--border);margin:0.75rem 0;}
 .modal-input-wrap{background:var(--panel2);border:1px solid var(--border2);border-radius:10px;padding:0.7rem 0.9rem;margin-bottom:0.75rem;}
-.modal-input-wrap label{display:block;font-family:'IBM Plex Mono',monospace;font-size:0.52rem;color:var(--muted2);letter-spacing:0.15em;margin-bottom:4px;}
-.modal-input-wrap input{width:100%;background:transparent;border:none;outline:none;color:var(--text);font-family:'Bebas Neue',sans-serif;font-size:1.2rem;letter-spacing:0.06em;}
-.modal-fee-box{background:rgba(245,166,35,0.04);border:1px solid var(--dogs-border);border-radius:8px;padding:0.6rem 0.8rem;margin-bottom:0.75rem;}
-.fee-line{display:flex;justify-content:space-between;margin-bottom:2px;}
-.fee-label{color:var(--muted2);font-family:'IBM Plex Mono',monospace;font-size:0.56rem;}
-.fee-val{color:var(--dogs);font-family:'IBM Plex Mono',monospace;font-size:0.68rem;font-weight:700;}
+.modal-input-wrap label,.modal-label,.card-title,.ctrl label{font-family:var(--ff-mono);font-size:0.58rem;color:var(--muted2);letter-spacing:0.15em;}
+.modal-input-wrap input,.ctrl input{width:100%;background:transparent;border:none;outline:none;color:var(--text);font-family:var(--ff-display);font-size:1.1rem;letter-spacing:0.04em;}
+.modal-title,.ref-hero-title,.week-title{font-family:var(--ff-display);font-size:1.4rem;letter-spacing:0.12em;color:var(--dogs);}
+.modal-value{font-family:var(--ff-mono);font-size:0.82rem;font-weight:700;}
+.fee-label{color:var(--muted2);font-family:var(--ff-mono);font-size:0.56rem;}
+.fee-val{color:var(--dogs);font-family:var(--ff-mono);font-size:0.68rem;font-weight:700;}
 .modal-btn-row{display:grid;grid-template-columns:1fr 1fr;gap:0.5rem;}
 .modal-error{color:#ef7777;font-size:0.68rem;font-family:'IBM Plex Mono',monospace;margin-bottom:0.6rem;display:none;line-height:1.5;}
 .modal-note{font-family:'IBM Plex Mono',monospace;font-size:0.54rem;color:var(--muted);margin-bottom:0.75rem;line-height:1.5;}
@@ -191,12 +172,12 @@ body::after{
 .tile.revealed-mine{background:var(--mine-bg);border-color:var(--mine-border);box-shadow:0 0 10px rgba(239,68,68,0.3),inset 0 0 10px rgba(239,68,68,0.08);cursor:default;}
 
 /* ── BUTTONS ── */
-button{font-family:'IBM Plex Mono',monospace;font-weight:700;font-size:0.78rem;letter-spacing:0.1em;border:none;border-radius:8px;padding:0.7rem 0.9rem;cursor:pointer;transition:transform 0.1s,opacity 0.12s,box-shadow 0.12s;text-transform:uppercase;white-space:nowrap;}
+button{font-family:var(--ff-mono);font-weight:700;font-size:0.78rem;letter-spacing:0.1em;border:none;border-radius:8px;padding:0.7rem 0.9rem;cursor:pointer;transition:transform 0.1s,opacity 0.12s,box-shadow 0.12s;text-transform:uppercase;white-space:nowrap;}
 button:disabled{opacity:0.3;cursor:not-allowed;transform:none!important;}
 button:not(:disabled):hover{transform:translateY(-2px);}
 button:not(:disabled):active{transform:translateY(0);}
-#start-btn{background:linear-gradient(135deg,#00a870,#22d3a0);color:#001a0e;box-shadow:0 4px 16px rgba(34,211,160,0.22);letter-spacing:0.12em;}
-#cashout-btn{background:linear-gradient(135deg,var(--dogs-dark),var(--dogs));color:#120800;box-shadow:0 4px 16px rgba(245,166,35,0.2);letter-spacing:0.12em;}
+#start-btn{background:linear-gradient(135deg,#00a870,#22d3a0);color:#001a0e;box-shadow:0 4px 16px rgba(34,211,160,0.22);}
+#cashout-btn{background:linear-gradient(135deg,var(--dogs-dark),var(--dogs));color:#120800;box-shadow:0 4px 16px rgba(245,166,35,0.2);}
 #tip-btn{background:var(--panel2);border:1px solid var(--border2);color:var(--muted2);width:100%;}
 #tip-btn:not(:disabled):hover{border-color:var(--dogs-border);color:var(--dogs);background:var(--dogs-dim);}
 .btn-buy{background:linear-gradient(135deg,var(--dogs-dark),var(--dogs));color:#0a0600;box-shadow:0 4px 16px rgba(245,166,35,0.2);}
@@ -588,17 +569,17 @@ button:not(:disabled):active{transform:translateY(0);}
     </div>
 
     <div class="prize-pool">
-      <div class="prize-pool-title">Prize Pool Breakdown</div>
-      <div class="prize-row"><span class="prize-rnk gold">🥇 RANK 1</span><span class="prize-dogs">50,000 DOGS</span><span class="prize-ton">≈ 2 TON</span></div>
-      <div class="prize-row"><span class="prize-rnk silver">🥈 RANK 2</span><span class="prize-dogs">37,500 DOGS</span><span class="prize-ton">≈ 1.5 TON</span></div>
-      <div class="prize-row"><span class="prize-rnk bronze">🥉 RANK 3</span><span class="prize-dogs">25,000 DOGS</span><span class="prize-ton">≈ 1 TON</span></div>
-      <div class="prize-row"><span class="prize-rnk">4TH</span><span class="prize-dogs">17,500 DOGS</span><span class="prize-ton">≈ 0.7 TON</span></div>
-      <div class="prize-row"><span class="prize-rnk">5TH</span><span class="prize-dogs">12,500 DOGS</span><span class="prize-ton">≈ 0.5 TON</span></div>
-      <div class="prize-row"><span class="prize-rnk">6TH</span><span class="prize-dogs">10,000 DOGS</span><span class="prize-ton">≈ 0.4 TON</span></div>
-      <div class="prize-row"><span class="prize-rnk">7TH</span><span class="prize-dogs">8,750 DOGS</span><span class="prize-ton">≈ 0.35 TON</span></div>
-      <div class="prize-row"><span class="prize-rnk">8TH</span><span class="prize-dogs">7,500 DOGS</span><span class="prize-ton">≈ 0.3 TON</span></div>
-      <div class="prize-row"><span class="prize-rnk">9TH</span><span class="prize-dogs">6,250 DOGS</span><span class="prize-ton">≈ 0.25 TON</span></div>
-      <div class="prize-row"><span class="prize-rnk">10TH</span><span class="prize-dogs">5,000 DOGS</span><span class="prize-ton">≈ 0.2 TON</span></div>
+      <div class="prize-pool-title">Prize Pool Breakdown (700k DOGS)</div>
+      <div class="prize-row"><span class="prize-rnk gold">🥇 RANK 1</span><span class="prize-dogs">150,000 DOGS</span><span class="prize-ton">≈ 6 TON</span></div>
+      <div class="prize-row"><span class="prize-rnk silver">🥈 RANK 2</span><span class="prize-dogs">120,000 DOGS</span><span class="prize-ton">≈ 4.8 TON</span></div>
+      <div class="prize-row"><span class="prize-rnk bronze">🥉 RANK 3</span><span class="prize-dogs">100,000 DOGS</span><span class="prize-ton">≈ 4 TON</span></div>
+      <div class="prize-row"><span class="prize-rnk">4TH</span><span class="prize-dogs">80,000 DOGS</span><span class="prize-ton">≈ 3.2 TON</span></div>
+      <div class="prize-row"><span class="prize-rnk">5TH</span><span class="prize-dogs">70,000 DOGS</span><span class="prize-ton">≈ 2.8 TON</span></div>
+      <div class="prize-row"><span class="prize-rnk">6TH</span><span class="prize-dogs">60,000 DOGS</span><span class="prize-ton">≈ 2.4 TON</span></div>
+      <div class="prize-row"><span class="prize-rnk">7TH</span><span class="prize-dogs">50,000 DOGS</span><span class="prize-ton">≈ 2 TON</span></div>
+      <div class="prize-row"><span class="prize-rnk">8TH</span><span class="prize-dogs">40,000 DOGS</span><span class="prize-ton">≈ 1.6 TON</span></div>
+      <div class="prize-row"><span class="prize-rnk">9TH</span><span class="prize-dogs">20,000 DOGS</span><span class="prize-ton">≈ 0.8 TON</span></div>
+      <div class="prize-row"><span class="prize-rnk">10TH</span><span class="prize-dogs">10,000 DOGS</span><span class="prize-ton">≈ 0.4 TON</span></div>
     </div>
 
     <div class="my-rank-box" id="my-rank-box" style="display:none">
@@ -1104,7 +1085,7 @@ let pfNonce       = 0;        // increments each game
 let pfLastHash    = '';       // stored for verify modal
 let pfLastMines   = [];       // mines derived from hash (for verify)
 
-const WEEKLY_PRIZES = [50000,37500,25000,17500,12500,10000,8750,7500,6250,5000];
+const WEEKLY_PRIZES = [150000,120000,100000,80000,70000,60000,50000,40000,20000,10000];
 
 // ═══════════════════════════════════════════════════════
 // PERSISTENCE  (Supabase → localStorage → TG CloudStorage)
@@ -1299,6 +1280,9 @@ function initTonConnect(){
         // Restore history from TG Cloud (merges with localStorage)
         await _restoreHistFromCloud();
 
+        // Load leaderboard if user switches to weekly tab
+        // (will be called when they click the tab)
+
         hapticNotify('success');
         await saveState();
         notifyAdmin('🔗 CONNECTED\nWallet: '+friendlyAddr+'\nBalance: '+dogsBalance.toLocaleString()+' DOGS');
@@ -1406,16 +1390,6 @@ function closeModal(id){ document.getElementById(id).classList.remove('open'); }
 // ═══════════════════════════════════════════════════════
 // BUY MODAL
 // ═══════════════════════════════════════════════════════
-document.getElementById('buy-btn').onclick=()=>{
-  if(!walletAddr){ showMsg('Connect your TON wallet first.','error'); return; }
-  document.getElementById('buy-error').style.display='none';
-  document.getElementById('buy-ton-input').value='1';
-  updateBuyCalc();
-  openModal('buy-modal','buy-modal-inner');
-};
-document.getElementById('buy-cancel-btn').onclick=()=>closeModal('buy-modal');
-document.getElementById('buy-ton-input').oninput=updateBuyCalc;
-
 function updateBuyCalc(){
   const ton=parseFloat(document.getElementById('buy-ton-input').value)||0;
   const dogs=Math.round(ton*DOGS_PER_TON);
@@ -1462,21 +1436,6 @@ function setWdMode(mode){
   document.getElementById('wd-dogs-breakdown').style.display = 'block';
   updateWdCalc();
 }
-
-document.getElementById('withdraw-btn').onclick=()=>{
-  if(!walletAddr){ showMsg('Connect your TON wallet first.','error'); return; }
-  if(dogsBalance<1000){ showMsg('Minimum withdrawal is 1,000 DOGS.','error'); return; }
-  wdMode='dogs';
-  document.getElementById('wd-tab-dogs').classList.add('active');
-  document.getElementById('wd-dogs-breakdown').style.display='block';
-  document.getElementById('wd-available').textContent=dogsBalance.toLocaleString()+' DOGS';
-  document.getElementById('wd-dogs-input').value='1000';
-  document.getElementById('wd-error').style.display='none';
-  updateWdCalc();
-  openModal('withdraw-modal','wd-modal-inner');
-};
-document.getElementById('wd-cancel-btn').onclick=()=>closeModal('withdraw-modal');
-document.getElementById('wd-dogs-input').oninput=updateWdCalc;
 
 function updateWdCalc(){
   const dogs = Math.round(parseFloat(document.getElementById('wd-dogs-input').value)||0);
@@ -1780,7 +1739,10 @@ function _finaliseRound(){
   document.getElementById('wager').disabled=false;
   document.getElementById('pf-verify-btn').disabled=false;
   buildStreak();
-  if(document.getElementById('tab-weekly').classList.contains('active')) loadWeeklyLeaderboard();
+  // Delay leaderboard refresh to allow DB to catch up (500ms)
+  if(document.getElementById('tab-weekly').classList.contains('active')){
+    setTimeout(()=>loadWeeklyLeaderboard(), 500);
+  }
 }
 
 async function endGame(win){
@@ -1886,7 +1848,12 @@ function switchTab(tab){
     document.getElementById('tabbtn-'+t).classList.toggle('active', t===tab);
   });
   if(tab==='referral' && walletAddr) loadReferralHistory();
-  if(tab==='weekly') loadWeeklyLeaderboard();
+  if(tab==='weekly'){
+    loadWeeklyLeaderboard();
+    startLeaderboardAutoRefresh();
+  } else {
+    stopLeaderboardAutoRefresh();
+  }
   if(tab==='history') loadHistoryTab();
 }
 
@@ -2170,70 +2137,175 @@ updateWeeklyCountdown();
 // ═══════════════════════════════════════════════════════
 // WEEKLY LEADERBOARD
 // ═══════════════════════════════════════════════════════
+let _leaderboardRefreshInterval = null;
+
+async function getUserRank(userAddr){
+  if(!sb || !userAddr) return null;
+  try{
+    // Count how many users have more wager volume than this user
+    const { data: userData } = await sb
+      .from('players')
+      .select('total_wager_volume')
+      .eq('wallet_addr', userAddr)
+      .single();
+    
+    if(!userData) return null;
+    
+    const userVolume = userData.total_wager_volume || 0;
+    
+    const { count, error } = await sb
+      .from('players')
+      .select('*', { count: 'exact', head: true })
+      .gt('total_wager_volume', userVolume);
+    
+    if(error) throw error;
+    return (count || 0) + 1; // rank = number above + 1
+  }catch(e){
+    console.warn('getUserRank:', e);
+    return null;
+  }
+}
+
 async function loadWeeklyLeaderboard(){
   const listEl = document.getElementById('lb-list');
   if(!listEl) return;
   listEl.innerHTML = '<div class="lb-empty">Loading…</div>';
 
-  if(!sb){ listEl.innerHTML = '<div class="lb-empty">DB offline — connect to view leaderboard</div>'; return; }
+  if(!sb){ 
+    listEl.innerHTML = '<div class="lb-empty">DB offline — connect to view leaderboard</div>'; 
+    return; 
+  }
 
   try{
-    const { data, error } = await sb
-      .from('wager_leaderboard')
-      .select('wallet_addr,total_wager_volume,rank')
-      .order('rank', { ascending: true })
+    // Get top 10 by total_wager_volume
+    const { data: top10, error } = await sb
+      .from('players')
+      .select('wallet_addr,total_wager_volume')
+      .order('total_wager_volume', { ascending: false })
       .limit(10);
 
     if(error) throw error;
-    if(!data || data.length === 0){
+    if(!top10 || top10.length === 0){
       listEl.innerHTML = '<div class="lb-empty">No wagers yet this week — be the first!</div>';
+      
+      // Still show user's rank if connected but not wagered
+      if(walletAddr){
+        const myRankBox = document.getElementById('my-rank-box');
+        const myRankVal = document.getElementById('my-rank-val');
+        if(myRankBox && myRankVal){
+          myRankVal.textContent = 'Start wagering to rank';
+          myRankBox.style.display = 'flex';
+        }
+      }
       return;
     }
 
-    let myRank = null;
-    listEl.innerHTML = data.map((p, i) => {
-      const rank = p.rank || (i+1);
+    // Rank the top 10
+    const rows = top10.map((p, i) => {
+      const rank = i + 1;
       const isMe = walletAddr && p.wallet_addr === walletAddr;
-      if(isMe) myRank = rank;
       const short = p.wallet_addr.slice(0,6)+'…'+p.wallet_addr.slice(-4);
       const prize = WEEKLY_PRIZES[rank-1] || 0;
       const rankClass = rank<=3 ? ' rank-'+rank : '';
       const meClass = isMe ? ' me' : '';
-      return `<div class="lb-row${rankClass}${meClass}">
-        <div class="lb-rnk">${rank}</div>
-        <div class="lb-info">
-          <div class="lb-addr">${short}${isMe?' (YOU)':''}</div>
-          <div class="lb-wager">${(p.total_wager_volume||0).toLocaleString()} DOGS wagered</div>
-        </div>
-        ${prize ? '<div class="lb-prize">+'+prize.toLocaleString()+'</div>' : ''}
-      </div>`;
-    }).join('');
+      return {
+        html: `<div class="lb-row${rankClass}${meClass}">
+          <div class="lb-rnk">${rank}</div>
+          <div class="lb-info">
+            <div class="lb-addr">${short}${isMe?' (YOU)':''}</div>
+            <div class="lb-wager">${(p.total_wager_volume||0).toLocaleString()} DOGS wagered</div>
+          </div>
+          ${prize ? '<div class="lb-prize">+'+prize.toLocaleString()+'</div>' : ''}
+        </div>`,
+        rank: rank,
+        isMe: isMe
+      };
+    });
 
-    // Show user's rank box
+    // Check if user is in top 10
+    let userInTop10 = rows.some(r => r.isMe);
+    let userRank = rows.find(r => r.isMe)?.rank || null;
+
+    // If user is connected but not in top 10, fetch their rank
+    if(walletAddr && !userInTop10){
+      userRank = await getUserRank(walletAddr);
+    }
+
+    // Render leaderboard
+    listEl.innerHTML = rows.map(r => r.html).join('');
+
+    // Show/update user's rank box
     const myRankBox = document.getElementById('my-rank-box');
     const myRankVal = document.getElementById('my-rank-val');
     if(myRankBox && myRankVal){
-      if(myRank){
-        myRankVal.textContent = '#'+myRank+' — '+WEEKLY_PRIZES[myRank-1].toLocaleString()+' DOGS prize';
+      if(userRank && userRank <= 10){
+        // User is in top 10
+        myRankVal.textContent = '#'+userRank+' — '+WEEKLY_PRIZES[userRank-1].toLocaleString()+' DOGS prize';
+        myRankBox.style.display = 'flex';
+      } else if(walletAddr && userRank){
+        // User is ranked but outside top 10
+        myRankVal.textContent = '#'+userRank+' — Outside top 10';
         myRankBox.style.display = 'flex';
       } else if(walletAddr){
-        myRankVal.textContent = 'Not yet ranked this week';
+        myRankVal.textContent = 'Not ranked yet — start wagering!';
         myRankBox.style.display = 'flex';
       }
     }
   }catch(e){
-    listEl.innerHTML = '<div class="lb-empty">Failed to load — try again</div>';
+    listEl.innerHTML = '<div class="lb-empty">Failed to load leaderboard</div>';
     console.warn('loadWeeklyLeaderboard:', e);
+  }
+}
+
+function startLeaderboardAutoRefresh(){
+  if(_leaderboardRefreshInterval) clearInterval(_leaderboardRefreshInterval);
+  _leaderboardRefreshInterval = setInterval(()=>{
+    const tab = document.getElementById('tab-weekly');
+    if(tab && tab.classList.contains('active')){
+      loadWeeklyLeaderboard();
+    }
+  }, 10000); // Refresh every 10 seconds when tab is active
+}
+
+function stopLeaderboardAutoRefresh(){
+  if(_leaderboardRefreshInterval){
+    clearInterval(_leaderboardRefreshInterval);
+    _leaderboardRefreshInterval = null;
   }
 }
 
 // ═══════════════════════════════════════════════════════
 // INIT
 // ═══════════════════════════════════════════════════════
-document.getElementById('ton-connect-btn').onclick=toggleWalletMenu;
-document.getElementById('start-btn').onclick=startGame;
-document.getElementById('cashout-btn').onclick=()=>endGame(true);
-document.getElementById('tip-btn').onclick=getAITip;
+const _cache={};
+function $(id){return _cache[id]||(_cache[id]=document.getElementById(id))}
+
+// Setup event listeners
+const el={
+  tonBtn:$('ton-connect-btn'),
+  startBtn:$('start-btn'),
+  cashoutBtn:$('cashout-btn'),
+  tipBtn:$('tip-btn'),
+  buyBtn:$('buy-btn'),
+  wdBtn:$('withdraw-btn'),
+  buyInput:$('buy-ton-input'),
+  buyCancel:$('buy-cancel-btn'),
+  buyConfirm:$('buy-confirm-btn'),
+  wdInput:$('wd-dogs-input'),
+  wdCancel:$('wd-cancel-btn'),
+  wdConfirm:$('wd-confirm-btn')
+};
+
+el.tonBtn.onclick=toggleWalletMenu;
+el.startBtn.onclick=startGame;
+el.cashoutBtn.onclick=()=>endGame(true);
+el.tipBtn.onclick=getAITip;
+el.buyBtn.onclick=()=>{if(!walletAddr){showMsg('Connect your TON wallet first.','error');return}document.getElementById('buy-error').style.display='none';el.buyInput.value='1';updateBuyCalc();openModal('buy-modal','buy-modal-inner');};
+el.wdBtn.onclick=()=>{if(!walletAddr){showMsg('Connect your TON wallet first.','error');return}if(dogsBalance<1000){showMsg('Minimum withdrawal is 1,000 DOGS.','error');return}wdMode='dogs';document.getElementById('wd-tab-dogs').classList.add('active');document.getElementById('wd-dogs-breakdown').style.display='block';document.getElementById('wd-available').textContent=dogsBalance.toLocaleString()+' DOGS';el.wdInput.value='1000';document.getElementById('wd-error').style.display='none';updateWdCalc();openModal('withdraw-modal','wd-modal-inner');};
+el.buyCancel.onclick=()=>closeModal('buy-modal');
+el.buyInput.oninput=updateBuyCalc;
+el.wdCancel.onclick=()=>closeModal('withdraw-modal');
+el.wdInput.oninput=updateWdCalc;
 
 createGrid();
 initSupabase();
