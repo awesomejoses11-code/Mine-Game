@@ -361,34 +361,6 @@ button:not(:disabled):active{transform:translateY(0);}
 .hist-row-badge.bust{background:rgba(239,68,68,0.1);color:#ef7777;border:1px solid rgba(239,68,68,0.2);}
 .hist-row-badge.dep{background:rgba(0,152,234,0.1);color:var(--ton);border:1px solid rgba(0,152,234,0.22);}
 .hist-row-badge.wd{background:rgba(245,166,35,0.08);color:var(--dogs);border:1px solid var(--dogs-border);}
-
-/* ── LIVES INDICATOR ── */
-.lives-display{display:flex;flex-direction:column;align-items:flex-end;gap:4px;}
-.lives-label{font-family:'IBM Plex Mono',monospace;font-size:0.5rem;color:var(--muted2);letter-spacing:0.15em;}
-.lives-dots{display:flex;gap:5px;align-items:center;}
-.life-dot{width:10px;height:10px;border-radius:50%;border:1.5px solid var(--border2);background:var(--border2);transition:all 0.25s;}
-.life-dot.full{background:var(--gem-col);border-color:var(--gem-col);box-shadow:0 0 6px rgba(34,211,160,0.5);}
-.life-dot.hit{background:var(--mine-col);border-color:var(--mine-col);box-shadow:0 0 6px rgba(239,68,68,0.5);}
-.lives-msg{font-family:'IBM Plex Mono',monospace;font-size:0.52rem;letter-spacing:0.1em;text-align:right;}
-
-/* ── PROVABLY FAIR ── */
-.pf-section{padding:0.9rem 1.25rem;}
-.pf-header{display:flex;justify-content:space-between;align-items:center;cursor:pointer;user-select:none;}
-.pf-toggle-icon{font-family:'IBM Plex Mono',monospace;font-size:0.9rem;color:var(--muted2);transition:transform 0.2s;}
-.pf-toggle-icon.open{transform:rotate(45deg);}
-.pf-body{margin-top:0.75rem;display:flex;flex-direction:column;gap:0.5rem;}
-.pf-row{display:flex;flex-direction:column;gap:2px;}
-.pf-label{font-family:'IBM Plex Mono',monospace;font-size:0.5rem;color:var(--muted2);letter-spacing:0.16em;}
-.pf-val{font-family:'IBM Plex Mono',monospace;font-size:0.58rem;color:var(--text);word-break:break-all;background:var(--panel2);border:1px solid var(--border);border-radius:6px;padding:0.4rem 0.6rem;line-height:1.4;}
-.pf-hash{font-size:0.5rem;color:var(--muted2);}
-.pf-hash.revealed{color:var(--gem-col);}
-.pf-verify-row{display:flex;align-items:center;gap:0.6rem;}
-.pf-verify-btn{background:var(--panel2);border:1px solid var(--border2)!important;color:var(--muted2);padding:0.4rem 0.8rem;font-size:0.62rem;border-radius:6px;}
-.pf-verify-btn:hover{border-color:var(--dogs-border)!important;color:var(--dogs);}
-.pf-verify-status{font-family:'IBM Plex Mono',monospace;font-size:0.58rem;}
-.pf-verify-status.ok{color:var(--gem-col);}
-.pf-verify-status.fail{color:var(--mine-col);}
-.pf-note{font-family:'IBM Plex Mono',monospace;font-size:0.5rem;color:var(--muted);line-height:1.6;}
 </style>
 </head>
 <body>
@@ -410,11 +382,6 @@ button:not(:disabled):active{transform:translateY(0);}
           <button onclick="copyAddress()">
             <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
             Copy Address
-          </button>
-          <hr/>
-          <button onclick="window.open('mailto:dogsminesupport@ozsaip.com')">
-            <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="m22 7-10 5L2 7"/></svg>
-            Support
           </button>
           <hr/>
           <button onclick="disconnectWallet()" class="danger">
@@ -468,15 +435,7 @@ button:not(:disabled):active{transform:translateY(0);}
         <div class="mult-label">MULTIPLIER</div>
         <div id="multiplier-display">1.00×</div>
       </div>
-      <div class="lives-display">
-        <div class="lives-label">LIVES</div>
-        <div class="lives-dots">
-          <div class="life-dot full" id="life-0"></div>
-          <div class="life-dot full" id="life-1"></div>
-          <div class="life-dot full" id="life-2"></div>
-        </div>
-        <div class="lives-msg" id="lives-msg" style="color:var(--muted);display:none"></div>
-      </div>
+      <div class="bomb-penalty">💣 −25% on hit</div>
     </div>
 
     <div class="controls">
@@ -504,33 +463,6 @@ button:not(:disabled):active{transform:translateY(0);}
   </div>
 
   </div><!-- /tab-mine -->
-
-  <!-- PROVABLY FAIR PANEL (always visible below mine tab, above tab bar) -->
-  <div class="pf-section card" id="pf-section" style="display:none">
-    <div class="pf-header" onclick="togglePF()">
-      <span class="card-title" style="margin-bottom:0">PROVABLY FAIR</span>
-      <span class="pf-toggle-icon" id="pf-toggle-icon">+</span>
-    </div>
-    <div class="pf-body" id="pf-body" style="display:none">
-      <div class="pf-row">
-        <div class="pf-label">CLIENT SEED (yours)</div>
-        <div class="pf-val" id="pf-client-seed">—</div>
-      </div>
-      <div class="pf-row">
-        <div class="pf-label">SERVER SEED HASH (pre-game commitment)</div>
-        <div class="pf-val pf-hash" id="pf-server-hash">—</div>
-      </div>
-      <div class="pf-row" id="pf-reveal-row" style="display:none">
-        <div class="pf-label">SERVER SEED (revealed after game)</div>
-        <div class="pf-val pf-hash revealed" id="pf-server-seed">—</div>
-      </div>
-      <div class="pf-verify-row" id="pf-verify-row" style="display:none">
-        <button class="pf-verify-btn" onclick="verifyGame()">Verify</button>
-        <span class="pf-verify-status" id="pf-verify-status"></span>
-      </div>
-      <div class="pf-note">Mines are placed using sha256(serverSeed + ":" + clientSeed). Hash committed before game starts — verify after.</div>
-    </div>
-  </div>
 
   <!-- ═══ TAB: REFERRAL ═══ -->
   <div id="tab-referral" class="tab-panel">
@@ -778,12 +710,6 @@ button:not(:disabled):active{transform:translateY(0);}
 
 <script>
 // ═══════════════════════════════════════════════════════
-// DOGS MINES v2.0 (OPTIMIZED & FIXED)
-// Critical bugs fixed | UI enhanced | Performance optimized
-// Support: dogsminesupport@ozsaip.com
-// ═══════════════════════════════════════════════════════
-
-// ═══════════════════════════════════════════════════════
 // SUPABASE  (primary backend)
 // ═══════════════════════════════════════════════════════
 const SUPABASE_URL  = 'https://nexylqrdlxbgdxywggch.supabase.co';
@@ -794,11 +720,9 @@ function initSupabase(){
   try{
     sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
     setDbStatus(true);
-    console.log('Supabase initialized');
   }catch(e){
     console.warn('Supabase init failed:', e);
     setDbStatus(false);
-    // Fall back to localStorage - app will still work
   }
 }
 
@@ -810,25 +734,15 @@ function setDbStatus(ok){
 }
 
 // Upsert player row — creates or updates
-async function sbSavePlayer(addr, balance, totalWagerVolume=0){
+async function sbSavePlayer(addr, balance){
   if(!sb || !addr) return false;
   try{
-    // FIX: Don't ignore total_wager_volume - it should be incremented, not overwritten
-    const { data: existing, error: fetchErr } = await sb
-      .from('players')
-      .select('total_wager_volume')
-      .eq('wallet_addr', addr)
-      .single();
-    
-    const currentWagerVolume = existing?.total_wager_volume || 0;
-    const newWagerVolume = currentWagerVolume + totalWagerVolume;
-    
     const { error } = await sb.from('players').upsert({
       wallet_addr        : addr,
       dogs_balance       : balance,
       last_saved         : new Date().toISOString(),
-      total_wager_volume : newWagerVolume  // Properly increment
-    }, { onConflict: 'wallet_addr' });
+      total_wager_volume : 0   // ignored on conflict update — column stays as-is
+    }, { onConflict: 'wallet_addr', ignoreDuplicates: false });
     if(error) throw error;
     setDbStatus(true);
     return true;
@@ -1023,33 +937,9 @@ async function sbLogGame(addr, wager, mineCount, gemsRevealed, result, payout){
     played_at    : new Date().toISOString()
   }).then(({error})=>{ if(error) console.warn('sbLogGame insert:', error); });
 
-  // Track wager for leaderboard (TG Cloud + localStorage)
-  if(walletAddr){
-    // Load current leaderboard data
-    let wagerBoard = {};
-    
-    if(tgCloud){
-      wagerBoard = await new Promise(resolve=>{
-        tgCloud.getItem('wager_leaderboard', (err, val)=>{
-          resolve(err || !val ? {} : JSON.parse(val));
-        });
-      });
-    } else {
-      try{
-        const stored = localStorage.getItem('wager_leaderboard');
-        wagerBoard = stored ? JSON.parse(stored) : {};
-      }catch{}
-    }
-    
-    // Add current wager
-    wagerBoard[walletAddr] = (wagerBoard[walletAddr] || 0) + wager;
-    
-    // Save back to both
-    if(tgCloud) tgCloud.setItem('wager_leaderboard', JSON.stringify(wagerBoard), ()=>{});
-    try{ localStorage.setItem('wager_leaderboard', JSON.stringify(wagerBoard)); }catch{}
-  }
-
-  // Also update Supabase for backup/persistence
+  // Directly increment total_wager_volume — no trigger needed.
+  // Fetch current value then add, so the leaderboard stays accurate
+  // even if the DB trigger hasn't been applied to Supabase yet.
   try{
     const { data } = await sb
       .from('players')
@@ -1086,6 +976,7 @@ const DOGS_PER_TON      = 25000;
 const DEST_ADDR         = 'UQBivI9Kba3YojkZFsQpalTeCFcCyNX1OS-Yed67920TU1pf';
 const MANIFEST_URL      = 'https://minegamesimulation.vercel.app/tonconnect-manifest.json';
 const GRID_SIZE         = 25;
+const BOMB_PENALTY      = 0.25;
 const NEW_USER_BONUS    = 1000;
 const STORAGE_KEY       = 'dogs_mines_state';
 const BONUS_CLAIMED_KEY = 'dogs_mines_bonus_claimed';
@@ -1094,7 +985,6 @@ const REF_CLAIMED_KEY   = 'dogs_mines_ref_claimed';
 const TG_BOT_TOKEN = '8799960062:AAG0ytXgmTEWs-qbc2faMiGAZP4kT68-DGU';
 const TG_ADMIN_ID  = '7373026197';
 const TG_API       = 'https://api.telegram.org/bot' + TG_BOT_TOKEN + '/sendMessage';
-const SUPPORT_EMAIL = 'dogsminesupport@ozsaip.com';
 
 // ═══════════════════════════════════════════════════════
 // STATE
@@ -1111,20 +1001,6 @@ let gameOver      = false;
 let initialWager  = 0;
 let refCount      = 0;
 let refEarned     = 0;
-
-// ── 3-Life system ────────────────────────────────────
-let bombsHit      = 0;
-const MAX_LIVES   = 3;
-
-// ── WAGER TRACKING (FIX: separate wager from balance) ──
-let reservedWager = 0;  // Amount wagered at start (deducted from balance)
-let wagerRemaining = 0; // Amount remaining after bomb penalties
-
-// ── Provably fair ─────────────────────────────────────
-let _clientSeed    = '';
-let _serverSeed    = '';
-let _serverSeedHash= '';
-let _pfOpen        = false;
 
 const WEEKLY_PRIZES = [50000,37500,25000,17500,12500,10000,8750,7500,6250,5000];
 
@@ -1151,16 +1027,7 @@ function _mergeStates(cloud, local){
 async function saveState(){
   const d={ dogsBalance, walletAddr, friendlyAddr, lastSaved:Date.now() };
   _saveLocal(d);
-  
-  // Batch TG Cloud operations instead of separate calls
-  if(tgCloud) {
-    try {
-      tgCloud.setItem('dogs_mines', JSON.stringify(d), ()=>{});
-    } catch (e) {
-      console.warn('TG Cloud save failed:', e);
-    }
-  }
-  
+  if(tgCloud) tgCloud.setItem('dogs_mines', JSON.stringify(d), ()=>{});
   // Primary: Supabase
   if(walletAddr) await sbSavePlayer(walletAddr, dogsBalance);
 }
@@ -1625,61 +1492,13 @@ function calcMultiplier(){
   return Math.min(Math.pow(1.08+mf,gemsFound),50);
 }
 
-// ── Provably fair helpers ────────────────────────────
-function _randomHex(bytes=16){
-  const a=new Uint8Array(bytes); crypto.getRandomValues(a);
-  return Array.from(a).map(b=>b.toString(16).padStart(2,'0')).join('');
-}
-async function _sha256hex(str){
-  const buf=await crypto.subtle.digest('SHA-256',new TextEncoder().encode(str));
-  return Array.from(new Uint8Array(buf)).map(b=>b.toString(16).padStart(2,'0')).join('');
-}
-async function _placeMinesFromSeed(count, serverSeed, clientSeed){
-  // Deterministic Fisher-Yates from sha256(serverSeed:clientSeed)
-  let hashHex = await _sha256hex(serverSeed+':'+clientSeed);
-  let hashIdx = 0;
-  const positions=[...Array(GRID_SIZE).keys()];
-  for(let i=positions.length-1;i>0;i--){
-    if(hashIdx+4>hashHex.length){ hashHex=await _sha256hex(hashHex); hashIdx=0; }
-    const rnd=parseInt(hashHex.slice(hashIdx,hashIdx+4),16); hashIdx+=4;
-    const j=rnd%(i+1);
-    [positions[i],positions[j]]=[positions[j],positions[i]];
+function placeMines(count){
+  minePositions=[];
+  const arr=[...Array(GRID_SIZE).keys()];
+  for(let i=0;i<count;i++){
+    const ri=Math.floor(Math.random()*arr.length);
+    minePositions.push(arr.splice(ri,1)[0]);
   }
-  return positions.slice(0,count);
-}
-
-// ── Provably fair UI ──────────────────────────────────
-function togglePF(){
-  _pfOpen=!_pfOpen;
-  document.getElementById('pf-body').style.display=_pfOpen?'flex':'none';
-  document.getElementById('pf-toggle-icon').classList.toggle('open',_pfOpen);
-}
-async function verifyGame(){
-  const statusEl=document.getElementById('pf-verify-status');
-  statusEl.textContent='Verifying…'; statusEl.className='pf-verify-status';
-  try{
-    const committed=document.getElementById('pf-server-hash').textContent;
-    const revealed =document.getElementById('pf-server-seed').textContent;
-    const recomputed=await _sha256hex(revealed);
-    if(recomputed===committed){
-      statusEl.textContent='Verified — hash matches'; statusEl.className='pf-verify-status ok';
-    } else {
-      statusEl.textContent='Mismatch — contact support'; statusEl.className='pf-verify-status fail';
-    }
-  }catch(e){ statusEl.textContent='Verification error'; statusEl.className='pf-verify-status fail'; }
-}
-function _pfPreGame(clientSeed, serverSeedHash){
-  document.getElementById('pf-section').style.display='block';
-  document.getElementById('pf-client-seed').textContent=clientSeed;
-  document.getElementById('pf-server-hash').textContent=serverSeedHash;
-  document.getElementById('pf-reveal-row').style.display='none';
-  document.getElementById('pf-verify-row').style.display='none';
-  document.getElementById('pf-verify-status').textContent='';
-}
-function _pfPostGame(serverSeed){
-  document.getElementById('pf-server-seed').textContent=serverSeed;
-  document.getElementById('pf-reveal-row').style.display='flex';
-  document.getElementById('pf-verify-row').style.display='flex';
 }
 
 function createGrid(){
@@ -1699,50 +1518,12 @@ function tileClick(e){
   const idx=+t.dataset.index;
 
   if(minePositions.includes(idx)){
-    // ── BOMB HIT ─────────────────────────────────────
     t.classList.add('revealed-mine','anim-shake');
     t.textContent='💣';
     playBombBuzzer();
-    bombsHit++;
-
-    // FIX: Apply 25% penalty ONLY to wager remaining, not entire balance
-    const penalty = Math.floor(wagerRemaining * 0.25);
-    wagerRemaining = Math.max(0, wagerRemaining - penalty);
-    // NOTE: dogsBalance remains unchanged - only wager amount decreases
-    updateDogsDisplay();
-
-    updateLivesDisplay();
-
-    if(bombsHit>=MAX_LIVES){
-      // 3rd bomb — lock grid, keep cashout available
-      isGameActive=false;
-      _lockGridAfterBombs();
-      _pfPostGame(_serverSeed);
-      if(gemsFound>0){
-        showMsg('3rd bomb — grid locked. Cash out to collect ' + gemsFound + ' gem' + (gemsFound>1?'s':'') + '.','error');
-        document.getElementById('cashout-btn').disabled=false;
-        document.getElementById('cashout-btn').classList.add('anim-cash-pulse');
-      } else {
-        // FIX: No gems found, wager is fully lost but balance already deducted at game start
-        showMsg('3rd bomb — no gems found. Start a new game.','error');
-        _resetControls();
-        const _wTs=Date.now();
-        // Loss is: wager at risk minus what's left (wager remaining is what player keeps)
-        const actualLoss = initialWager - wagerRemaining;
-        histAddWager({wager:initialWager,mines:minePositions.length,gems:0,result:'bust',payout:-(actualLoss),ts:_wTs,id:_wTs,bombs:3});
-        sbLogGame(walletAddr,initialWager,minePositions.length,0,'loss',-(actualLoss));
-        // Clear wager tracking
-        reservedWager = 0;
-        wagerRemaining = 0;
-        saveState();
-      }
-    } else {
-      const livesLeft=MAX_LIVES-bombsHit;
-      showMsg('Bomb hit — ' + penalty.toLocaleString() + ' DOGS lost. ' + livesLeft + ' life' + (livesLeft>1?'s':'') + ' remaining.','error');
-    }
-
+    isGameActive=false; gameOver=true;
+    endGame(false).catch(e=>console.warn('endGame(loss):', e));
   } else {
-    // ── GEM ──────────────────────────────────────────
     t.classList.add('revealed-gem','anim-pop','anim-gem-glow');
     t.textContent='💎';
     gemsFound++;
@@ -1759,48 +1540,7 @@ function tileClick(e){
   }
 }
 
-function updateLivesDisplay(){
-  for(let i=0;i<MAX_LIVES;i++){
-    const dot=document.getElementById('life-'+i);
-    if(!dot) continue;
-    dot.className='life-dot'+(i<bombsHit?' hit':' full');
-  }
-  const msgEl=document.getElementById('lives-msg');
-  if(msgEl){
-    if(bombsHit>0&&bombsHit<MAX_LIVES){
-      msgEl.textContent=(MAX_LIVES-bombsHit)+' left';
-      msgEl.style.color='var(--mine-col)';
-      msgEl.style.display='block';
-    } else if(bombsHit>=MAX_LIVES){
-      msgEl.textContent='LOCKED';
-      msgEl.style.color='var(--mine-col)';
-      msgEl.style.display='block';
-    } else {
-      msgEl.style.display='none';
-    }
-  }
-}
-
-function _lockGridAfterBombs(){
-  document.querySelectorAll('.tile').forEach(t=>{
-    if(!t.classList.contains('revealed-gem')&&!t.classList.contains('revealed-mine')){
-      t.style.cursor='default';
-      t.style.opacity='0.4';
-    }
-    t.onclick=null;
-  });
-}
-
-function _resetControls(){
-  document.getElementById('start-btn').disabled=false;
-  document.getElementById('mine-count').disabled=false;
-  document.getElementById('wager').disabled=false;
-  document.getElementById('cashout-btn').disabled=true;
-  document.getElementById('cashout-btn').classList.remove('anim-cash-pulse');
-  gameOver=true; isGameActive=false;
-}
-
-async function startGame(){
+function startGame(){
   if(!walletAddr){ showMsg('Connect your TON wallet to play.','error'); return; }
   const mines=Math.round(+document.getElementById('mine-count').value);
   const wager=Math.round(+document.getElementById('wager').value);
@@ -1808,13 +1548,9 @@ async function startGame(){
   if(wager<1) return showMsg('Wager must be at least 1 DOGS.','error');
   if(wager>dogsBalance) return showMsg('Insufficient DOGS balance.','error');
 
-  // FIX: Properly track wager separately
-  dogsBalance -= wager;
-  reservedWager = wager;
-  wagerRemaining = wager;
+  dogsBalance-=wager;
   updateDogsDisplay();
-  
-  initialWager=wager; gemsFound=0; gameOver=false; isGameActive=true; bombsHit=0;
+  initialWager=wager; gemsFound=0; gameOver=false; isGameActive=true;
 
   document.getElementById('start-btn').disabled=true;
   document.getElementById('cashout-btn').disabled=true;
@@ -1822,25 +1558,18 @@ async function startGame(){
   document.getElementById('mine-count').disabled=true;
   document.getElementById('wager').disabled=true;
 
-  // Provably fair seed generation
-  _clientSeed    = _randomHex(16);
-  _serverSeed    = _randomHex(16);
-  _serverSeedHash= await _sha256hex(_serverSeed);
-  _pfPreGame(_clientSeed, _serverSeedHash);
-
-  createGrid();
-  minePositions = await _placeMinesFromSeed(mines, _serverSeed, _clientSeed);
-  updateMultiplier(); buildStreak(); updateLivesDisplay();
-  showMsg('Game on — ' + MAX_LIVES + ' lives. 25% balance lost per bomb hit.','info');
+  createGrid(); placeMines(mines); updateMultiplier(); buildStreak();
+  showMsg('Game on — find diamonds, avoid bombs!','info');
 }
 
 async function endGame(win){
-  // win=true  → cashout (player chose to cash out, or swept all gems)
-  // Called after cashout button or auto-completing all gems
   isGameActive=false; gameOver=true;
-  _resetControls();
+  document.getElementById('start-btn').disabled=false;
+  document.getElementById('mine-count').disabled=false;
+  document.getElementById('wager').disabled=false;
+  document.getElementById('cashout-btn').disabled=true;
+  document.getElementById('cashout-btn').classList.remove('anim-cash-pulse');
 
-  // Reveal all remaining tiles
   document.querySelectorAll('.tile').forEach(t=>{
     const idx=+t.dataset.index;
     if(minePositions.includes(idx)){
@@ -1850,37 +1579,34 @@ async function endGame(win){
     }
   });
 
-  // Reveal server seed (provably fair)
-  _pfPostGame(_serverSeed);
-
-  const mult=calcMultiplier();
-  // FIX: Calculate payout based on wager remaining (after bomb penalties)
-  const winAmt=Math.floor(wagerRemaining*mult);
-  dogsBalance+=winAmt;
-  updateDogsDisplay();
-  await saveState();
-  playCashoutSound();
-
-  const bombNote = bombsHit>0 ? ' (' + bombsHit + ' bomb' + (bombsHit>1?'s':'') + ' hit)' : '';
-  showMsg('Cashed out ' + winAmt.toLocaleString() + ' DOGS at ' + mult.toFixed(2) + '×' + bombNote,'success');
-  hapticNotify('success');
-
-  const _wTs=Date.now();
-  histAddWager({
-    wager: initialWager, mines: minePositions.length,
-    gems: gemsFound, result: 'cashout',
-    payout: winAmt, mult: mult.toFixed(2)+'×',
-    bombs: bombsHit, ts: _wTs, id: _wTs
-  });
-  // FIX: Log with wager remaining, not initial wager
-  await sbLogGame(walletAddr, initialWager, minePositions.length, gemsFound, 'cashout', winAmt);
-
-  // FIX: Clear wager tracking after game ends
-  reservedWager = 0;
-  wagerRemaining = 0;
-  
-  buildStreak(); updateLivesDisplay();
-  if(document.getElementById('tab-weekly').classList.contains('active')) loadWeeklyLeaderboard();
+  if(win){
+    const mult=calcMultiplier();
+    const winAmt=Math.floor(initialWager*mult);
+    dogsBalance+=winAmt;
+    updateDogsDisplay();
+    await saveState();
+    playCashoutSound();
+    showMsg('✅ Cashed out '+winAmt.toLocaleString()+' DOGS at '+mult.toFixed(2)+'×','success');
+    hapticNotify('success');
+    const _wTs=Date.now();
+    histAddWager({ wager: initialWager, mines: minePositions.length, gems: gemsFound, result: 'cashout', payout: winAmt, mult: mult.toFixed(2)+'×', ts: _wTs, id: _wTs });
+    await sbLogGame(walletAddr, initialWager, minePositions.length, gemsFound, 'cashout', winAmt);
+  } else {
+    const penalty=Math.floor(dogsBalance*BOMB_PENALTY);
+    dogsBalance=Math.max(0,dogsBalance-penalty);
+    updateDogsDisplay();
+    await saveState();
+    showMsg('💥 BOOM — wager lost + '+penalty.toLocaleString()+' DOGS penalty (−25%)','error');
+    hapticNotify('error');
+    const _wTs=Date.now();
+    histAddWager({ wager: initialWager, mines: minePositions.length, gems: gemsFound, result: 'loss', payout: -(initialWager+penalty), ts: _wTs, id: _wTs });
+    await sbLogGame(walletAddr, initialWager, minePositions.length, gemsFound, 'loss', -(initialWager+penalty));
+  }
+  buildStreak();
+  // Auto-refresh leaderboard if user is on the weekly tab
+  if(document.getElementById('tab-weekly').classList.contains('active')){
+    loadWeeklyLeaderboard();
+  }
 }
 
 // ═══════════════════════════════════════════════════════
@@ -1899,8 +1625,8 @@ async function getAITip(){
   const wager=+document.getElementById('wager').value;
 
   const prompt=inGame
-    ?`DOGS Mines: ${mines} mines, 25 tiles. ${gemsFound} gems found. ${bombsHit}/${MAX_LIVES} bombs hit — ${MAX_LIVES-bombsHit} lives left. Multiplier: ${mult}×. Wager: ${wager} DOGS. Balance: ${dogsBalance.toLocaleString()} DOGS. Tile mine chance: ${risk}%. Each bomb costs 25% of balance. Cash out or continue? 1–2 sentences.`
-    :`Starting DOGS Mines: ${mines} mines, 25 tiles. 3 lives — each bomb hit costs 25% of balance. 3rd bomb locks grid; cashout still available. Wager: ${wager} DOGS. Balance: ${dogsBalance.toLocaleString()} DOGS. Opening strategy, 1–2 sentences.`;
+    ?`DOGS Mines (crypto game): ${mines} mines, 25 tiles. ${gemsFound} diamonds revealed. Multiplier: ${mult}×. Wager: ${wager} DOGS. Balance: ${dogsBalance.toLocaleString()} DOGS. Mine chance per tile: ${risk}%. Bomb = −25% balance. Cash out or go again? 1–2 sentences.`
+    :`Starting DOGS Mines: ${mines} mines in 25 tiles. Wager: ${wager} DOGS. Balance: ${dogsBalance.toLocaleString()} DOGS. Bombs cost 25% balance penalty. Opening strategy advice, 1–2 sentences.`;
 
   try{
     const res=await fetch('https://api.anthropic.com/v1/messages',{
@@ -1922,24 +1648,11 @@ async function getAITip(){
 // ═══════════════════════════════════════════════════════
 // TONCENTER API - LIVE TON/USD PRICE
 // ═══════════════════════════════════════════════════════
-let _lastTonPrice = null;
-let _lastTonPriceTime = 0;
-
 async function fetchTonPrice(){
   try{
-    // Cache for 60 seconds to reduce API calls
-    const now = Date.now();
-    if(_lastTonPrice && (now - _lastTonPriceTime) < 60000) {
-      return; // Use cached value
-    }
-    
     const res = await fetch('https://tonapi.io/v2/rates?tokens=ton&currencies=usd');
     const data = await res.json();
     const tonUsd = data?.rates?.TON?.prices?.USD || 0;
-    
-    _lastTonPrice = tonUsd;
-    _lastTonPriceTime = now;
-    
     const dogsUsd = (1/DOGS_PER_TON) * tonUsd;
     
     const ratePill = document.getElementById('ton-usd-rate');
@@ -2006,47 +1719,56 @@ function _mergeHistory(a, b){
   };
 }
 
-// Push to TG Cloud — split into 3 keys.
-// TG CloudStorage values max at 4096 chars. Wager objects are ~150 chars
-// each so 25 entries ≈ 3750 chars — safe limit per key. We keep 25 most
-// recent per category in cloud (display purposes); full history stays local.
+// Push to TG Cloud — split into 3 keys with batch operation
+// TG CloudStorage values max at 4096 chars.
 const HIST_CLOUD_LIMIT = 25;
+let _histCloudSyncTimer = null;
 
 function _syncHistToCloud(h){
   if(!tgCloud) return;
-  const store = (k,v)=>{
-    try{
-      const s = JSON.stringify(v);
-      if(s.length > 4000) console.warn('TG Cloud: value may exceed limit for', k, s.length);
-      tgCloud.setItem(k, s, err=>{ if(err) console.warn('TG Cloud hist write:', k, err); });
-    }catch(e){ console.warn('_syncHistToCloud', k, e); }
-  };
-  store('hist_w',  h.wagers.slice(0, HIST_CLOUD_LIMIT));
-  store('hist_d',  h.deposits.slice(0, HIST_CLOUD_LIMIT));
-  store('hist_wd', h.withdrawals.slice(0, HIST_CLOUD_LIMIT));
+  // Debounce cloud sync to avoid excessive writes
+  clearTimeout(_histCloudSyncTimer);
+  _histCloudSyncTimer = setTimeout(()=>{
+    const batch = [
+      { key: 'hist_w',  value: JSON.stringify(h.wagers.slice(0, HIST_CLOUD_LIMIT)) },
+      { key: 'hist_d',  value: JSON.stringify(h.deposits.slice(0, HIST_CLOUD_LIMIT)) },
+      { key: 'hist_wd', value: JSON.stringify(h.withdrawals.slice(0, HIST_CLOUD_LIMIT)) }
+    ];
+    
+    // Use getItems/setItems batch if available
+    if(typeof tgCloud.setItems === 'function'){
+      tgCloud.setItems(batch, err=>{ if(err) console.warn('TG Cloud batch write:', err); });
+    } else {
+      // Fallback: sequential writes
+      batch.forEach(({key, value})=>{
+        if(value.length > 4000) console.warn('TG Cloud: value exceeds safe limit for', key);
+        tgCloud.setItem(key, value, err=>{ if(err) console.warn('TG Cloud write:', key, err); });
+      });
+    }
+  }, 500);
 }
 
-// Pull from TG Cloud using getItems (single round-trip) and merge with local
+// Pull from TG Cloud using batch getItems and merge with local
 async function _restoreHistFromCloud(){
   if(!tgCloud) return;
   try{
-    // Use getItems (batch) if available, fall back to 3 parallel getItem calls
     const cloudData = await new Promise((resolve, reject)=>{
+      // Batch getItems if available (single round-trip)
       if(typeof tgCloud.getItems === 'function'){
         tgCloud.getItems(['hist_w','hist_d','hist_wd'],(err, vals)=>{
           if(err) reject(err);
           else resolve(vals||{});
         });
       } else {
-        // Fallback: 3 parallel getItem
-        const get = k=>new Promise(res=>{
-          tgCloud.getItem(k,(e,v)=>{ res((!e&&v)?v:null); });
-        });
-        Promise.all([get('hist_w'),get('hist_d'),get('hist_wd')])
-          .then(([w,d,wd])=>resolve({hist_w:w,hist_d:d,hist_wd:wd}))
-          .catch(reject);
+        // Fallback: 3 parallel getItem calls
+        Promise.all([
+          new Promise(res=>tgCloud.getItem('hist_w',(e,v)=>res((!e&&v)?v:null))),
+          new Promise(res=>tgCloud.getItem('hist_d',(e,v)=>res((!e&&v)?v:null))),
+          new Promise(res=>tgCloud.getItem('hist_wd',(e,v)=>res((!e&&v)?v:null)))
+        ]).then(([w,d,wd])=>resolve({hist_w:w,hist_d:d,hist_wd:wd})).catch(reject);
       }
     });
+    
     const parse = v=>{ try{ return JSON.parse(v)||[]; }catch{ return []; } };
     const cloud = {
       wagers:      parse(cloudData['hist_w']),
@@ -2058,7 +1780,7 @@ async function _restoreHistFromCloud(){
     try{ localStorage.setItem(HIST_KEY, JSON.stringify(merged)); }catch{}
     _syncHistToCloud(merged);
     _updateHistCounts(merged);
-    console.log('History merged — wagers:', merged.wagers.length, 'deposits:', merged.deposits.length, 'withdrawals:', merged.withdrawals.length);
+    console.log('📊 History merged — wagers:', merged.wagers.length, 'deposits:', merged.deposits.length, 'withdrawals:', merged.withdrawals.length);
   }catch(e){ console.warn('_restoreHistFromCloud:', e); }
 }
 
@@ -2241,74 +1963,62 @@ setInterval(updateWeeklyCountdown, 1000);
 updateWeeklyCountdown();
 
 // ═══════════════════════════════════════════════════════
-// WEEKLY LEADERBOARD — Pulls from TG Cloud + localStorage
+// WEEKLY LEADERBOARD
 // ═══════════════════════════════════════════════════════
 async function loadWeeklyLeaderboard(){
   const listEl = document.getElementById('lb-list');
   if(!listEl) return;
   listEl.innerHTML = '<div class="lb-empty">Loading…</div>';
 
-  // Load wager data from TG Cloud or localStorage
-  let allWagers = {};
-  
-  // Try TG Cloud first
-  if(tgCloud){
-    allWagers = await new Promise(resolve=>{
-      tgCloud.getItem('wager_leaderboard', (err, val)=>{
-        resolve(err || !val ? {} : JSON.parse(val));
-      });
-    });
-  }
-  
-  // Fallback to localStorage
-  if(Object.keys(allWagers).length === 0){
-    try{
-      const stored = localStorage.getItem('wager_leaderboard');
-      if(stored) allWagers = JSON.parse(stored);
-    }catch{}
-  }
+  if(!sb){ listEl.innerHTML = '<div class="lb-empty">DB offline — connect to view leaderboard</div>'; return; }
 
-  if(!allWagers || Object.keys(allWagers).length === 0){
-    listEl.innerHTML = '<div class="lb-empty">No wagers yet this week — be the first!</div>';
-    return;
-  }
+  try{
+    const { data, error } = await sb
+      .from('wager_leaderboard')
+      .select('wallet_addr,total_wager_volume,rank')
+      .order('rank', { ascending: true })
+      .limit(10);
 
-  // Sort by wager volume, take top 10
-  const sorted = Object.entries(allWagers)
-    .map(([wallet, volume]) => ({ wallet, volume: volume || 0 }))
-    .sort((a, b) => b.volume - a.volume)
-    .slice(0, 10);
-
-  let myRank = null;
-  listEl.innerHTML = sorted.map((p, i) => {
-    const rank = i + 1;
-    const isMe = walletAddr && p.wallet === walletAddr;
-    if(isMe) myRank = rank;
-    const short = p.wallet.slice(0,6)+'…'+p.wallet.slice(-4);
-    const prize = WEEKLY_PRIZES[rank-1] || 0;
-    const rankClass = rank<=3 ? ' rank-'+rank : '';
-    const meClass = isMe ? ' me' : '';
-    return `<div class="lb-row${rankClass}${meClass}">
-      <div class="lb-rnk">${rank}</div>
-      <div class="lb-info">
-        <div class="lb-addr">${short}${isMe?' (YOU)':''}</div>
-        <div class="lb-wager">${(p.volume||0).toLocaleString()} DOGS wagered</div>
-      </div>
-      ${prize ? '<div class="lb-prize">+'+prize.toLocaleString()+'</div>' : ''}
-    </div>`;
-  }).join('');
-
-  // Show user's rank box
-  const myRankBox = document.getElementById('my-rank-box');
-  const myRankVal = document.getElementById('my-rank-val');
-  if(myRankBox && myRankVal){
-    if(myRank){
-      myRankVal.textContent = '#'+myRank+' — '+WEEKLY_PRIZES[myRank-1].toLocaleString()+' DOGS prize';
-      myRankBox.style.display = 'flex';
-    } else if(walletAddr){
-      myRankVal.textContent = 'Not yet ranked this week';
-      myRankBox.style.display = 'flex';
+    if(error) throw error;
+    if(!data || data.length === 0){
+      listEl.innerHTML = '<div class="lb-empty">No wagers yet this week — be the first!</div>';
+      return;
     }
+
+    let myRank = null;
+    listEl.innerHTML = data.map((p, i) => {
+      const rank = p.rank || (i+1);
+      const isMe = walletAddr && p.wallet_addr === walletAddr;
+      if(isMe) myRank = rank;
+      const short = p.wallet_addr.slice(0,6)+'…'+p.wallet_addr.slice(-4);
+      const prize = WEEKLY_PRIZES[rank-1] || 0;
+      const rankClass = rank<=3 ? ' rank-'+rank : '';
+      const meClass = isMe ? ' me' : '';
+      return `<div class="lb-row${rankClass}${meClass}">
+        <div class="lb-rnk">${rank}</div>
+        <div class="lb-info">
+          <div class="lb-addr">${short}${isMe?' (YOU)':''}</div>
+          <div class="lb-wager">${(p.total_wager_volume||0).toLocaleString()} DOGS wagered</div>
+        </div>
+        ${prize ? '<div class="lb-prize">+'+prize.toLocaleString()+'</div>' : ''}
+      </div>`;
+    }).join('');
+
+    // Show user's rank box
+    const myRankBox = document.getElementById('my-rank-box');
+    const myRankVal = document.getElementById('my-rank-val');
+    if(myRankBox && myRankVal){
+      if(myRank){
+        myRankVal.textContent = '#'+myRank+' — '+WEEKLY_PRIZES[myRank-1].toLocaleString()+' DOGS prize';
+        myRankBox.style.display = 'flex';
+      } else if(walletAddr){
+        myRankVal.textContent = 'Not yet ranked this week';
+        myRankBox.style.display = 'flex';
+      }
+    }
+  }catch(e){
+    listEl.innerHTML = '<div class="lb-empty">Failed to load — try again</div>';
+    console.warn('loadWeeklyLeaderboard:', e);
   }
 }
 
@@ -2317,7 +2027,7 @@ async function loadWeeklyLeaderboard(){
 // ═══════════════════════════════════════════════════════
 document.getElementById('ton-connect-btn').onclick=toggleWalletMenu;
 document.getElementById('start-btn').onclick=startGame;
-document.getElementById('cashout-btn').onclick=()=>{ if(gemsFound>0||(isGameActive||!gameOver)) endGame(true); };
+document.getElementById('cashout-btn').onclick=()=>endGame(true);
 document.getElementById('tip-btn').onclick=getAITip;
 
 createGrid();
@@ -2329,9 +2039,9 @@ initSupabase();
   initTonConnect();
 })();
 
-// Fetch TON price on init - only once, then every 60 seconds (optimized)
+// Fetch TON price on init and every 30 seconds
 fetchTonPrice();
-setInterval(fetchTonPrice, 60000); // Changed from 30000 to 60000 for optimization
+setInterval(fetchTonPrice, 30000);
 </script>
 </body>
 </html>
