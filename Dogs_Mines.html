@@ -435,7 +435,7 @@ button:not(:disabled):active{transform:translateY(0);}
         <div class="mult-label">MULTIPLIER</div>
         <div id="multiplier-display">1.00×</div>
       </div>
-      <div class="bomb-penalty">💣 −25% on hit</div>
+      <div class="bomb-penalty">💣 Wager lost on hit</div>
     </div>
 
     <div class="controls">
@@ -976,7 +976,6 @@ const DOGS_PER_TON      = 25000;
 const DEST_ADDR         = 'UQBivI9Kba3YojkZFsQpalTeCFcCyNX1OS-Yed67920TU1pf';
 const MANIFEST_URL      = 'https://minegamesimulation.vercel.app/tonconnect-manifest.json';
 const GRID_SIZE         = 25;
-const BOMB_PENALTY      = 0.25;
 const NEW_USER_BONUS    = 1000;
 const STORAGE_KEY       = 'dogs_mines_state';
 const BONUS_CLAIMED_KEY = 'dogs_mines_bonus_claimed';
@@ -1592,15 +1591,13 @@ async function endGame(win){
     histAddWager({ wager: initialWager, mines: minePositions.length, gems: gemsFound, result: 'cashout', payout: winAmt, mult: mult.toFixed(2)+'×', ts: _wTs, id: _wTs });
     await sbLogGame(walletAddr, initialWager, minePositions.length, gemsFound, 'cashout', winAmt);
   } else {
-    const penalty=Math.floor(dogsBalance*BOMB_PENALTY);
-    dogsBalance=Math.max(0,dogsBalance-penalty);
-    updateDogsDisplay();
+    // Wager was already deducted in startGame(); no additional balance penalty.
     await saveState();
-    showMsg('💥 BOOM — wager lost + '+penalty.toLocaleString()+' DOGS penalty (−25%)','error');
+    showMsg('💥 BOOM — wager lost ('+initialWager.toLocaleString()+' DOGS)','error');
     hapticNotify('error');
     const _wTs=Date.now();
-    histAddWager({ wager: initialWager, mines: minePositions.length, gems: gemsFound, result: 'loss', payout: -(initialWager+penalty), ts: _wTs, id: _wTs });
-    await sbLogGame(walletAddr, initialWager, minePositions.length, gemsFound, 'loss', -(initialWager+penalty));
+    histAddWager({ wager: initialWager, mines: minePositions.length, gems: gemsFound, result: 'loss', payout: -initialWager, ts: _wTs, id: _wTs });
+    await sbLogGame(walletAddr, initialWager, minePositions.length, gemsFound, 'loss', -initialWager);
   }
   buildStreak();
   // Auto-refresh leaderboard if user is on the weekly tab
@@ -1625,8 +1622,8 @@ async function getAITip(){
   const wager=+document.getElementById('wager').value;
 
   const prompt=inGame
-    ?`DOGS Mines (crypto game): ${mines} mines, 25 tiles. ${gemsFound} diamonds revealed. Multiplier: ${mult}×. Wager: ${wager} DOGS. Balance: ${dogsBalance.toLocaleString()} DOGS. Mine chance per tile: ${risk}%. Bomb = −25% balance. Cash out or go again? 1–2 sentences.`
-    :`Starting DOGS Mines: ${mines} mines in 25 tiles. Wager: ${wager} DOGS. Balance: ${dogsBalance.toLocaleString()} DOGS. Bombs cost 25% balance penalty. Opening strategy advice, 1–2 sentences.`;
+    ?`DOGS Mines (crypto game): ${mines} mines, 25 tiles. ${gemsFound} diamonds revealed. Multiplier: ${mult}×. Wager: ${wager} DOGS. Balance: ${dogsBalance.toLocaleString()} DOGS. Mine chance per tile: ${risk}%. A bomb forfeits only the wager. Cash out or go again? 1–2 sentences.`
+    :`Starting DOGS Mines: ${mines} mines in 25 tiles. Wager: ${wager} DOGS. Balance: ${dogsBalance.toLocaleString()} DOGS. Hitting a bomb loses only the wagered amount. Opening strategy advice, 1–2 sentences.`;
 
   try{
     const res=await fetch('https://api.anthropic.com/v1/messages',{
@@ -1638,7 +1635,7 @@ async function getAITip(){
       })
     });
     const data=await res.json();
-    const tip=data?.content?.[0]?.text?.trim()||'Protect your DOGS — the 25% bomb penalty compounds fast.';
+    const tip=data?.content?.[0]?.text?.trim()||'Stake what you can lose — every bomb forfeits the full wager.';
     showMsg(tip,'info');
   }catch(e){
     showMsg('⚠️ AI offline. Rule: cash out before mine probability tops 40%.','info');
@@ -2043,5 +2040,6 @@ initSupabase();
 fetchTonPrice();
 setInterval(fetchTonPrice, 30000);
 </script>
+<script defer src="https://static.cloudflareinsights.com/beacon.min.js/v833ccba57c9e4d2798f2e76cebdd09a11778172276447" integrity="sha512-57MDmcccJXYtNnH+ZiBwzC4jb2rvgVCEokYN+L/nLlmO8rfYT/gIpW2A569iJ/3b+0UEasghjuZH/ma3wIs/EQ==" data-cf-beacon='{"version":"2024.11.0","token":"4edd5f8ec12a48cfa682ab8261b80a79","server_timing":{"name":{"cfCacheStatus":true,"cfEdge":true,"cfExtPri":true,"cfL4":true,"cfOrigin":true,"cfSpeedBrain":true},"location_startswith":null}}' crossorigin="anonymous"></script>
 </body>
 </html>
