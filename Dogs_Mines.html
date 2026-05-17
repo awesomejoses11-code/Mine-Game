@@ -361,6 +361,34 @@ button:not(:disabled):active{transform:translateY(0);}
 .hist-row-badge.bust{background:rgba(239,68,68,0.1);color:#ef7777;border:1px solid rgba(239,68,68,0.2);}
 .hist-row-badge.dep{background:rgba(0,152,234,0.1);color:var(--ton);border:1px solid rgba(0,152,234,0.22);}
 .hist-row-badge.wd{background:rgba(245,166,35,0.08);color:var(--dogs);border:1px solid var(--dogs-border);}
+
+/* ── LIVES INDICATOR ── */
+.lives-display{display:flex;flex-direction:column;align-items:flex-end;gap:4px;}
+.lives-label{font-family:'IBM Plex Mono',monospace;font-size:0.5rem;color:var(--muted2);letter-spacing:0.15em;}
+.lives-dots{display:flex;gap:5px;align-items:center;}
+.life-dot{width:10px;height:10px;border-radius:50%;border:1.5px solid var(--border2);background:var(--border2);transition:all 0.25s;}
+.life-dot.full{background:var(--gem-col);border-color:var(--gem-col);box-shadow:0 0 6px rgba(34,211,160,0.5);}
+.life-dot.hit{background:var(--mine-col);border-color:var(--mine-col);box-shadow:0 0 6px rgba(239,68,68,0.5);}
+.lives-msg{font-family:'IBM Plex Mono',monospace;font-size:0.52rem;letter-spacing:0.1em;text-align:right;}
+
+/* ── PROVABLY FAIR ── */
+.pf-section{padding:0.9rem 1.25rem;}
+.pf-header{display:flex;justify-content:space-between;align-items:center;cursor:pointer;user-select:none;}
+.pf-toggle-icon{font-family:'IBM Plex Mono',monospace;font-size:0.9rem;color:var(--muted2);transition:transform 0.2s;}
+.pf-toggle-icon.open{transform:rotate(45deg);}
+.pf-body{margin-top:0.75rem;display:flex;flex-direction:column;gap:0.5rem;}
+.pf-row{display:flex;flex-direction:column;gap:2px;}
+.pf-label{font-family:'IBM Plex Mono',monospace;font-size:0.5rem;color:var(--muted2);letter-spacing:0.16em;}
+.pf-val{font-family:'IBM Plex Mono',monospace;font-size:0.58rem;color:var(--text);word-break:break-all;background:var(--panel2);border:1px solid var(--border);border-radius:6px;padding:0.4rem 0.6rem;line-height:1.4;}
+.pf-hash{font-size:0.5rem;color:var(--muted2);}
+.pf-hash.revealed{color:var(--gem-col);}
+.pf-verify-row{display:flex;align-items:center;gap:0.6rem;}
+.pf-verify-btn{background:var(--panel2);border:1px solid var(--border2)!important;color:var(--muted2);padding:0.4rem 0.8rem;font-size:0.62rem;border-radius:6px;}
+.pf-verify-btn:hover{border-color:var(--dogs-border)!important;color:var(--dogs);}
+.pf-verify-status{font-family:'IBM Plex Mono',monospace;font-size:0.58rem;}
+.pf-verify-status.ok{color:var(--gem-col);}
+.pf-verify-status.fail{color:var(--mine-col);}
+.pf-note{font-family:'IBM Plex Mono',monospace;font-size:0.5rem;color:var(--muted);line-height:1.6;}
 </style>
 </head>
 <body>
@@ -435,7 +463,15 @@ button:not(:disabled):active{transform:translateY(0);}
         <div class="mult-label">MULTIPLIER</div>
         <div id="multiplier-display">1.00×</div>
       </div>
-      <div class="bomb-penalty">💣 −25% on hit</div>
+      <div class="lives-display">
+        <div class="lives-label">LIVES</div>
+        <div class="lives-dots">
+          <div class="life-dot full" id="life-0"></div>
+          <div class="life-dot full" id="life-1"></div>
+          <div class="life-dot full" id="life-2"></div>
+        </div>
+        <div class="lives-msg" id="lives-msg" style="color:var(--muted);display:none"></div>
+      </div>
     </div>
 
     <div class="controls">
@@ -463,6 +499,33 @@ button:not(:disabled):active{transform:translateY(0);}
   </div>
 
   </div><!-- /tab-mine -->
+
+  <!-- PROVABLY FAIR PANEL (always visible below mine tab, above tab bar) -->
+  <div class="pf-section card" id="pf-section" style="display:none">
+    <div class="pf-header" onclick="togglePF()">
+      <span class="card-title" style="margin-bottom:0">PROVABLY FAIR</span>
+      <span class="pf-toggle-icon" id="pf-toggle-icon">+</span>
+    </div>
+    <div class="pf-body" id="pf-body" style="display:none">
+      <div class="pf-row">
+        <div class="pf-label">CLIENT SEED (yours)</div>
+        <div class="pf-val" id="pf-client-seed">—</div>
+      </div>
+      <div class="pf-row">
+        <div class="pf-label">SERVER SEED HASH (pre-game commitment)</div>
+        <div class="pf-val pf-hash" id="pf-server-hash">—</div>
+      </div>
+      <div class="pf-row" id="pf-reveal-row" style="display:none">
+        <div class="pf-label">SERVER SEED (revealed after game)</div>
+        <div class="pf-val pf-hash revealed" id="pf-server-seed">—</div>
+      </div>
+      <div class="pf-verify-row" id="pf-verify-row" style="display:none">
+        <button class="pf-verify-btn" onclick="verifyGame()">Verify</button>
+        <span class="pf-verify-status" id="pf-verify-status"></span>
+      </div>
+      <div class="pf-note">Mines are placed using sha256(serverSeed + ":" + clientSeed). Hash committed before game starts — verify after.</div>
+    </div>
+  </div>
 
   <!-- ═══ TAB: REFERRAL ═══ -->
   <div id="tab-referral" class="tab-panel">
@@ -976,7 +1039,6 @@ const DOGS_PER_TON      = 25000;
 const DEST_ADDR         = 'UQBivI9Kba3YojkZFsQpalTeCFcCyNX1OS-Yed67920TU1pf';
 const MANIFEST_URL      = 'https://minegamesimulation.vercel.app/tonconnect-manifest.json';
 const GRID_SIZE         = 25;
-const BOMB_PENALTY      = 0.25;
 const NEW_USER_BONUS    = 1000;
 const STORAGE_KEY       = 'dogs_mines_state';
 const BONUS_CLAIMED_KEY = 'dogs_mines_bonus_claimed';
@@ -1001,6 +1063,16 @@ let gameOver      = false;
 let initialWager  = 0;
 let refCount      = 0;
 let refEarned     = 0;
+
+// ── 3-Life system ────────────────────────────────────
+let bombsHit      = 0;
+const MAX_LIVES   = 3;
+
+// ── Provably fair ─────────────────────────────────────
+let _clientSeed    = '';
+let _serverSeed    = '';
+let _serverSeedHash= '';
+let _pfOpen        = false;
 
 const WEEKLY_PRIZES = [50000,37500,25000,17500,12500,10000,8750,7500,6250,5000];
 
@@ -1492,13 +1564,61 @@ function calcMultiplier(){
   return Math.min(Math.pow(1.08+mf,gemsFound),50);
 }
 
-function placeMines(count){
-  minePositions=[];
-  const arr=[...Array(GRID_SIZE).keys()];
-  for(let i=0;i<count;i++){
-    const ri=Math.floor(Math.random()*arr.length);
-    minePositions.push(arr.splice(ri,1)[0]);
+// ── Provably fair helpers ────────────────────────────
+function _randomHex(bytes=16){
+  const a=new Uint8Array(bytes); crypto.getRandomValues(a);
+  return Array.from(a).map(b=>b.toString(16).padStart(2,'0')).join('');
+}
+async function _sha256hex(str){
+  const buf=await crypto.subtle.digest('SHA-256',new TextEncoder().encode(str));
+  return Array.from(new Uint8Array(buf)).map(b=>b.toString(16).padStart(2,'0')).join('');
+}
+async function _placeMinesFromSeed(count, serverSeed, clientSeed){
+  // Deterministic Fisher-Yates from sha256(serverSeed:clientSeed)
+  let hashHex = await _sha256hex(serverSeed+':'+clientSeed);
+  let hashIdx = 0;
+  const positions=[...Array(GRID_SIZE).keys()];
+  for(let i=positions.length-1;i>0;i--){
+    if(hashIdx+4>hashHex.length){ hashHex=await _sha256hex(hashHex); hashIdx=0; }
+    const rnd=parseInt(hashHex.slice(hashIdx,hashIdx+4),16); hashIdx+=4;
+    const j=rnd%(i+1);
+    [positions[i],positions[j]]=[positions[j],positions[i]];
   }
+  return positions.slice(0,count);
+}
+
+// ── Provably fair UI ──────────────────────────────────
+function togglePF(){
+  _pfOpen=!_pfOpen;
+  document.getElementById('pf-body').style.display=_pfOpen?'flex':'none';
+  document.getElementById('pf-toggle-icon').classList.toggle('open',_pfOpen);
+}
+async function verifyGame(){
+  const statusEl=document.getElementById('pf-verify-status');
+  statusEl.textContent='Verifying…'; statusEl.className='pf-verify-status';
+  try{
+    const committed=document.getElementById('pf-server-hash').textContent;
+    const revealed =document.getElementById('pf-server-seed').textContent;
+    const recomputed=await _sha256hex(revealed);
+    if(recomputed===committed){
+      statusEl.textContent='Verified — hash matches'; statusEl.className='pf-verify-status ok';
+    } else {
+      statusEl.textContent='Mismatch — contact support'; statusEl.className='pf-verify-status fail';
+    }
+  }catch(e){ statusEl.textContent='Verification error'; statusEl.className='pf-verify-status fail'; }
+}
+function _pfPreGame(clientSeed, serverSeedHash){
+  document.getElementById('pf-section').style.display='block';
+  document.getElementById('pf-client-seed').textContent=clientSeed;
+  document.getElementById('pf-server-hash').textContent=serverSeedHash;
+  document.getElementById('pf-reveal-row').style.display='none';
+  document.getElementById('pf-verify-row').style.display='none';
+  document.getElementById('pf-verify-status').textContent='';
+}
+function _pfPostGame(serverSeed){
+  document.getElementById('pf-server-seed').textContent=serverSeed;
+  document.getElementById('pf-reveal-row').style.display='flex';
+  document.getElementById('pf-verify-row').style.display='flex';
 }
 
 function createGrid(){
@@ -1518,12 +1638,43 @@ function tileClick(e){
   const idx=+t.dataset.index;
 
   if(minePositions.includes(idx)){
+    // ── BOMB HIT ─────────────────────────────────────
     t.classList.add('revealed-mine','anim-shake');
     t.textContent='💣';
     playBombBuzzer();
-    isGameActive=false; gameOver=true;
-    endGame(false).catch(e=>console.warn('endGame(loss):', e));
+    bombsHit++;
+
+    // Apply 25% balance penalty immediately
+    const penalty=Math.floor(dogsBalance*0.25);
+    dogsBalance=Math.max(0,dogsBalance-penalty);
+    updateDogsDisplay();
+
+    updateLivesDisplay();
+
+    if(bombsHit>=MAX_LIVES){
+      // 3rd bomb — lock grid, keep cashout available
+      isGameActive=false;
+      _lockGridAfterBombs();
+      _pfPostGame(_serverSeed);
+      if(gemsFound>0){
+        showMsg('3rd bomb — grid locked. Cash out to collect ' + gemsFound + ' gem' + (gemsFound>1?'s':'') + '.','error');
+        document.getElementById('cashout-btn').disabled=false;
+        document.getElementById('cashout-btn').classList.add('anim-cash-pulse');
+      } else {
+        showMsg('3rd bomb — no gems found. Start a new game.','error');
+        _resetControls();
+        const _wTs=Date.now();
+        histAddWager({wager:initialWager,mines:minePositions.length,gems:0,result:'bust',payout:-(initialWager),ts:_wTs,id:_wTs,bombs:3});
+        sbLogGame(walletAddr,initialWager,minePositions.length,0,'loss',-(initialWager));
+        saveState();
+      }
+    } else {
+      const livesLeft=MAX_LIVES-bombsHit;
+      showMsg('Bomb hit — ' + penalty.toLocaleString() + ' DOGS lost. ' + livesLeft + ' life' + (livesLeft>1?'s':'') + ' remaining.','error');
+    }
+
   } else {
+    // ── GEM ──────────────────────────────────────────
     t.classList.add('revealed-gem','anim-pop','anim-gem-glow');
     t.textContent='💎';
     gemsFound++;
@@ -1540,7 +1691,48 @@ function tileClick(e){
   }
 }
 
-function startGame(){
+function updateLivesDisplay(){
+  for(let i=0;i<MAX_LIVES;i++){
+    const dot=document.getElementById('life-'+i);
+    if(!dot) continue;
+    dot.className='life-dot'+(i<bombsHit?' hit':' full');
+  }
+  const msgEl=document.getElementById('lives-msg');
+  if(msgEl){
+    if(bombsHit>0&&bombsHit<MAX_LIVES){
+      msgEl.textContent=(MAX_LIVES-bombsHit)+' left';
+      msgEl.style.color='var(--mine-col)';
+      msgEl.style.display='block';
+    } else if(bombsHit>=MAX_LIVES){
+      msgEl.textContent='LOCKED';
+      msgEl.style.color='var(--mine-col)';
+      msgEl.style.display='block';
+    } else {
+      msgEl.style.display='none';
+    }
+  }
+}
+
+function _lockGridAfterBombs(){
+  document.querySelectorAll('.tile').forEach(t=>{
+    if(!t.classList.contains('revealed-gem')&&!t.classList.contains('revealed-mine')){
+      t.style.cursor='default';
+      t.style.opacity='0.4';
+    }
+    t.onclick=null;
+  });
+}
+
+function _resetControls(){
+  document.getElementById('start-btn').disabled=false;
+  document.getElementById('mine-count').disabled=false;
+  document.getElementById('wager').disabled=false;
+  document.getElementById('cashout-btn').disabled=true;
+  document.getElementById('cashout-btn').classList.remove('anim-cash-pulse');
+  gameOver=true; isGameActive=false;
+}
+
+async function startGame(){
   if(!walletAddr){ showMsg('Connect your TON wallet to play.','error'); return; }
   const mines=Math.round(+document.getElementById('mine-count').value);
   const wager=Math.round(+document.getElementById('wager').value);
@@ -1550,7 +1742,7 @@ function startGame(){
 
   dogsBalance-=wager;
   updateDogsDisplay();
-  initialWager=wager; gemsFound=0; gameOver=false; isGameActive=true;
+  initialWager=wager; gemsFound=0; gameOver=false; isGameActive=true; bombsHit=0;
 
   document.getElementById('start-btn').disabled=true;
   document.getElementById('cashout-btn').disabled=true;
@@ -1558,18 +1750,25 @@ function startGame(){
   document.getElementById('mine-count').disabled=true;
   document.getElementById('wager').disabled=true;
 
-  createGrid(); placeMines(mines); updateMultiplier(); buildStreak();
-  showMsg('Game on — find diamonds, avoid bombs!','info');
+  // Provably fair seed generation
+  _clientSeed    = _randomHex(16);
+  _serverSeed    = _randomHex(16);
+  _serverSeedHash= await _sha256hex(_serverSeed);
+  _pfPreGame(_clientSeed, _serverSeedHash);
+
+  createGrid();
+  minePositions = await _placeMinesFromSeed(mines, _serverSeed, _clientSeed);
+  updateMultiplier(); buildStreak(); updateLivesDisplay();
+  showMsg('Game on — ' + MAX_LIVES + ' lives. 25% balance lost per bomb hit.','info');
 }
 
 async function endGame(win){
+  // win=true  → cashout (player chose to cash out, or swept all gems)
+  // Called after cashout button or auto-completing all gems
   isGameActive=false; gameOver=true;
-  document.getElementById('start-btn').disabled=false;
-  document.getElementById('mine-count').disabled=false;
-  document.getElementById('wager').disabled=false;
-  document.getElementById('cashout-btn').disabled=true;
-  document.getElementById('cashout-btn').classList.remove('anim-cash-pulse');
+  _resetControls();
 
+  // Reveal all remaining tiles
   document.querySelectorAll('.tile').forEach(t=>{
     const idx=+t.dataset.index;
     if(minePositions.includes(idx)){
@@ -1579,34 +1778,31 @@ async function endGame(win){
     }
   });
 
-  if(win){
-    const mult=calcMultiplier();
-    const winAmt=Math.floor(initialWager*mult);
-    dogsBalance+=winAmt;
-    updateDogsDisplay();
-    await saveState();
-    playCashoutSound();
-    showMsg('✅ Cashed out '+winAmt.toLocaleString()+' DOGS at '+mult.toFixed(2)+'×','success');
-    hapticNotify('success');
-    const _wTs=Date.now();
-    histAddWager({ wager: initialWager, mines: minePositions.length, gems: gemsFound, result: 'cashout', payout: winAmt, mult: mult.toFixed(2)+'×', ts: _wTs, id: _wTs });
-    await sbLogGame(walletAddr, initialWager, minePositions.length, gemsFound, 'cashout', winAmt);
-  } else {
-    const penalty=Math.floor(dogsBalance*BOMB_PENALTY);
-    dogsBalance=Math.max(0,dogsBalance-penalty);
-    updateDogsDisplay();
-    await saveState();
-    showMsg('💥 BOOM — wager lost + '+penalty.toLocaleString()+' DOGS penalty (−25%)','error');
-    hapticNotify('error');
-    const _wTs=Date.now();
-    histAddWager({ wager: initialWager, mines: minePositions.length, gems: gemsFound, result: 'loss', payout: -(initialWager+penalty), ts: _wTs, id: _wTs });
-    await sbLogGame(walletAddr, initialWager, minePositions.length, gemsFound, 'loss', -(initialWager+penalty));
-  }
-  buildStreak();
-  // Auto-refresh leaderboard if user is on the weekly tab
-  if(document.getElementById('tab-weekly').classList.contains('active')){
-    loadWeeklyLeaderboard();
-  }
+  // Reveal server seed (provably fair)
+  _pfPostGame(_serverSeed);
+
+  const mult=calcMultiplier();
+  const winAmt=Math.floor(initialWager*mult);
+  dogsBalance+=winAmt;
+  updateDogsDisplay();
+  await saveState();
+  playCashoutSound();
+
+  const bombNote = bombsHit>0 ? ' (' + bombsHit + ' bomb' + (bombsHit>1?'s':'') + ' hit)' : '';
+  showMsg('Cashed out ' + winAmt.toLocaleString() + ' DOGS at ' + mult.toFixed(2) + '×' + bombNote,'success');
+  hapticNotify('success');
+
+  const _wTs=Date.now();
+  histAddWager({
+    wager: initialWager, mines: minePositions.length,
+    gems: gemsFound, result: 'cashout',
+    payout: winAmt, mult: mult.toFixed(2)+'×',
+    bombs: bombsHit, ts: _wTs, id: _wTs
+  });
+  await sbLogGame(walletAddr, initialWager, minePositions.length, gemsFound, 'cashout', winAmt);
+
+  buildStreak(); updateLivesDisplay();
+  if(document.getElementById('tab-weekly').classList.contains('active')) loadWeeklyLeaderboard();
 }
 
 // ═══════════════════════════════════════════════════════
@@ -1625,8 +1821,8 @@ async function getAITip(){
   const wager=+document.getElementById('wager').value;
 
   const prompt=inGame
-    ?`DOGS Mines (crypto game): ${mines} mines, 25 tiles. ${gemsFound} diamonds revealed. Multiplier: ${mult}×. Wager: ${wager} DOGS. Balance: ${dogsBalance.toLocaleString()} DOGS. Mine chance per tile: ${risk}%. Bomb = −25% balance. Cash out or go again? 1–2 sentences.`
-    :`Starting DOGS Mines: ${mines} mines in 25 tiles. Wager: ${wager} DOGS. Balance: ${dogsBalance.toLocaleString()} DOGS. Bombs cost 25% balance penalty. Opening strategy advice, 1–2 sentences.`;
+    ?`DOGS Mines: ${mines} mines, 25 tiles. ${gemsFound} gems found. ${bombsHit}/${MAX_LIVES} bombs hit — ${MAX_LIVES-bombsHit} lives left. Multiplier: ${mult}×. Wager: ${wager} DOGS. Balance: ${dogsBalance.toLocaleString()} DOGS. Tile mine chance: ${risk}%. Each bomb costs 25% of balance. Cash out or continue? 1–2 sentences.`
+    :`Starting DOGS Mines: ${mines} mines, 25 tiles. 3 lives — each bomb hit costs 25% of balance. 3rd bomb locks grid; cashout still available. Wager: ${wager} DOGS. Balance: ${dogsBalance.toLocaleString()} DOGS. Opening strategy, 1–2 sentences.`;
 
   try{
     const res=await fetch('https://api.anthropic.com/v1/messages',{
@@ -2018,7 +2214,7 @@ async function loadWeeklyLeaderboard(){
 // ═══════════════════════════════════════════════════════
 document.getElementById('ton-connect-btn').onclick=toggleWalletMenu;
 document.getElementById('start-btn').onclick=startGame;
-document.getElementById('cashout-btn').onclick=()=>endGame(true);
+document.getElementById('cashout-btn').onclick=()=>{ if(gemsFound>0||(isGameActive||!gameOver)) endGame(true); };
 document.getElementById('tip-btn').onclick=getAITip;
 
 createGrid();
