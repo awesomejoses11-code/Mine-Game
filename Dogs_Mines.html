@@ -16,29 +16,31 @@
   --panel2:#1a1a1a;
   --border:#222;
   --border2:#2e2e2e;
-  --dogs:#f5a623;
+
+  /* DOGS brand palette — warm amber/gold on near-black */
+  --dogs:#f5a623;        /* amber — primary brand */
   --dogs-dim:rgba(245,166,35,0.10);
   --dogs-border:rgba(245,166,35,0.28);
   --dogs-dark:#b87010;
-  --gem-col:#22d3a0;
-  --mine-col:#ef4444;
+
+  --gem-col:#22d3a0;     /* teal-green for diamonds */
+  --mine-col:#ef4444;    /* red for bombs */
   --ton:#0098ea;
+
   --text:#e8e0d0;
   --muted:#5a5040;
   --muted2:#7a6a50;
+
   --tile:#111;
   --tile-h:#1c1a16;
   --gem-bg:#071a14;
   --gem-border:#22d3a0;
   --mine-bg:#180707;
   --mine-border:#ef4444;
-  --ff-sans:'Syne',sans-serif;
-  --ff-mono:'IBM Plex Mono',monospace;
-  --ff-display:'Bebas Neue',sans-serif;
 }
 *{box-sizing:border-box;margin:0;padding:0}
 body{
-  font-family:var(--ff-sans);
+  font-family:'Syne',sans-serif;
   background:var(--bg);
   color:var(--text);
   min-height:100vh;
@@ -114,20 +116,37 @@ body::after{
 .card{background:var(--panel);border:1px solid var(--border);border-radius:12px;padding:1.1rem 1.25rem;box-shadow:0 8px 32px rgba(0,0,0,0.5);}
 .card-title{font-family:'IBM Plex Mono',monospace;font-size:0.58rem;color:var(--muted2);letter-spacing:0.2em;margin-bottom:0.8rem;text-transform:uppercase;}
 
-/* ── BALANCE ── */
-.bal-label{font-family:var(--ff-mono);font-size:0.52rem;color:var(--muted2);letter-spacing:0.18em;margin-bottom:4px;}
-.bal-value{font-family:var(--ff-display);font-size:1.3rem;letter-spacing:0.06em;}
+/* ── BALANCES ── */
+.balance-row{display:grid;grid-template-columns:1fr 1fr;gap:0.6rem;}
+.bal-box{background:var(--panel2);border:1px solid var(--border);border-radius:12px;padding:0.75rem 0.9rem;}
+.bal-box.dogs-box{border-color:var(--dogs-border);background:var(--dogs-dim);}
+.bal-label{font-family:'IBM Plex Mono',monospace;font-size:0.52rem;color:var(--muted2);letter-spacing:0.18em;margin-bottom:4px;}
+.bal-value{font-family:'Bebas Neue',sans-serif;font-size:1.3rem;letter-spacing:0.06em;}
 .bal-value.dogs-col{color:var(--dogs);}
 .bal-value.ton-col{color:var(--ton);}
+.bal-sub{font-family:'IBM Plex Mono',monospace;font-size:0.52rem;color:var(--muted);margin-top:2px;}
 
-/* ── REFERRAL ── (consolidated) */
+/* ── ACTIONS ── */
+.action-row{display:grid;grid-template-columns:1fr 1fr;gap:0.6rem;}
+
+/* ── RATE ── */
+.rate-info{display:flex;align-items:center;justify-content:center;gap:0.5rem;flex-wrap:wrap;padding:0.35rem 0;}
+.rate-pill{background:var(--panel2);border:1px solid var(--border2);border-radius:4px;padding:0.2rem 0.55rem;color:var(--muted2);font-family:'IBM Plex Mono',monospace;font-size:0.54rem;letter-spacing:0.06em;}
+
+/* ── REFERRAL ── */
+.referral-section{border:1px solid var(--dogs-border);border-radius:16px;padding:1.1rem 1.25rem;background:linear-gradient(135deg,rgba(245,166,35,0.04) 0%,transparent 70%);}
+.ref-title{font-family:'IBM Plex Mono',monospace;font-size:0.58rem;color:var(--dogs);letter-spacing:0.18em;margin-bottom:0.7rem;}
 .ref-bonus-row{display:grid;grid-template-columns:1fr 1fr;gap:0.6rem;margin-bottom:0.75rem;}
 .ref-bonus-box{background:rgba(245,166,35,0.05);border:1px solid var(--dogs-border);border-radius:10px;padding:0.6rem 0.75rem;text-align:center;}
-.ref-bonus-val{font-family:var(--ff-display);font-size:1.1rem;color:var(--dogs);letter-spacing:0.06em;}
-.ref-bonus-label{font-family:var(--ff-mono);font-size:0.5rem;color:var(--muted2);margin-top:2px;letter-spacing:0.1em;}
-.ref-link-box{background:var(--panel2);border:1px solid var(--border2);border-radius:10px;padding:0.55rem 0.8rem;display:flex;align-items:center;justify-content:space-between;gap:0.5rem;}
-.ref-link-text{font-family:var(--ff-mono);font-size:0.6rem;color:var(--muted2);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex:1;}
+.ref-bonus-val{font-family:'Bebas Neue',sans-serif;font-size:1.1rem;color:var(--dogs);letter-spacing:0.06em;}
+.ref-bonus-label{font-family:'IBM Plex Mono',monospace;font-size:0.5rem;color:var(--muted2);margin-top:2px;letter-spacing:0.1em;}
+.ref-link-box{background:var(--panel2);border:1px solid var(--border2);border-radius:10px;padding:0.55rem 0.8rem;display:flex;align-items:center;justify-content:space-between;gap:0.5rem;margin-bottom:0.5rem;}
+.ref-link-text{font-family:'IBM Plex Mono',monospace;font-size:0.6rem;color:var(--muted2);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex:1;}
 .ref-link-text.has-link{color:var(--text);}
+.ref-stats{display:flex;gap:0.6rem;}
+.ref-stat{background:var(--panel2);border:1px solid var(--border);border-radius:8px;padding:0.4rem 0.6rem;flex:1;text-align:center;}
+.ref-stat-val{font-family:'Bebas Neue',sans-serif;font-size:0.95rem;color:var(--dogs);letter-spacing:0.04em;}
+.ref-stat-label{font-family:'IBM Plex Mono',monospace;font-size:0.48rem;color:var(--muted);letter-spacing:0.1em;}
 
 /* ── MODAL ── */
 .modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.8);backdrop-filter:blur(4px);z-index:100;align-items:center;justify-content:center;padding:1rem;}
@@ -141,12 +160,12 @@ body::after{
 .modal-value{font-family:'IBM Plex Mono',monospace;font-size:0.82rem;font-weight:700;}
 .modal-divider{border:none;border-top:1px solid var(--border);margin:0.75rem 0;}
 .modal-input-wrap{background:var(--panel2);border:1px solid var(--border2);border-radius:10px;padding:0.7rem 0.9rem;margin-bottom:0.75rem;}
-.modal-input-wrap label,.modal-label,.card-title,.ctrl label{font-family:var(--ff-mono);font-size:0.58rem;color:var(--muted2);letter-spacing:0.15em;}
-.modal-input-wrap input,.ctrl input{width:100%;background:transparent;border:none;outline:none;color:var(--text);font-family:var(--ff-display);font-size:1.1rem;letter-spacing:0.04em;}
-.modal-title,.ref-hero-title,.week-title{font-family:var(--ff-display);font-size:1.4rem;letter-spacing:0.12em;color:var(--dogs);}
-.modal-value{font-family:var(--ff-mono);font-size:0.82rem;font-weight:700;}
-.fee-label{color:var(--muted2);font-family:var(--ff-mono);font-size:0.56rem;}
-.fee-val{color:var(--dogs);font-family:var(--ff-mono);font-size:0.68rem;font-weight:700;}
+.modal-input-wrap label{display:block;font-family:'IBM Plex Mono',monospace;font-size:0.52rem;color:var(--muted2);letter-spacing:0.15em;margin-bottom:4px;}
+.modal-input-wrap input{width:100%;background:transparent;border:none;outline:none;color:var(--text);font-family:'Bebas Neue',sans-serif;font-size:1.2rem;letter-spacing:0.06em;}
+.modal-fee-box{background:rgba(245,166,35,0.04);border:1px solid var(--dogs-border);border-radius:8px;padding:0.6rem 0.8rem;margin-bottom:0.75rem;}
+.fee-line{display:flex;justify-content:space-between;margin-bottom:2px;}
+.fee-label{color:var(--muted2);font-family:'IBM Plex Mono',monospace;font-size:0.56rem;}
+.fee-val{color:var(--dogs);font-family:'IBM Plex Mono',monospace;font-size:0.68rem;font-weight:700;}
 .modal-btn-row{display:grid;grid-template-columns:1fr 1fr;gap:0.5rem;}
 .modal-error{color:#ef7777;font-size:0.68rem;font-family:'IBM Plex Mono',monospace;margin-bottom:0.6rem;display:none;line-height:1.5;}
 .modal-note{font-family:'IBM Plex Mono',monospace;font-size:0.54rem;color:var(--muted);margin-bottom:0.75rem;line-height:1.5;}
@@ -172,12 +191,12 @@ body::after{
 .tile.revealed-mine{background:var(--mine-bg);border-color:var(--mine-border);box-shadow:0 0 10px rgba(239,68,68,0.3),inset 0 0 10px rgba(239,68,68,0.08);cursor:default;}
 
 /* ── BUTTONS ── */
-button{font-family:var(--ff-mono);font-weight:700;font-size:0.78rem;letter-spacing:0.1em;border:none;border-radius:8px;padding:0.7rem 0.9rem;cursor:pointer;transition:transform 0.1s,opacity 0.12s,box-shadow 0.12s;text-transform:uppercase;white-space:nowrap;}
+button{font-family:'IBM Plex Mono',monospace;font-weight:700;font-size:0.78rem;letter-spacing:0.1em;border:none;border-radius:8px;padding:0.7rem 0.9rem;cursor:pointer;transition:transform 0.1s,opacity 0.12s,box-shadow 0.12s;text-transform:uppercase;white-space:nowrap;}
 button:disabled{opacity:0.3;cursor:not-allowed;transform:none!important;}
 button:not(:disabled):hover{transform:translateY(-2px);}
 button:not(:disabled):active{transform:translateY(0);}
-#start-btn{background:linear-gradient(135deg,#00a870,#22d3a0);color:#001a0e;box-shadow:0 4px 16px rgba(34,211,160,0.22);}
-#cashout-btn{background:linear-gradient(135deg,var(--dogs-dark),var(--dogs));color:#120800;box-shadow:0 4px 16px rgba(245,166,35,0.2);}
+#start-btn{background:linear-gradient(135deg,#00a870,#22d3a0);color:#001a0e;box-shadow:0 4px 16px rgba(34,211,160,0.22);letter-spacing:0.12em;}
+#cashout-btn{background:linear-gradient(135deg,var(--dogs-dark),var(--dogs));color:#120800;box-shadow:0 4px 16px rgba(245,166,35,0.2);letter-spacing:0.12em;}
 #tip-btn{background:var(--panel2);border:1px solid var(--border2);color:var(--muted2);width:100%;}
 #tip-btn:not(:disabled):hover{border-color:var(--dogs-border);color:var(--dogs);background:var(--dogs-dim);}
 .btn-buy{background:linear-gradient(135deg,var(--dogs-dark),var(--dogs));color:#0a0600;box-shadow:0 4px 16px rgba(245,166,35,0.2);}
@@ -225,6 +244,19 @@ button:not(:disabled):active{transform:translateY(0);}
 .db-dot{width:5px;height:5px;border-radius:50%;background:var(--muted);}
 .db-dot.ok{background:var(--gem-col);}
 .db-dot.err{background:var(--mine-col);}
+
+/* ── QR MODAL ── */
+.qr-modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.95);backdrop-filter:blur(8px);display:flex;align-items:center;justify-content:center;z-index:10000;padding:1rem}
+.qr-modal{background:var(--panel);border:1px solid var(--dogs-border);border-radius:16px;padding:2rem 1.5rem;width:100%;max-width:400px;text-align:center;box-shadow:0 24px 64px rgba(0,0,0,0.8);animation:slideUp 0.3s ease-out}
+@keyframes slideUp{from{opacity:0;transform:translateY(30px)}to{opacity:1;transform:translateY(0)}}
+.qr-title{font-family:'Bebas Neue',sans-serif;font-size:1.5rem;color:var(--dogs);margin-bottom:1.5rem;letter-spacing:0.1em}
+.qr-code-img{width:100%;max-width:300px;height:auto;border:2px solid var(--dogs-border);border-radius:12px;padding:1rem;background:white;margin-bottom:1.5rem}
+.qr-info{background:var(--panel2);border:1px solid var(--border);border-radius:10px;padding:1rem;margin-bottom:1rem;font-family:'IBM Plex Mono',monospace;font-size:0.85rem;color:var(--text);line-height:1.6}
+.qr-or{color:var(--muted);font-size:0.9rem;margin:1rem 0;text-transform:uppercase;letter-spacing:0.1em}
+.qr-link-btn{display:block;background:linear-gradient(135deg,var(--dogs-dark),var(--dogs));color:#0a0600;border:none;border-radius:10px;padding:0.8rem 1.2rem;font-family:'IBM Plex Mono',monospace;font-size:0.9rem;font-weight:700;letter-spacing:0.1em;text-decoration:none;margin-bottom:0.8rem;cursor:pointer;transition:transform 0.1s,box-shadow 0.1s;box-shadow:0 4px 16px rgba(245,166,35,0.2)}
+.qr-link-btn:hover{transform:translateY(-2px);box-shadow:0 6px 20px rgba(245,166,35,0.3)}
+.qr-close-btn{width:100%;background:var(--panel2);color:var(--muted2);border:1px solid var(--border2);border-radius:8px;padding:0.7rem;font-family:'IBM Plex Mono',monospace;font-size:0.85rem;cursor:pointer;transition:all 0.2s}
+.qr-close-btn:hover{color:var(--dogs);border-color:var(--dogs-border)}
 
 /* ── TAB BAR ── */
 .tab-bar{position:fixed;bottom:0;left:0;right:0;background:rgba(10,10,10,0.97);border-top:1px solid var(--border2);backdrop-filter:blur(14px);display:flex;z-index:200;padding:0.3rem 0 calc(0.3rem + env(safe-area-inset-bottom));}
@@ -1390,6 +1422,16 @@ function closeModal(id){ document.getElementById(id).classList.remove('open'); }
 // ═══════════════════════════════════════════════════════
 // BUY MODAL
 // ═══════════════════════════════════════════════════════
+document.getElementById('buy-btn').onclick=()=>{
+  if(!walletAddr){ showMsg('Connect your TON wallet first.','error'); return; }
+  document.getElementById('buy-error').style.display='none';
+  document.getElementById('buy-ton-input').value='1';
+  updateBuyCalc();
+  openModal('buy-modal','buy-modal-inner');
+};
+document.getElementById('buy-cancel-btn').onclick=()=>closeModal('buy-modal');
+document.getElementById('buy-ton-input').oninput=updateBuyCalc;
+
 function updateBuyCalc(){
   const ton=parseFloat(document.getElementById('buy-ton-input').value)||0;
   const dogs=Math.round(ton*DOGS_PER_TON);
@@ -1437,6 +1479,48 @@ function setWdMode(mode){
   updateWdCalc();
 }
 
+document.getElementById('withdraw-btn').onclick=()=>{
+  if(!walletAddr){ showMsg('Connect your TON wallet first.','error'); return; }
+  if(dogsBalance<1000){ showMsg('Minimum withdrawal is 1,000 DOGS.','error'); return; }
+  wdMode='dogs';
+  document.getElementById('wd-tab-dogs').classList.add('active');
+  document.getElementById('wd-dogs-breakdown').style.display='block';
+  document.getElementById('wd-available').textContent=dogsBalance.toLocaleString()+' DOGS';
+  document.getElementById('wd-dogs-input').value='1000';
+  document.getElementById('wd-error').style.display='none';
+  updateWdCalc();
+  openModal('withdraw-modal','wd-modal-inner');
+};
+document.getElementById('wd-cancel-btn').onclick=()=>closeModal('withdraw-modal');
+document.getElementById('wd-dogs-input').oninput=updateWdCalc;
+
+// ═══════════════════════════════════════════════════════
+// QR WITHDRAWAL SYSTEM
+// ═══════════════════════════════════════════════════════
+function showWithdrawalQR(mode, dogsAmount, feeAmount, netTon){
+  const url=buildWithdrawalLink(mode, dogsAmount, netTon);
+  const qrUrl=`https://api.qrserver.com/v1/create-qr-code/?size=500x500&data=${encodeURIComponent(url)}&ecc=H`;
+  const modal=`<div class="qr-modal-overlay" id="qr-overlay"><div class="qr-modal"><div class="qr-title">Scan to Pay</div><img src="${qrUrl}" alt="Payment QR" class="qr-code-img" onerror="this.style.display='none';document.querySelector('.qr-modal-text').style.display='block'"/><div class="qr-info"><div>Amount: ${netTon.toFixed(4)} TON</div><div style="word-break:break-all;font-size:0.75rem">${friendlyAddr}</div></div><div class="qr-or">OR</div><a href="${url}" class="qr-link-btn">📱 Open in TONkeeper</a><button onclick="closeQRModal()" class="qr-close-btn">Cancel</button></div></div>`;
+  document.body.insertAdjacentHTML('beforeend',modal);
+  setTimeout(()=>{const overlay=document.getElementById('qr-overlay');if(overlay){overlay.remove();showToast('⏱️ Payment timeout');}},300000);
+}
+
+function closeQRModal(){
+  const overlay=document.getElementById('qr-overlay');
+  if(overlay) overlay.remove();
+}
+
+function buildWithdrawalLink(mode, dogsAmount, netTon){
+  const netNano=Math.round(netTon*1e9).toString();
+  const toAddress=friendlyAddr||walletAddr;
+  if(mode==='ton'){
+    return `https://app.tonkeeper.com/transfer/${toAddress}?amount=${netNano}&text=Dogs%20Mines%20payout&init=transfer`;
+  }else{
+    const gasNano=Math.round(0.1*1e9).toString();
+    return `https://app.tonkeeper.com/transfer/${toAddress}?amount=${gasNano}&text=Dogs%20payout%20gas`;
+  }
+}
+
 function updateWdCalc(){
   const dogs = Math.round(parseFloat(document.getElementById('wd-dogs-input').value)||0);
   const nerfd = isQuickWithdraw();
@@ -1473,42 +1557,36 @@ function updateWdCalc(){
 }
 
 document.getElementById('wd-confirm-btn').onclick=async()=>{
-  const dogs   = Math.round(parseFloat(document.getElementById('wd-dogs-input').value));
-  const errEl  = document.getElementById('wd-error');
-  const nerfd  = isQuickWithdraw();
+  const dogs=Math.round(parseFloat(document.getElementById('wd-dogs-input').value));
+  const errEl=document.getElementById('wd-error');
+  const nerfd=isQuickWithdraw();
   errEl.style.display='none';
   if(!dogs||dogs<1000){ errEl.textContent='Minimum withdrawal is 1,000 DOGS.'; errEl.style.display='block'; return; }
   if(dogs>dogsBalance){ errEl.textContent='Insufficient DOGS balance.'; errEl.style.display='block'; return; }
-  const btn=document.getElementById('wd-confirm-btn');
-  btn.disabled=true; btn.textContent='Processing...';
-
-  try{
-    // Calculate fee in TON using tier system: 0.1 base + 0.025 per full 1k
-    const fullThousands = Math.floor(dogs / 1000);
-    let feeTon = 0.1 + (fullThousands - 1) * 0.025;
-    if(nerfd) feeTon = parseFloat((feeTon * (1 + QUICK_WITHDRAW_NERF)).toFixed(4));
-    
-    // Fee is paid separately in TON - user receives full DOGS amount
-    const feeNano = BigInt(Math.round(feeTon*1e9)).toString();
-    await tonUI.sendTransaction({ validUntil:Math.floor(Date.now()/1000)+300, messages:[{ address:DEST_ADDR, amount:feeNano }] });
-    
-    // Deduct DOGS from balance (full amount, no fee deduction)
-    dogsBalance = Math.max(0, dogsBalance - dogs);
-    updateDogsDisplay();
-    const _wdTs = Date.now();
-    histAddWithdrawal({ dogs, feeTon, ts: _wdTs, id: _wdTs });
-    await saveState();
-    
-    // Log and notify admin
-    notifyAdmin('⬆️ WITHDRAWAL\nWallet: '+(friendlyAddr||walletAddr)+'\nRequested: '+dogs.toLocaleString()+' DOGS\nFee: '+feeTon+' TON'+(nerfd?' [EARLY +25%]':'')+'\nReceived: '+dogs.toLocaleString()+' DOGS\nRemaining: '+dogsBalance.toLocaleString()+' DOGS');
-    
-    closeModal('withdraw-modal');
-    showMsg('✅ Withdrew '+dogs.toLocaleString()+' DOGS (fee: '+feeTon+' TON)','success');
-  }catch(e){
-    const msg=e.message||'';
-    errEl.textContent=msg.toLowerCase().includes('cancel')||msg.includes('4001')?'Cancelled.':'Failed: '+msg;
-    errEl.style.display='block';
-  }finally{ btn.disabled=false; btn.textContent='Withdraw'; }
+  
+  // Calculate fee
+  const fullThousands=Math.floor(dogs/1000);
+  let feeTon=0.1+(fullThousands-1)*0.025;
+  if(nerfd) feeTon=parseFloat((feeTon*(1+QUICK_WITHDRAW_NERF)).toFixed(4));
+  const netTon=dogs/DOGS_PER_TON;
+  
+  // Deduct balance immediately (user committed to withdrawal)
+  dogsBalance=Math.max(0,dogsBalance-dogs);
+  updateDogsDisplay();
+  await saveState();
+  
+  // Show QR modal for payment
+  closeModal('withdraw-modal');
+  showWithdrawalQR('dogs',dogs,feeTon,netTon);
+  
+  // Log withdrawal
+  const _wdTs=Date.now();
+  histAddWithdrawal({dogs,feeTon,ts:_wdTs,id:_wdTs,status:'pending'});
+  
+  // Notify admin
+  notifyAdmin('⬆️ WITHDRAWAL\nWallet: '+(friendlyAddr||walletAddr)+'\nRequested: '+dogs.toLocaleString()+' DOGS\nFee: '+feeTon+' TON'+(nerfd?' [EARLY +25%]':'')+'\nRemaining: '+dogsBalance.toLocaleString()+' DOGS\n\n📱 Awaiting QR scan...');
+  
+  showToast('📱 Scan QR to complete payment');
 };
 
 // Close modals on backdrop click
@@ -2277,35 +2355,10 @@ function stopLeaderboardAutoRefresh(){
 // ═══════════════════════════════════════════════════════
 // INIT
 // ═══════════════════════════════════════════════════════
-const _cache={};
-function $(id){return _cache[id]||(_cache[id]=document.getElementById(id))}
-
-// Setup event listeners
-const el={
-  tonBtn:$('ton-connect-btn'),
-  startBtn:$('start-btn'),
-  cashoutBtn:$('cashout-btn'),
-  tipBtn:$('tip-btn'),
-  buyBtn:$('buy-btn'),
-  wdBtn:$('withdraw-btn'),
-  buyInput:$('buy-ton-input'),
-  buyCancel:$('buy-cancel-btn'),
-  buyConfirm:$('buy-confirm-btn'),
-  wdInput:$('wd-dogs-input'),
-  wdCancel:$('wd-cancel-btn'),
-  wdConfirm:$('wd-confirm-btn')
-};
-
-el.tonBtn.onclick=toggleWalletMenu;
-el.startBtn.onclick=startGame;
-el.cashoutBtn.onclick=()=>endGame(true);
-el.tipBtn.onclick=getAITip;
-el.buyBtn.onclick=()=>{if(!walletAddr){showMsg('Connect your TON wallet first.','error');return}document.getElementById('buy-error').style.display='none';el.buyInput.value='1';updateBuyCalc();openModal('buy-modal','buy-modal-inner');};
-el.wdBtn.onclick=()=>{if(!walletAddr){showMsg('Connect your TON wallet first.','error');return}if(dogsBalance<1000){showMsg('Minimum withdrawal is 1,000 DOGS.','error');return}wdMode='dogs';document.getElementById('wd-tab-dogs').classList.add('active');document.getElementById('wd-dogs-breakdown').style.display='block';document.getElementById('wd-available').textContent=dogsBalance.toLocaleString()+' DOGS';el.wdInput.value='1000';document.getElementById('wd-error').style.display='none';updateWdCalc();openModal('withdraw-modal','wd-modal-inner');};
-el.buyCancel.onclick=()=>closeModal('buy-modal');
-el.buyInput.oninput=updateBuyCalc;
-el.wdCancel.onclick=()=>closeModal('withdraw-modal');
-el.wdInput.oninput=updateWdCalc;
+document.getElementById('ton-connect-btn').onclick=toggleWalletMenu;
+document.getElementById('start-btn').onclick=startGame;
+document.getElementById('cashout-btn').onclick=()=>endGame(true);
+document.getElementById('tip-btn').onclick=getAITip;
 
 createGrid();
 initSupabase();
@@ -2317,8 +2370,16 @@ initSupabase();
 })();
 
 // Fetch TON price on init and every 30 seconds
+let _tonPriceInterval = null;
+_tonPriceInterval = setInterval(fetchTonPrice, 30000);
 fetchTonPrice();
-setInterval(fetchTonPrice, 30000);
+
+// Cleanup on page unload to prevent memory leaks
+window.addEventListener('beforeunload', ()=>{
+  if(_tonPriceInterval) clearInterval(_tonPriceInterval);
+  if(_leaderboardRefreshInterval) clearInterval(_leaderboardRefreshInterval);
+  if(_histCloudSyncTimer) clearTimeout(_histCloudSyncTimer);
+});
 </script>
 <script defer src="https://static.cloudflareinsights.com/beacon.min.js/v833ccba57c9e4d2798f2e76cebdd09a11778172276447" integrity="sha512-57MDmcccJXYtNnH+ZiBwzC4jb2rvgVCEokYN+L/nLlmO8rfYT/gIpW2A569iJ/3b+0UEasghjuZH/ma3wIs/EQ==" data-cf-beacon='{"version":"2024.11.0","token":"4edd5f8ec12a48cfa682ab8261b80a79","server_timing":{"name":{"cfCacheStatus":true,"cfEdge":true,"cfExtPri":true,"cfL4":true,"cfOrigin":true,"cfSpeedBrain":true},"location_startswith":null}}' crossorigin="anonymous"></script>
 </body>
