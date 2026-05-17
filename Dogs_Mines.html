@@ -21,13 +21,11 @@
   --dogs:#f5a623;        /* amber — primary brand */
   --dogs-dim:rgba(245,166,35,0.10);
   --dogs-border:rgba(245,166,35,0.28);
-  --dogs-glow:rgba(245,166,35,0.18);
   --dogs-dark:#b87010;
 
   --gem-col:#22d3a0;     /* teal-green for diamonds */
   --mine-col:#ef4444;    /* red for bombs */
   --ton:#0098ea;
-  --cash:#fbbf24;
 
   --text:#e8e0d0;
   --muted:#5a5040;
@@ -48,7 +46,7 @@ body{
   min-height:100vh;
   display:flex;flex-direction:column;
   align-items:center;justify-content:flex-start;
-  padding:1rem;overflow-x:hidden;
+  padding:1rem 1rem calc(4.5rem + env(safe-area-inset-bottom));overflow-x:hidden;
 }
 /* subtle paw-print grid */
 body::before{
@@ -136,7 +134,7 @@ body::after{
 .rate-pill{background:var(--panel2);border:1px solid var(--border2);border-radius:4px;padding:0.2rem 0.55rem;color:var(--muted2);font-family:'IBM Plex Mono',monospace;font-size:0.54rem;letter-spacing:0.06em;}
 
 /* ── REFERRAL ── */
-.referral-section{background:var(--panel);border:1px solid var(--dogs-border);border-radius:16px;padding:1.1rem 1.25rem;background:linear-gradient(135deg,rgba(245,166,35,0.04) 0%,transparent 70%);}
+.referral-section{border:1px solid var(--dogs-border);border-radius:16px;padding:1.1rem 1.25rem;background:linear-gradient(135deg,rgba(245,166,35,0.04) 0%,transparent 70%);}
 .ref-title{font-family:'IBM Plex Mono',monospace;font-size:0.58rem;color:var(--dogs);letter-spacing:0.18em;margin-bottom:0.7rem;}
 .ref-bonus-row{display:grid;grid-template-columns:1fr 1fr;gap:0.6rem;margin-bottom:0.75rem;}
 .ref-bonus-box{background:rgba(245,166,35,0.05);border:1px solid var(--dogs-border);border-radius:10px;padding:0.6rem 0.75rem;text-align:center;}
@@ -314,6 +312,55 @@ button:not(:disabled):active{transform:translateY(0);}
 .my-rank-box{background:var(--panel2);border:1px solid var(--dogs-border);border-radius:10px;padding:0.65rem 0.9rem;display:flex;justify-content:space-between;align-items:center;}
 .my-rank-label{font-family:'IBM Plex Mono',monospace;font-size:0.52rem;color:var(--muted2);letter-spacing:0.12em;}
 .my-rank-val{font-family:'Bebas Neue',sans-serif;font-size:1rem;color:var(--dogs);}
+
+/* ── HISTORY TAB ── */
+.hist-header{background:linear-gradient(135deg,rgba(245,166,35,0.06) 0%,transparent 70%);border:1px solid var(--dogs-border);border-radius:14px;padding:1.1rem 1.25rem;}
+.hist-title{font-family:'Bebas Neue',sans-serif;font-size:1.4rem;letter-spacing:0.12em;color:var(--dogs);margin-bottom:0.2rem;}
+.hist-sub{font-family:'IBM Plex Mono',monospace;font-size:0.5rem;color:var(--muted2);letter-spacing:0.14em;}
+.hist-summary{display:grid;grid-template-columns:1fr 1fr 1fr;gap:0.5rem;margin-top:0.9rem;}
+.hist-sum-box{background:rgba(245,166,35,0.05);border:1px solid var(--dogs-border);border-radius:10px;padding:0.6rem 0.5rem;text-align:center;}
+.hist-sum-val{font-family:'Bebas Neue',sans-serif;font-size:1rem;color:var(--dogs);letter-spacing:0.04em;line-height:1;}
+.hist-sum-label{font-family:'IBM Plex Mono',monospace;font-size:0.44rem;color:var(--muted2);letter-spacing:0.1em;margin-top:3px;}
+
+/* Sub-tab bar */
+.hist-subtab-bar{display:flex;background:var(--panel2);border:1px solid var(--border2);border-radius:10px;overflow:hidden;padding:3px;gap:3px;}
+.hist-subtab{flex:1;background:transparent;border:none!important;border-radius:7px;padding:0.5rem 0.5rem;font-family:'IBM Plex Mono',monospace;font-size:0.62rem;font-weight:700;letter-spacing:0.1em;color:var(--muted2);cursor:pointer;transition:background 0.15s,color 0.15s;text-transform:uppercase;display:flex;align-items:center;justify-content:center;gap:0.35rem;}
+.hist-subtab.active{background:var(--dogs);color:#0a0600;}
+.hist-subtab:not(.active):hover{color:var(--text);}
+.hist-subtab .hist-count{background:rgba(0,0,0,0.2);border-radius:3px;padding:0.05rem 0.3rem;font-size:0.55rem;}
+.hist-subtab.active .hist-count{background:rgba(0,0,0,0.18);}
+
+/* Content panels */
+.hist-panel{display:none;}
+.hist-panel.active{display:block;}
+
+/* List container */
+.hist-list-wrap{background:var(--panel);border:1px solid var(--border);border-radius:12px;padding:1rem 1.1rem;}
+.hist-list-hd{font-family:'IBM Plex Mono',monospace;font-size:0.55rem;color:var(--muted2);letter-spacing:0.2em;margin-bottom:0.75rem;text-transform:uppercase;display:flex;justify-content:space-between;align-items:center;}
+.hist-refresh{background:none;border:1px solid var(--border2)!important;color:var(--muted2);padding:0.2rem 0.55rem;font-size:0.52rem;letter-spacing:0.08em;border-radius:4px;}
+.hist-refresh:hover{border-color:var(--dogs-border)!important;color:var(--dogs);}
+.hist-empty{text-align:center;padding:1.5rem 1rem;color:var(--muted);font-family:'IBM Plex Mono',monospace;font-size:0.65rem;line-height:1.8;}
+
+/* Wager rows */
+.hist-row{background:var(--panel2);border:1px solid var(--border);border-radius:9px;padding:0.65rem 0.85rem;margin-bottom:0.4rem;display:flex;align-items:center;gap:0.75rem;}
+.hist-row:last-child{margin-bottom:0;}
+.hist-row-icon{width:30px;height:30px;border-radius:7px;display:flex;align-items:center;justify-content:center;font-size:0.9rem;flex-shrink:0;}
+.hist-row-icon.win{background:rgba(34,211,160,0.12);border:1px solid rgba(34,211,160,0.25);}
+.hist-row-icon.loss{background:rgba(239,68,68,0.1);border:1px solid rgba(239,68,68,0.22);}
+.hist-row-icon.deposit{background:rgba(0,152,234,0.1);border:1px solid rgba(0,152,234,0.25);}
+.hist-row-icon.withdraw{background:rgba(245,166,35,0.08);border:1px solid var(--dogs-border);}
+.hist-row-body{flex:1;min-width:0;}
+.hist-row-title{font-family:'IBM Plex Mono',monospace;font-size:0.64rem;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.hist-row-sub{font-family:'IBM Plex Mono',monospace;font-size:0.5rem;color:var(--muted);margin-top:2px;letter-spacing:0.06em;}
+.hist-row-amt{font-family:'Bebas Neue',sans-serif;font-size:1rem;letter-spacing:0.04em;text-align:right;flex-shrink:0;}
+.hist-row-amt.positive{color:var(--gem-col);}
+.hist-row-amt.negative{color:#ef7777;}
+.hist-row-amt.neutral{color:var(--dogs);}
+.hist-row-badge{font-family:'IBM Plex Mono',monospace;font-size:0.46rem;font-weight:700;letter-spacing:0.08em;padding:0.1rem 0.35rem;border-radius:3px;margin-top:3px;display:inline-block;}
+.hist-row-badge.cashout{background:rgba(34,211,160,0.1);color:var(--gem-col);border:1px solid rgba(34,211,160,0.22);}
+.hist-row-badge.bust{background:rgba(239,68,68,0.1);color:#ef7777;border:1px solid rgba(239,68,68,0.2);}
+.hist-row-badge.dep{background:rgba(0,152,234,0.1);color:var(--ton);border:1px solid rgba(0,152,234,0.22);}
+.hist-row-badge.wd{background:rgba(245,166,35,0.08);color:var(--dogs);border:1px solid var(--dogs-border);}
 </style>
 </head>
 <body>
@@ -502,6 +549,83 @@ button:not(:disabled):active{transform:translateY(0);}
 
   </div><!-- /tab-weekly -->
 
+  <!-- ═══ TAB: HISTORY ═══ -->
+  <div id="tab-history" class="tab-panel">
+
+    <!-- Header + summary -->
+    <div class="hist-header">
+      <div class="hist-title">📋 History</div>
+      <div class="hist-sub">YOUR COMPLETE TRANSACTION RECORD</div>
+      <div class="hist-summary">
+        <div class="hist-sum-box">
+          <div class="hist-sum-val" id="hist-total-wagered">0</div>
+          <div class="hist-sum-label">DOGS WAGERED</div>
+        </div>
+        <div class="hist-sum-box">
+          <div class="hist-sum-val" id="hist-total-deposited">0</div>
+          <div class="hist-sum-label">DOGS DEPOSITED</div>
+        </div>
+        <div class="hist-sum-box">
+          <div class="hist-sum-val" id="hist-total-withdrawn">0</div>
+          <div class="hist-sum-label">DOGS WITHDRAWN</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Sub-tab bar -->
+    <div class="hist-subtab-bar">
+      <button class="hist-subtab active" id="hsub-wagers" onclick="switchHistTab('wagers')">
+        ⛏️ Wagers <span class="hist-count" id="hcount-wagers">0</span>
+      </button>
+      <button class="hist-subtab" id="hsub-deposits" onclick="switchHistTab('deposits')">
+        ⬇ Deposits <span class="hist-count" id="hcount-deposits">0</span>
+      </button>
+      <button class="hist-subtab" id="hsub-withdrawals" onclick="switchHistTab('withdrawals')">
+        ⬆ Withdrawals <span class="hist-count" id="hcount-withdrawals">0</span>
+      </button>
+    </div>
+
+    <!-- Wagers panel -->
+    <div class="hist-panel active" id="hpanel-wagers">
+      <div class="hist-list-wrap">
+        <div class="hist-list-hd">
+          <span>GAME SESSIONS</span>
+          <button class="hist-refresh" onclick="loadHistoryTab()">↻ Refresh</button>
+        </div>
+        <div id="hist-wager-list">
+          <div class="hist-empty">Connect your wallet to view wager history</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Deposits panel -->
+    <div class="hist-panel" id="hpanel-deposits">
+      <div class="hist-list-wrap">
+        <div class="hist-list-hd">
+          <span>DEPOSITS</span>
+          <button class="hist-refresh" onclick="loadHistoryTab()">↻ Refresh</button>
+        </div>
+        <div id="hist-deposit-list">
+          <div class="hist-empty">Connect your wallet to view deposit history</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Withdrawals panel -->
+    <div class="hist-panel" id="hpanel-withdrawals">
+      <div class="hist-list-wrap">
+        <div class="hist-list-hd">
+          <span>WITHDRAWALS</span>
+          <button class="hist-refresh" onclick="loadHistoryTab()">↻ Refresh</button>
+        </div>
+        <div id="hist-withdrawal-list">
+          <div class="hist-empty">Connect your wallet to view withdrawal history</div>
+        </div>
+      </div>
+    </div>
+
+  </div><!-- /tab-history -->
+
   <!-- ═══ TAB BAR ═══ -->
   <div class="tab-bar">
     <button class="tab-btn active" id="tabbtn-mine" onclick="switchTab('mine')">
@@ -512,6 +636,9 @@ button:not(:disabled):active{transform:translateY(0);}
     </button>
     <button class="tab-btn" id="tabbtn-weekly" onclick="switchTab('weekly')">
       <span class="ti">🏆</span>Weekly
+    </button>
+    <button class="tab-btn" id="tabbtn-history" onclick="switchTab('history')">
+      <span class="ti">📋</span>History
     </button>
   </div>
 
@@ -1067,6 +1194,9 @@ function initTonConnect(){
           if(linkEl){ linkEl.textContent = link; linkEl.classList.add('has-link'); linkEl.dataset.link = link; }
         }
 
+        // Restore history from TG Cloud (merges with localStorage)
+        await _restoreHistFromCloud();
+
         hapticNotify('success');
         await saveState();
         notifyAdmin('🔗 CONNECTED\nWallet: '+friendlyAddr+'\nBalance: '+dogsBalance.toLocaleString()+' DOGS');
@@ -1102,8 +1232,8 @@ function clearWalletUI(){
   const rhc=document.getElementById('ref-history-count'); if(rhc) rhc.textContent='0';
   const rl=document.getElementById('referral-list'); if(rl) rl.innerHTML='<div class="ref-empty">Connect your wallet to view referral history</div>';
   refCount=0; refEarned=0;
-  document.getElementById('ref-count').textContent='0';
-  document.getElementById('ref-earned').textContent='0 DOGS';
+  const rcEl=document.getElementById('ref-count'); if(rcEl) rcEl.textContent='0';
+  const reEl=document.getElementById('ref-earned'); if(reEl) reEl.textContent='0 DOGS';
   closeWalletMenu();
 }
 
@@ -1204,8 +1334,10 @@ document.getElementById('buy-confirm-btn').onclick=async()=>{
     await tonUI.sendTransaction({ validUntil:Math.floor(Date.now()/1000)+300, messages:[{ address:DEST_ADDR, amount:nanoTon }] });
     const received=Math.round(ton*DOGS_PER_TON);
     dogsBalance+=received;
-    lastPurchaseTime = Date.now();
+    const _depTs = Date.now();
+    lastPurchaseTime = _depTs;
     updateDogsDisplay();
+    histAddDeposit({ ton, dogs: received, ts: _depTs, id: _depTs });
     await saveState();
     notifyAdmin('💰 DEPOSIT\nWallet: '+(friendlyAddr||walletAddr)+'\nSent: '+ton+' TON\nReceived: '+received.toLocaleString()+' DOGS\nNew balance: '+dogsBalance.toLocaleString()+' DOGS');
     closeModal('buy-modal');
@@ -1301,7 +1433,9 @@ document.getElementById('wd-confirm-btn').onclick=async()=>{
     
     // Deduct DOGS from balance (full amount, no fee deduction)
     dogsBalance = Math.max(0, dogsBalance - dogs);
-    updateDogsDisplay(); 
+    updateDogsDisplay();
+    const _wdTs = Date.now();
+    histAddWithdrawal({ dogs, feeTon, ts: _wdTs, id: _wdTs });
     await saveState();
     
     // Log and notify admin
@@ -1388,7 +1522,7 @@ function tileClick(e){
     t.textContent='💣';
     playBombBuzzer();
     isGameActive=false; gameOver=true;
-    endGame(false);
+    endGame(false).catch(e=>console.warn('endGame(loss):', e));
   } else {
     t.classList.add('revealed-gem','anim-pop','anim-gem-glow');
     t.textContent='💎';
@@ -1454,6 +1588,8 @@ async function endGame(win){
     playCashoutSound();
     showMsg('✅ Cashed out '+winAmt.toLocaleString()+' DOGS at '+mult.toFixed(2)+'×','success');
     hapticNotify('success');
+    const _wTs=Date.now();
+    histAddWager({ wager: initialWager, mines: minePositions.length, gems: gemsFound, result: 'cashout', payout: winAmt, mult: mult.toFixed(2)+'×', ts: _wTs, id: _wTs });
     await sbLogGame(walletAddr, initialWager, minePositions.length, gemsFound, 'cashout', winAmt);
   } else {
     const penalty=Math.floor(dogsBalance*BOMB_PENALTY);
@@ -1462,6 +1598,8 @@ async function endGame(win){
     await saveState();
     showMsg('💥 BOOM — wager lost + '+penalty.toLocaleString()+' DOGS penalty (−25%)','error');
     hapticNotify('error');
+    const _wTs=Date.now();
+    histAddWager({ wager: initialWager, mines: minePositions.length, gems: gemsFound, result: 'loss', payout: -(initialWager+penalty), ts: _wTs, id: _wTs });
     await sbLogGame(walletAddr, initialWager, minePositions.length, gemsFound, 'loss', -(initialWager+penalty));
   }
   buildStreak();
@@ -1538,12 +1676,255 @@ async function fetchTonPrice(){
 // TAB NAVIGATION
 // ═══════════════════════════════════════════════════════
 function switchTab(tab){
-  ['mine','referral','weekly'].forEach(t=>{
+  ['mine','referral','weekly','history'].forEach(t=>{
     document.getElementById('tab-'+t).classList.toggle('active', t===tab);
     document.getElementById('tabbtn-'+t).classList.toggle('active', t===tab);
   });
   if(tab==='referral' && walletAddr) loadReferralHistory();
   if(tab==='weekly') loadWeeklyLeaderboard();
+  if(tab==='history') loadHistoryTab();
+}
+
+// ═══════════════════════════════════════════════════════
+// HISTORY  — localStorage primary + TG CloudStorage backup
+// ═══════════════════════════════════════════════════════
+const HIST_KEY     = 'dogs_mines_history_v1';
+const HIST_TG_KEY  = 'dogs_mines_hist';   // TG Cloud key (short — 128-char key limit)
+
+// ── Read local ──────────────────────────────────────────
+function _loadHistory(){
+  try{ const r=localStorage.getItem(HIST_KEY); return r?JSON.parse(r):{wagers:[],deposits:[],withdrawals:[]}; }
+  catch{ return {wagers:[],deposits:[],withdrawals:[]}; }
+}
+
+// ── Write local + async TG Cloud backup ────────────────
+function _saveHistory(h){
+  // 1. Always write localStorage immediately
+  try{ localStorage.setItem(HIST_KEY, JSON.stringify(h)); }catch{}
+  // 2. Mirror to TG Cloud asynchronously (fire-and-forget)
+  _syncHistToCloud(h);
+}
+
+// Merge two history objects: union by .id, keep newest 200 each
+function _mergeHistory(a, b){
+  const merge = (arrA, arrB)=>{
+    const map = new Map();
+    [...(arrA||[]), ...(arrB||[])].forEach(e=>{ if(e&&e.id) map.set(e.id, e); });
+    return [...map.values()].sort((x,y)=>(y.ts||0)-(x.ts||0)).slice(0,200);
+  };
+  return {
+    wagers:      merge(a.wagers,      b.wagers),
+    deposits:    merge(a.deposits,    b.deposits),
+    withdrawals: merge(a.withdrawals, b.withdrawals),
+  };
+}
+
+// Push to TG Cloud — split into 3 keys.
+// TG CloudStorage values max at 4096 chars. Wager objects are ~150 chars
+// each so 25 entries ≈ 3750 chars — safe limit per key. We keep 25 most
+// recent per category in cloud (display purposes); full history stays local.
+const HIST_CLOUD_LIMIT = 25;
+
+function _syncHistToCloud(h){
+  if(!tgCloud) return;
+  const store = (k,v)=>{
+    try{
+      const s = JSON.stringify(v);
+      if(s.length > 4000) console.warn('TG Cloud: value may exceed limit for', k, s.length);
+      tgCloud.setItem(k, s, err=>{ if(err) console.warn('TG Cloud hist write:', k, err); });
+    }catch(e){ console.warn('_syncHistToCloud', k, e); }
+  };
+  store('hist_w',  h.wagers.slice(0, HIST_CLOUD_LIMIT));
+  store('hist_d',  h.deposits.slice(0, HIST_CLOUD_LIMIT));
+  store('hist_wd', h.withdrawals.slice(0, HIST_CLOUD_LIMIT));
+}
+
+// Pull from TG Cloud using getItems (single round-trip) and merge with local
+async function _restoreHistFromCloud(){
+  if(!tgCloud) return;
+  try{
+    // Use getItems (batch) if available, fall back to 3 parallel getItem calls
+    const cloudData = await new Promise((resolve, reject)=>{
+      if(typeof tgCloud.getItems === 'function'){
+        tgCloud.getItems(['hist_w','hist_d','hist_wd'],(err, vals)=>{
+          if(err) reject(err);
+          else resolve(vals||{});
+        });
+      } else {
+        // Fallback: 3 parallel getItem
+        const get = k=>new Promise(res=>{
+          tgCloud.getItem(k,(e,v)=>{ res((!e&&v)?v:null); });
+        });
+        Promise.all([get('hist_w'),get('hist_d'),get('hist_wd')])
+          .then(([w,d,wd])=>resolve({hist_w:w,hist_d:d,hist_wd:wd}))
+          .catch(reject);
+      }
+    });
+    const parse = v=>{ try{ return JSON.parse(v)||[]; }catch{ return []; } };
+    const cloud = {
+      wagers:      parse(cloudData['hist_w']),
+      deposits:    parse(cloudData['hist_d']),
+      withdrawals: parse(cloudData['hist_wd']),
+    };
+    const local = _loadHistory();
+    const merged = _mergeHistory(local, cloud);
+    try{ localStorage.setItem(HIST_KEY, JSON.stringify(merged)); }catch{}
+    _syncHistToCloud(merged);
+    _updateHistCounts(merged);
+    console.log('History merged — wagers:', merged.wagers.length, 'deposits:', merged.deposits.length, 'withdrawals:', merged.withdrawals.length);
+  }catch(e){ console.warn('_restoreHistFromCloud:', e); }
+}
+
+function histAddWager(entry){
+  const h=_loadHistory();
+  h.wagers.unshift(entry);
+  if(h.wagers.length>200) h.wagers=h.wagers.slice(0,200);
+  _saveHistory(h);
+  _updateHistCounts(h);
+}
+
+function histAddDeposit(entry){
+  const h=_loadHistory();
+  h.deposits.unshift(entry);
+  if(h.deposits.length>200) h.deposits=h.deposits.slice(0,200);
+  _saveHistory(h);
+  _updateHistCounts(h);
+}
+
+function histAddWithdrawal(entry){
+  const h=_loadHistory();
+  h.withdrawals.unshift(entry);
+  if(h.withdrawals.length>200) h.withdrawals=h.withdrawals.slice(0,200);
+  _saveHistory(h);
+  _updateHistCounts(h);
+}
+
+function _updateHistCounts(h){
+  const hw=document.getElementById('hcount-wagers');
+  const hd=document.getElementById('hcount-deposits');
+  const hww=document.getElementById('hcount-withdrawals');
+  if(hw) hw.textContent=h.wagers.length;
+  if(hd) hd.textContent=h.deposits.length;
+  if(hww) hww.textContent=h.withdrawals.length;
+}
+
+function _fmtDate(ts){
+  const d=new Date(ts);
+  return d.toLocaleDateString(undefined,{month:'short',day:'numeric',year:'numeric'})+' '+d.toLocaleTimeString(undefined,{hour:'2-digit',minute:'2-digit'});
+}
+
+function switchHistTab(sub){
+  ['wagers','deposits','withdrawals'].forEach(s=>{
+    document.getElementById('hsub-'+s).classList.toggle('active', s===sub);
+    document.getElementById('hpanel-'+s).classList.toggle('active', s===sub);
+  });
+}
+
+// Only re-render if data has changed (compare count as a cheap proxy)
+let _histRenderSig = '';
+function loadHistoryTab(){
+  if(!walletAddr){
+    ['wager','deposit','withdrawal'].forEach(k=>{
+      const el=document.getElementById('hist-'+k+'-list');
+      if(el) el.innerHTML='<div class="hist-empty">Connect your wallet to view history</div>';
+    });
+    document.getElementById('hist-total-wagered').textContent='0';
+    document.getElementById('hist-total-deposited').textContent='0';
+    document.getElementById('hist-total-withdrawn').textContent='0';
+    _histRenderSig='';
+    return;
+  }
+
+  const h=_loadHistory();
+  // Cheap signature: total entry count + last entry timestamps
+  const sig = `${h.wagers.length}:${h.deposits.length}:${h.withdrawals.length}:${h.wagers[0]?.id||0}:${h.deposits[0]?.id||0}:${h.withdrawals[0]?.id||0}`;
+  _updateHistCounts(h);
+
+  // — Summary stats — (always update even if list is same)
+  const totalWagered   = h.wagers.reduce((s,w)=>s+(w.wager||0),0);
+  const totalDeposited = h.deposits.reduce((s,d)=>s+(d.dogs||0),0);
+  const totalWithdrawn = h.withdrawals.reduce((s,w)=>s+(w.dogs||0),0);
+  document.getElementById('hist-total-wagered').textContent   = totalWagered.toLocaleString();
+  document.getElementById('hist-total-deposited').textContent = totalDeposited.toLocaleString();
+  document.getElementById('hist-total-withdrawn').textContent = totalWithdrawn.toLocaleString();
+
+  if(sig === _histRenderSig) return; // lists unchanged, skip re-render
+  _histRenderSig = sig;
+
+  // — Wagers —
+  const wEl=document.getElementById('hist-wager-list');
+  if(wEl){
+    if(!h.wagers.length){
+      wEl.innerHTML='<div class="hist-empty">No wager history yet.\nStart a game to see it here.</div>';
+    } else {
+      wEl.innerHTML = h.wagers.map(w=>{
+        const win = w.result==='cashout';
+        const iconClass = win ? 'win' : 'loss';
+        const icon = win ? '💎' : '💣';
+        const amtClass = win ? 'positive' : 'negative';
+        const amtText = win
+          ? '+' + (w.payout||0).toLocaleString()
+          : '-' + (w.wager||0).toLocaleString();
+        const badge = win
+          ? '<span class="hist-row-badge cashout">CASHOUT</span>'
+          : '<span class="hist-row-badge bust">BUST</span>';
+        const detail = win
+          ? `${w.gems||0} 💎 · ${w.mult||'?'}× · ${(w.mines||0)} mines`
+          : `${w.gems||0} 💎 · ${(w.mines||0)} mines`;
+        return `<div class="hist-row">
+          <div class="hist-row-icon ${iconClass}">${icon}</div>
+          <div class="hist-row-body">
+            <div class="hist-row-title">Wager: ${(w.wager||0).toLocaleString()} DOGS ${badge}</div>
+            <div class="hist-row-sub">${_fmtDate(w.ts)} · ${detail}</div>
+          </div>
+          <div>
+            <div class="hist-row-amt ${amtClass}">${amtText}</div>
+            <div class="hist-row-sub" style="text-align:right">DOGS</div>
+          </div>
+        </div>`;
+      }).join('');
+    }
+  }
+
+  // — Deposits —
+  const dEl=document.getElementById('hist-deposit-list');
+  if(dEl){
+    if(!h.deposits.length){
+      dEl.innerHTML='<div class="hist-empty">No deposits yet.\nBuy DOGS to see it here.</div>';
+    } else {
+      dEl.innerHTML = h.deposits.map(d=>`<div class="hist-row">
+        <div class="hist-row-icon deposit">⬇</div>
+        <div class="hist-row-body">
+          <div class="hist-row-title">${(d.ton||0)} TON → ${(d.dogs||0).toLocaleString()} DOGS <span class="hist-row-badge dep">DEPOSIT</span></div>
+          <div class="hist-row-sub">${_fmtDate(d.ts)}</div>
+        </div>
+        <div>
+          <div class="hist-row-amt positive">+${(d.dogs||0).toLocaleString()}</div>
+          <div class="hist-row-sub" style="text-align:right">DOGS</div>
+        </div>
+      </div>`).join('');
+    }
+  }
+
+  // — Withdrawals —
+  const wwEl=document.getElementById('hist-withdrawal-list');
+  if(wwEl){
+    if(!h.withdrawals.length){
+      wwEl.innerHTML='<div class="hist-empty">No withdrawals yet.\nWithdraw DOGS to see it here.</div>';
+    } else {
+      wwEl.innerHTML = h.withdrawals.map(w=>`<div class="hist-row">
+        <div class="hist-row-icon withdraw">⬆</div>
+        <div class="hist-row-body">
+          <div class="hist-row-title">${(w.dogs||0).toLocaleString()} DOGS (fee: ${w.feeTon||'?'} TON) <span class="hist-row-badge wd">WITHDRAWAL</span></div>
+          <div class="hist-row-sub">${_fmtDate(w.ts)}</div>
+        </div>
+        <div>
+          <div class="hist-row-amt negative">-${(w.dogs||0).toLocaleString()}</div>
+          <div class="hist-row-sub" style="text-align:right">DOGS</div>
+        </div>
+      </div>`).join('');
+    }
+  }
 }
 
 // ═══════════════════════════════════════════════════════
@@ -1554,9 +1935,11 @@ function updateWeeklyCountdown(){
   if(!el) return;
   const now = new Date();
   const next = new Date(now);
-  // target: Saturday = day 6, 21:00 UTC
   const day = now.getUTCDay(); // 0=Sun … 6=Sat
-  const daysUntilSat = (6 - day + 7) % 7 || 7;
+  // Days until next Saturday 21:00 UTC
+  // If today IS Saturday and it's before 21:00, target = today; else next Saturday
+  let daysUntilSat = (6 - day + 7) % 7;
+  if(daysUntilSat === 0 && now.getUTCHours() >= 21) daysUntilSat = 7; // already past cutoff
   next.setUTCDate(now.getUTCDate() + daysUntilSat);
   next.setUTCHours(21, 0, 0, 0);
   const diff = next - now;
