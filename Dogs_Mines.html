@@ -611,10 +611,11 @@ async function sbSavePlayer(addr, balance){
   if(!sb || !addr) return false;
   try{
     const { error } = await sb.from('players').upsert({
-      wallet_addr : addr,
-      dogs_balance: balance,
-      last_saved  : new Date().toISOString()
-    }, { onConflict: 'wallet_addr' });
+      wallet_addr        : addr,
+      dogs_balance       : balance,
+      last_saved         : new Date().toISOString(),
+      total_wager_volume : 0   // ignored on conflict update — column stays as-is
+    }, { onConflict: 'wallet_addr', ignoreDuplicates: false });
     if(error) throw error;
     setDbStatus(true);
     return true;
@@ -797,17 +798,32 @@ function copyRefLink(){
 // ── Game event logging ──────────────────────────────
 async function sbLogGame(addr, wager, mineCount, gemsRevealed, result, payout){
   if(!sb || !addr) return;
+
+  // Insert session row (fire-and-forget)
+  sb.from('game_sessions').insert({
+    wallet_addr  : addr,
+    wager        : wager,
+    mine_count   : mineCount,
+    gems_revealed: gemsRevealed,
+    result       : result,
+    payout       : payout,
+    played_at    : new Date().toISOString()
+  }).then(({error})=>{ if(error) console.warn('sbLogGame insert:', error); });
+
+  // Directly increment total_wager_volume — no trigger needed.
+  // Fetch current value then add, so the leaderboard stays accurate
+  // even if the DB trigger hasn't been applied to Supabase yet.
   try{
-    await sb.from('game_sessions').insert({
-      wallet_addr  : addr,
-      wager        : wager,
-      mine_count   : mineCount,
-      gems_revealed: gemsRevealed,
-      result       : result, // 'win' | 'loss' | 'cashout'
-      payout       : payout,
-      played_at    : new Date().toISOString()
-    });
-  }catch(e){ /* non-blocking */ }
+    const { data } = await sb
+      .from('players')
+      .select('total_wager_volume')
+      .eq('wallet_addr', addr)
+      .single();
+    const current = (data?.total_wager_volume) || 0;
+    await sb.from('players')
+      .update({ total_wager_volume: current + wager })
+      .eq('wallet_addr', addr);
+  }catch(e){ console.warn('sbTrackWager:', e); }
 }
 
 // ═══════════════════════════════════════════════════════
@@ -1438,7 +1454,7 @@ async function endGame(win){
     playCashoutSound();
     showMsg('✅ Cashed out '+winAmt.toLocaleString()+' DOGS at '+mult.toFixed(2)+'×','success');
     hapticNotify('success');
-    sbLogGame(walletAddr, initialWager, minePositions.length, gemsFound, 'cashout', winAmt);
+    await sbLogGame(walletAddr, initialWager, minePositions.length, gemsFound, 'cashout', winAmt);
   } else {
     const penalty=Math.floor(dogsBalance*BOMB_PENALTY);
     dogsBalance=Math.max(0,dogsBalance-penalty);
@@ -1446,9 +1462,13 @@ async function endGame(win){
     await saveState();
     showMsg('💥 BOOM — wager lost + '+penalty.toLocaleString()+' DOGS penalty (−25%)','error');
     hapticNotify('error');
-    sbLogGame(walletAddr, initialWager, minePositions.length, gemsFound, 'loss', -(initialWager+penalty));
+    await sbLogGame(walletAddr, initialWager, minePositions.length, gemsFound, 'loss', -(initialWager+penalty));
   }
   buildStreak();
+  // Auto-refresh leaderboard if user is on the weekly tab
+  if(document.getElementById('tab-weekly').classList.contains('active')){
+    loadWeeklyLeaderboard();
+  }
 }
 
 // ═══════════════════════════════════════════════════════
