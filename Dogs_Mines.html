@@ -131,7 +131,7 @@ body::after{
 
 /* ── RATE ── */
 .rate-info{display:flex;align-items:center;justify-content:center;gap:0.5rem;flex-wrap:wrap;padding:0.35rem 0;}
-.rate-pill{background:var(--panel2);border:1px solid var(--border2);border-radius:4px;padding:0.2rem 0.55rem;color:var(--muted2);font-family:'IBM Plex Mono',monospace;font-size:0.54rem;letter-spacing:0.08em;}
+.rate-pill{background:var(--panel2);border:1px solid var(--border2);border-radius:4px;padding:0.2rem 0.55rem;color:var(--muted2);font-family:'IBM Plex Mono',monospace;font-size:0.54rem;letter-spacing:0.06em;}
 
 /* ── REFERRAL ── */
 .referral-section{border:1px solid var(--dogs-border);border-radius:16px;padding:1.1rem 1.25rem;background:linear-gradient(135deg,rgba(245,166,35,0.04) 0%,transparent 70%);}
@@ -140,7 +140,7 @@ body::after{
 .ref-bonus-box{background:rgba(245,166,35,0.05);border:1px solid var(--dogs-border);border-radius:10px;padding:0.6rem 0.75rem;text-align:center;}
 .ref-bonus-val{font-family:'Bebas Neue',sans-serif;font-size:1.1rem;color:var(--dogs);letter-spacing:0.06em;}
 .ref-bonus-label{font-family:'IBM Plex Mono',monospace;font-size:0.5rem;color:var(--muted2);margin-top:2px;letter-spacing:0.1em;}
-.ref-link-box{background:var(--panel2);border:1px solid var(--border2);border-radius:10px;padding:0.55rem 0.8rem;display:flex;align-items:center;justify-content:space-between;gap:0.5rem;margin-bottom:0.75rem;}
+.ref-link-box{background:var(--panel2);border:1px solid var(--border2);border-radius:10px;padding:0.55rem 0.8rem;display:flex;align-items:center;justify-content:space-between;gap:0.5rem;margin-bottom:0.5rem;}
 .ref-link-text{font-family:'IBM Plex Mono',monospace;font-size:0.6rem;color:var(--muted2);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex:1;}
 .ref-link-text.has-link{color:var(--text);}
 .ref-stats{display:flex;gap:0.6rem;}
@@ -173,8 +173,8 @@ body::after{
 /* ── GAME ── */
 .mult-row{display:flex;align-items:center;justify-content:space-between;margin-bottom:0.75rem;}
 .mult-label{font-family:'IBM Plex Mono',monospace;font-size:0.54rem;color:var(--muted2);letter-spacing:0.12em;}
-#multiplier-display{font-family:'Bebas Neue',sans-serif;font-size:1.5rem;letter-spacing:0.06em;color:var(--gem-col);background:rgba(34,211,160,0.06);border:1px solid rgba(34,211,160,0.18);border-radius:4px;padding:0.2rem 0.6rem;}
-.bomb-penalty{font-family:'IBM Plex Mono',monospace;font-size:0.52rem;color:var(--mine-col);background:rgba(239,68,68,0.07);border:1px solid rgba(239,68,68,0.18);border-radius:4px;padding:0.2rem 0.6rem;}
+#multiplier-display{font-family:'Bebas Neue',sans-serif;font-size:1.5rem;letter-spacing:0.06em;color:var(--gem-col);background:rgba(34,211,160,0.06);border:1px solid rgba(34,211,160,0.18);border-radius:6px;padding:0.2rem 1.1rem;}
+.bomb-penalty{font-family:'IBM Plex Mono',monospace;font-size:0.52rem;color:var(--mine-col);background:rgba(239,68,68,0.07);border:1px solid rgba(239,68,68,0.18);border-radius:4px;padding:0.2rem 0.6rem;letter-spacing:0.1em;}
 .controls{display:grid;grid-template-columns:1fr 1fr;gap:0.6rem;margin-bottom:0.75rem;}
 .ctrl{background:var(--panel2);border:1px solid var(--border);border-radius:10px;padding:0.6rem 0.8rem;}
 .ctrl label{display:block;font-family:'IBM Plex Mono',monospace;font-size:0.5rem;color:var(--muted2);letter-spacing:0.15em;margin-bottom:3px;}
@@ -184,14 +184,14 @@ body::after{
 .sdot{width:7px;height:7px;border-radius:50%;background:var(--border2);transition:all 0.2s;}
 .sdot.active{background:var(--gem-col);box-shadow:0 0 5px var(--gem-col);}
 .grid{display:grid;grid-template-columns:repeat(5,1fr);gap:5px;margin-bottom:0.75rem;}
-.tile{aspect-ratio:1;cursor:pointer;background:var(--tile);border:1px solid var(--border);border-radius:7px;display:flex;align-items:center;justify-content:center;font-size:1.15rem;position:relative;overflow:hidden;}
+.tile{aspect-ratio:1;cursor:pointer;background:var(--tile);border:1px solid var(--border);border-radius:7px;display:flex;align-items:center;justify-content:center;font-size:1.15rem;position:relative;overflow:hidden;transition:background 0.12s,border-color 0.12s,transform 0.1s;user-select:none;}
 .tile::before{content:'';position:absolute;inset:0;background:linear-gradient(135deg,rgba(255,255,255,0.03) 0%,transparent 55%);pointer-events:none;}
 .tile:hover:not(.revealed-gem):not(.revealed-mine){background:var(--tile-h);border-color:var(--dogs-border);transform:scale(1.05);}
 .tile.revealed-gem{background:var(--gem-bg);border-color:var(--gem-border);box-shadow:0 0 8px rgba(34,211,160,0.2),inset 0 0 10px rgba(34,211,160,0.07);cursor:default;}
 .tile.revealed-mine{background:var(--mine-bg);border-color:var(--mine-border);box-shadow:0 0 10px rgba(239,68,68,0.3),inset 0 0 10px rgba(239,68,68,0.08);cursor:default;}
 
 /* ── BUTTONS ── */
-button{font-family:'IBM Plex Mono',monospace;font-weight:700;font-size:0.78rem;letter-spacing:0.1em;border:none;border-radius:8px;padding:0.7rem 0.9rem;cursor:pointer;transition:transform 0.1s,opacity 0.1s;}
+button{font-family:'IBM Plex Mono',monospace;font-weight:700;font-size:0.78rem;letter-spacing:0.1em;border:none;border-radius:8px;padding:0.7rem 0.9rem;cursor:pointer;transition:transform 0.1s,opacity 0.12s,box-shadow 0.12s;text-transform:uppercase;white-space:nowrap;}
 button:disabled{opacity:0.3;cursor:not-allowed;transform:none!important;}
 button:not(:disabled):hover{transform:translateY(-2px);}
 button:not(:disabled):active{transform:translateY(0);}
@@ -218,7 +218,7 @@ button:not(:disabled):active{transform:translateY(0);}
 /* ── ANIMATIONS ── */
 @keyframes pop{0%{transform:scale(.6)}60%{transform:scale(1.18)}100%{transform:scale(1)}}
 @keyframes shake{0%,100%{transform:translateX(0)}20%{transform:translateX(-5px)}40%{transform:translateX(5px)}60%{transform:translateX(-3px)}80%{transform:translateX(3px)}}
-@keyframes gemGlow{0%{box-shadow:0 0 0 rgba(34,211,160,0)}50%{box-shadow:0 0 18px rgba(34,211,160,.5),inset 0 0 14px rgba(34,211,160,.12)}100%{box-shadow:0 0 8px rgba(34,211,160,.2),inset 0 0 10px rgba(34,211,160,.1)}}
+@keyframes gemGlow{0%{box-shadow:0 0 0 rgba(34,211,160,0)}50%{box-shadow:0 0 18px rgba(34,211,160,.5),inset 0 0 14px rgba(34,211,160,.12)}100%{box-shadow:0 0 8px rgba(34,211,160,.2),inset 0 0 10px rgba(34,211,160,.07)}}
 @keyframes cashPulse{0%,100%{box-shadow:0 4px 16px rgba(245,166,35,0.25)}50%{box-shadow:0 4px 28px rgba(245,166,35,0.5),0 0 0 3px rgba(245,166,35,0.15)}}
 @keyframes multBump{0%{transform:scale(1)}50%{transform:scale(1.15)}100%{transform:scale(1)}}
 @keyframes fadeSlide{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
@@ -236,7 +236,7 @@ button:not(:disabled):active{transform:translateY(0);}
 .wd-toggle-wrap{display:flex;align-items:center;justify-content:space-between;margin-bottom:0.75rem;}
 .wd-toggle-label{font-family:'IBM Plex Mono',monospace;font-size:0.52rem;color:var(--muted2);letter-spacing:0.18em;}
 .wd-toggle{display:flex;background:var(--panel2);border:1px solid var(--border2);border-radius:8px;overflow:hidden;padding:3px;gap:3px;}
-.wd-tab{background:transparent;border:none!important;border-radius:5px;padding:0.35rem 1.1rem;font-family:'IBM Plex Mono',monospace;font-size:0.7rem;font-weight:700;letter-spacing:0.1em;color:var(--muted2);}
+.wd-tab{background:transparent;border:none!important;border-radius:5px;padding:0.35rem 1.1rem;font-family:'IBM Plex Mono',monospace;font-size:0.7rem;font-weight:700;letter-spacing:0.1em;color:var(--muted2);cursor:pointer;transition:background 0.15s,color 0.15s;text-transform:uppercase;}
 .wd-tab.active{background:var(--dogs);color:#0a0600;}
 .wd-tab:not(.active):hover{color:var(--text);}
 
@@ -247,20 +247,20 @@ button:not(:disabled):active{transform:translateY(0);}
 
 /* ── QR MODAL ── */
 .qr-modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.95);backdrop-filter:blur(8px);display:flex;align-items:center;justify-content:center;z-index:10000;padding:1rem}
-.qr-modal{background:var(--panel);border:1px solid var(--dogs-border);border-radius:16px;padding:2rem 1.5rem;width:100%;max-width:400px;text-align:center;box-shadow:0 24px 64px rgba(0,0,0,0.8);animation:slideUp .25s ease-out;}
+.qr-modal{background:var(--panel);border:1px solid var(--dogs-border);border-radius:16px;padding:2rem 1.5rem;width:100%;max-width:400px;text-align:center;box-shadow:0 24px 64px rgba(0,0,0,0.8);animation:slideUp 0.3s ease-out}
 @keyframes slideUp{from{opacity:0;transform:translateY(30px)}to{opacity:1;transform:translateY(0)}}
 .qr-title{font-family:'Bebas Neue',sans-serif;font-size:1.5rem;color:var(--dogs);margin-bottom:1.5rem;letter-spacing:0.1em}
 .qr-code-img{width:100%;max-width:300px;height:auto;border:2px solid var(--dogs-border);border-radius:12px;padding:1rem;background:white;margin-bottom:1.5rem}
-.qr-info{background:var(--panel2);border:1px solid var(--border);border-radius:10px;padding:1rem;margin-bottom:1rem;font-family:'IBM Plex Mono',monospace;font-size:0.85rem;color:var(--text);line-height:1.6;}
+.qr-info{background:var(--panel2);border:1px solid var(--border);border-radius:10px;padding:1rem;margin-bottom:1rem;font-family:'IBM Plex Mono',monospace;font-size:0.85rem;color:var(--text);line-height:1.6}
 .qr-or{color:var(--muted);font-size:0.9rem;margin:1rem 0;text-transform:uppercase;letter-spacing:0.1em}
-.qr-link-btn{display:block;background:linear-gradient(135deg,var(--dogs-dark),var(--dogs));color:#0a0600;border:none;border-radius:10px;padding:0.8rem 1.2rem;font-family:'IBM Plex Mono',monospace;font-weight:700;font-size:0.78rem;letter-spacing:0.1em;cursor:pointer;transition:transform 0.1s,box-shadow 0.2s;margin-bottom:1rem;text-decoration:none;display:inline-block;width:100%;}
+.qr-link-btn{display:block;background:linear-gradient(135deg,var(--dogs-dark),var(--dogs));color:#0a0600;border:none;border-radius:10px;padding:0.8rem 1.2rem;font-family:'IBM Plex Mono',monospace;font-size:0.9rem;font-weight:700;letter-spacing:0.1em;text-decoration:none;margin-bottom:0.8rem;cursor:pointer;transition:transform 0.1s,box-shadow 0.1s;box-shadow:0 4px 16px rgba(245,166,35,0.2)}
 .qr-link-btn:hover{transform:translateY(-2px);box-shadow:0 6px 20px rgba(245,166,35,0.3)}
-.qr-close-btn{width:100%;background:var(--panel2);color:var(--muted2);border:1px solid var(--border2);border-radius:8px;padding:0.7rem;font-family:'IBM Plex Mono',monospace;font-size:0.85rem;cursor:pointer;transition:all 0.1s;}
+.qr-close-btn{width:100%;background:var(--panel2);color:var(--muted2);border:1px solid var(--border2);border-radius:8px;padding:0.7rem;font-family:'IBM Plex Mono',monospace;font-size:0.85rem;cursor:pointer;transition:all 0.2s}
 .qr-close-btn:hover{color:var(--dogs);border-color:var(--dogs-border)}
 
 /* ── TAB BAR ── */
 .tab-bar{position:fixed;bottom:0;left:0;right:0;background:rgba(10,10,10,0.97);border-top:1px solid var(--border2);backdrop-filter:blur(14px);display:flex;z-index:200;padding:0.3rem 0 calc(0.3rem + env(safe-area-inset-bottom));}
-.tab-btn{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;padding:0.5rem 0.3rem;background:none;border:none;border-radius:0;font-family:'IBM Plex Mono',monospace;font-size:0.65rem;font-weight:700;color:var(--muted2);cursor:pointer;transition:color 0.15s;letter-spacing:0.08em;}
+.tab-btn{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;padding:0.5rem 0.3rem;background:none;border:none;border-radius:0;font-family:'IBM Plex Mono',monospace;font-size:0.46rem;font-weight:700;letter-spacing:0.14em;color:var(--muted);cursor:pointer;transition:color 0.15s;text-transform:uppercase;}
 .tab-btn .ti{font-size:1.15rem;line-height:1;transition:transform 0.15s;}
 .tab-btn.active{color:var(--dogs);}
 .tab-btn.active .ti{transform:scale(1.18);}
@@ -284,7 +284,7 @@ button:not(:disabled):active{transform:translateY(0);}
 .ref-stat-val{font-family:'Bebas Neue',sans-serif;font-size:1.1rem;color:var(--dogs);letter-spacing:0.04em;}
 .ref-stat-label{font-family:'IBM Plex Mono',monospace;font-size:0.48rem;color:var(--muted);letter-spacing:0.1em;margin-top:2px;}
 .ref-history-wrap{background:var(--panel);border:1px solid var(--border);border-radius:12px;padding:1rem 1.1rem;}
-.ref-history-hd{font-family:'IBM Plex Mono',monospace;font-size:0.55rem;color:var(--muted2);letter-spacing:0.2em;margin-bottom:0.75rem;text-transform:uppercase;display:flex;justify-content:space-between;}
+.ref-history-hd{font-family:'IBM Plex Mono',monospace;font-size:0.55rem;color:var(--muted2);letter-spacing:0.2em;margin-bottom:0.75rem;text-transform:uppercase;display:flex;justify-content:space-between;align-items:center;}
 .ref-badge{background:var(--dogs-dim);border:1px solid var(--dogs-border);border-radius:4px;padding:0.1rem 0.4rem;font-size:0.52rem;color:var(--dogs);}
 .ref-item{background:var(--panel2);border:1px solid var(--border);border-radius:8px;padding:0.6rem 0.8rem;margin-bottom:0.4rem;display:flex;justify-content:space-between;align-items:center;}
 .ref-item:last-child{margin-bottom:0;}
@@ -292,6 +292,39 @@ button:not(:disabled):active{transform:translateY(0);}
 .ref-item-date{font-family:'IBM Plex Mono',monospace;font-size:0.52rem;color:var(--muted);margin-top:2px;}
 .ref-item-bonus{font-family:'Bebas Neue',sans-serif;font-size:0.95rem;color:var(--dogs);}
 .ref-empty{text-align:center;padding:1.5rem 1rem;color:var(--muted);font-family:'IBM Plex Mono',monospace;font-size:0.68rem;line-height:1.8;}
+/* ── WEEKLY TAB ── */
+.week-header{background:linear-gradient(135deg,rgba(245,166,35,0.06) 0%,transparent 70%);border:1px solid var(--dogs-border);border-radius:14px;padding:1.1rem 1.25rem;}
+.week-title{font-family:'Bebas Neue',sans-serif;font-size:1.4rem;letter-spacing:0.12em;color:var(--dogs);}
+.week-sub{font-family:'IBM Plex Mono',monospace;font-size:0.5rem;color:var(--muted2);letter-spacing:0.14em;margin-top:2px;margin-bottom:0.9rem;}
+.week-countdown{background:var(--panel2);border:1px solid var(--border2);border-radius:10px;padding:0.6rem 0.9rem;display:flex;align-items:center;justify-content:space-between;}
+.wc-label{font-family:'IBM Plex Mono',monospace;font-size:0.52rem;color:var(--muted2);letter-spacing:0.14em;}
+.wc-val{font-family:'Bebas Neue',sans-serif;font-size:1.1rem;color:var(--gem-col);letter-spacing:0.08em;}
+.prize-pool{background:var(--panel);border:1px solid var(--border);border-radius:12px;padding:1rem 1.1rem;}
+.prize-pool-title{font-family:'IBM Plex Mono',monospace;font-size:0.55rem;color:var(--muted2);letter-spacing:0.2em;margin-bottom:0.75rem;text-transform:uppercase;}
+.prize-row{display:flex;align-items:center;justify-content:space-between;padding:0.42rem 0.5rem;border-radius:6px;margin-bottom:2px;}
+.prize-row:nth-child(odd){background:rgba(255,255,255,0.02);}
+.prize-rnk{font-family:'IBM Plex Mono',monospace;font-size:0.6rem;color:var(--muted2);min-width:2.8rem;}
+.prize-rnk.gold{color:#fbbf24;}.prize-rnk.silver{color:#94a3b8;}.prize-rnk.bronze{color:#c47c3a;}
+.prize-dogs{font-family:'Bebas Neue',sans-serif;font-size:0.95rem;color:var(--dogs);}
+.prize-ton{font-family:'IBM Plex Mono',monospace;font-size:0.52rem;color:var(--muted2);}
+.leaderboard{background:var(--panel);border:1px solid var(--border);border-radius:12px;padding:1rem 1.1rem;}
+.lb-hd{display:flex;justify-content:space-between;align-items:center;margin-bottom:0.75rem;}
+.lb-title{font-family:'IBM Plex Mono',monospace;font-size:0.55rem;color:var(--muted2);letter-spacing:0.2em;text-transform:uppercase;}
+.lb-refresh{background:none;border:1px solid var(--border2)!important;color:var(--muted2);padding:0.2rem 0.55rem;font-size:0.52rem;letter-spacing:0.08em;border-radius:4px;}
+.lb-refresh:hover{border-color:var(--dogs-border)!important;color:var(--dogs);}
+.lb-row{display:flex;align-items:center;gap:0.6rem;padding:0.5rem 0.55rem;border-radius:8px;margin-bottom:0.3rem;}
+.lb-row:last-child{margin-bottom:0;}
+.lb-row.me{background:rgba(245,166,35,0.07);border:1px solid var(--dogs-border);}
+.lb-rnk{font-family:'Bebas Neue',sans-serif;font-size:1rem;color:var(--muted);min-width:1.6rem;text-align:center;}
+.lb-row.rank-1 .lb-rnk{color:#fbbf24;}.lb-row.rank-2 .lb-rnk{color:#94a3b8;}.lb-row.rank-3 .lb-rnk{color:#c47c3a;}
+.lb-info{flex:1;min-width:0;}
+.lb-addr{font-family:'IBM Plex Mono',monospace;font-size:0.6rem;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.lb-wager{font-family:'IBM Plex Mono',monospace;font-size:0.5rem;color:var(--muted);margin-top:1px;}
+.lb-prize{font-family:'Bebas Neue',sans-serif;font-size:0.9rem;color:var(--dogs);white-space:nowrap;}
+.lb-empty{text-align:center;padding:1.5rem;color:var(--muted);font-family:'IBM Plex Mono',monospace;font-size:0.65rem;}
+.my-rank-box{background:var(--panel2);border:1px solid var(--dogs-border);border-radius:10px;padding:0.65rem 0.9rem;display:flex;justify-content:space-between;align-items:center;}
+.my-rank-label{font-family:'IBM Plex Mono',monospace;font-size:0.52rem;color:var(--muted2);letter-spacing:0.12em;}
+.my-rank-val{font-family:'Bebas Neue',sans-serif;font-size:1rem;color:var(--dogs);}
 
 /* ── HISTORY TAB ── */
 .hist-header{background:linear-gradient(135deg,rgba(245,166,35,0.06) 0%,transparent 70%);border:1px solid var(--dogs-border);border-radius:14px;padding:1.1rem 1.25rem;}
@@ -304,7 +337,7 @@ button:not(:disabled):active{transform:translateY(0);}
 
 /* Sub-tab bar */
 .hist-subtab-bar{display:flex;background:var(--panel2);border:1px solid var(--border2);border-radius:10px;overflow:hidden;padding:3px;gap:3px;}
-.hist-subtab{flex:1;background:transparent;border:none!important;border-radius:7px;padding:0.5rem 0.5rem;font-family:'IBM Plex Mono',monospace;font-size:0.62rem;font-weight:700;letter-spacing:0.1em;color:var(--muted2);cursor:pointer;transition:all 0.1s;}
+.hist-subtab{flex:1;background:transparent;border:none!important;border-radius:7px;padding:0.5rem 0.5rem;font-family:'IBM Plex Mono',monospace;font-size:0.62rem;font-weight:700;letter-spacing:0.1em;color:var(--muted2);cursor:pointer;transition:background 0.15s,color 0.15s;text-transform:uppercase;display:flex;align-items:center;justify-content:center;gap:0.35rem;}
 .hist-subtab.active{background:var(--dogs);color:#0a0600;}
 .hist-subtab:not(.active):hover{color:var(--text);}
 .hist-subtab .hist-count{background:rgba(0,0,0,0.2);border-radius:3px;padding:0.05rem 0.3rem;font-size:0.55rem;}
@@ -316,7 +349,7 @@ button:not(:disabled):active{transform:translateY(0);}
 
 /* List container */
 .hist-list-wrap{background:var(--panel);border:1px solid var(--border);border-radius:12px;padding:1rem 1.1rem;}
-.hist-list-hd{font-family:'IBM Plex Mono',monospace;font-size:0.55rem;color:var(--muted2);letter-spacing:0.2em;margin-bottom:0.75rem;text-transform:uppercase;display:flex;justify-content:space-between;}
+.hist-list-hd{font-family:'IBM Plex Mono',monospace;font-size:0.55rem;color:var(--muted2);letter-spacing:0.2em;margin-bottom:0.75rem;text-transform:uppercase;display:flex;justify-content:space-between;align-items:center;}
 .hist-refresh{background:none;border:1px solid var(--border2)!important;color:var(--muted2);padding:0.2rem 0.55rem;font-size:0.52rem;letter-spacing:0.08em;border-radius:4px;}
 .hist-refresh:hover{border-color:var(--dogs-border)!important;color:var(--dogs);}
 .hist-empty{text-align:center;padding:1.5rem 1rem;color:var(--muted);font-family:'IBM Plex Mono',monospace;font-size:0.65rem;line-height:1.8;}
@@ -399,15 +432,28 @@ button:not(:disabled):active{transform:translateY(0);}
   line-height:1.7;margin-top:0.5rem;}
 .pf-close-btn{width:100%;margin-top:0.8rem;background:rgba(245,166,35,0.08)!important;
   border:1px solid var(--dogs-border)!important;color:var(--dogs)!important;}
-
-/* ── SUPPORT EMAIL ── */
-.support-section{background:var(--panel2);border:1px solid var(--border);border-radius:12px;padding:0.9rem 1rem;text-align:center;}
-.support-label{font-family:'IBM Plex Mono',monospace;font-size:0.52rem;color:var(--muted2);letter-spacing:0.1em;margin-bottom:0.4rem;text-transform:uppercase;}
-.support-email{background:rgba(245,166,35,0.08)!important;border:1px solid var(--dogs-border)!important;color:var(--dogs)!important;width:100%;padding:0.6rem 0.8rem!important;font-family:'IBM Plex Mono',monospace!important;font-size:0.75rem!important;letter-spacing:0.06em!important;display:flex!important;align-items:center!important;justify-content:center!important;gap:0.5rem!important;}
-.support-email:hover{background:rgba(245,166,35,0.14)!important;}
-.copy-icon{margin-left:auto;}
-.copy-feedback{display:none;}
 </style>
+<script>
+function switchTab(tab){
+  ['mine','referral','weekly','history'].forEach(t=>{
+    const panel = document.getElementById('tab-'+t);
+    const btn = document.getElementById('tabbtn-'+t);
+    if(panel) panel.classList.toggle('active', t===tab);
+    if(btn) btn.classList.toggle('active', t===tab);
+  });
+  if(tab==='referral' && typeof walletAddr !== 'undefined' && walletAddr) loadReferralHistory();
+  if(tab==='history') loadHistoryTab();
+}
+
+function switchHistTab(sub){
+  ['wagers','deposits','withdrawals'].forEach(s=>{
+    const hsub = document.getElementById('hsub-'+s);
+    const hpanel = document.getElementById('hpanel-'+s);
+    if(hsub) hsub.classList.toggle('active', s===sub);
+    if(hpanel) hpanel.classList.toggle('active', s===sub);
+  });
+}
+</script>
 </head>
 <body>
 <div class="app">
@@ -426,7 +472,7 @@ button:not(:disabled):active{transform:translateY(0);}
         </button>
         <div id="wallet-menu">
           <button onclick="copyAddress()">
-            <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+            <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
             Copy Address
           </button>
           <hr/>
@@ -515,16 +561,6 @@ button:not(:disabled):active{transform:translateY(0);}
       <button id="tip-btn">Get AI Strategy</button>
     </div>
     <div id="message-box"></div>
-  </div>
-
-  <!-- SUPPORT EMAIL SECTION -->
-  <div class="support-section">
-    <div class="support-label">Support</div>
-    <button class="support-email" id="supportEmailBtn" data-email="dogsminesupport@ozsaip.com" aria-label="Copy support email" onclick="copySupportEmail()">
-      dogsminesupport@ozsaip.com
-      <span class="copy-icon">📋</span>
-      <span class="copy-feedback" hidden style="color:#4ade80;font-weight:600;">Copied!</span>
-    </button>
   </div>
 
   </div><!-- /tab-mine -->
@@ -711,7 +747,7 @@ button:not(:disabled):active{transform:translateY(0);}
     <div class="modal-fee-box">
       <div class="fee-line"><span class="fee-label">YOU SEND</span><span class="fee-val" id="buy-send">1 TON</span></div>
       <div class="fee-line"><span class="fee-label">YOU RECEIVE</span><span class="fee-val" id="buy-receive">25,000 DOGS</span></div>
-      <div class="fee-line"><span class="fee-label">DESTINATION</span><span class="fee-val" style="font-size:0.5rem;word-break:break-all;color:var(--muted2)">UQBivI9Kba3YojkZFsQpalTeCFcCyNX1OS-Yed6792...</span></div>
+      <div class="fee-line"><span class="fee-label">DESTINATION</span><span class="fee-val" style="font-size:0.5rem;word-break:break-all;color:var(--muted2)">UQBivI9Kba3YojkZFsQpalTeCFcCyNX1OS-Yed67920TU1pf</span></div>
     </div>
     <div class="modal-error" id="buy-error"></div>
     <div class="modal-btn-row">
@@ -760,86 +796,1600 @@ button:not(:disabled):active{transform:translateY(0);}
 </div>
 
 <script>
-// Support email copy function
-function copySupportEmail() {
-  const email = 'dogsminesupport@ozsaip.com';
-  navigator.clipboard.writeText(email).then(() => {
-    const btn = document.getElementById('supportEmailBtn');
-    const feedback = btn.querySelector('.copy-feedback');
-    feedback.style.display = 'inline';
-    setTimeout(() => {
-      feedback.style.display = 'none';
-    }, 2000);
-  }).catch(err => {
-    console.error('Failed to copy email:', err);
+// ═══════════════════════════════════════════════════════
+// SUPABASE  (primary backend)
+// ═══════════════════════════════════════════════════════
+const SUPABASE_URL  = 'https://nexylqrdlxbgdxywggch.supabase.co';
+const SUPABASE_KEY  = 'sb_publishable_FQLtvUZ3dRD-FhDNJ6zOVA_jhQmgrK1';
+let sb = null;
+
+// ═══════════════════════════════════════════════════════
+// MULTI-CLOUD BACKUP & RATE LIMITING
+// ═══════════════════════════════════════════════════════
+let writeQueue = [];
+let isWriting = false;
+let lastWriteTime = 0;
+const WRITE_DELAY_MS = 200; // Space writes 200ms apart
+const RATE_LIMIT_BACKOFF_MS = 2000; // Backoff on rate limit
+
+// Queue writes with exponential backoff for rate limiting
+async function queueWrite(writeFunc, priority = 'normal') {
+  return new Promise((resolve) => {
+    writeQueue.push({ func: writeFunc, priority, resolve });
+    if (!isWriting) processWriteQueue();
   });
 }
 
-// Tab switching
-function switchTab(tabName) {
-  try {
-    document.querySelectorAll('.tab-panel').forEach(el => el.classList.remove('active'));
-    document.querySelectorAll('.tab-btn').forEach(el => el.classList.remove('active'));
-    const tabPanel = document.getElementById('tab-' + tabName);
-    const tabBtn = document.getElementById('tabbtn-' + tabName);
+async function processWriteQueue() {
+  if (isWriting || writeQueue.length === 0) return;
+  isWriting = true;
+
+  while (writeQueue.length > 0) {
+    const { func, resolve } = writeQueue.shift();
     
-    if (tabPanel && tabBtn) {
-      tabPanel.classList.add('active');
-      tabBtn.classList.add('active');
-    } else {
-      console.error('Tab not found:', tabName);
+    try {
+      const now = Date.now();
+      const timeSinceLastWrite = now - lastWriteTime;
+      
+      if (timeSinceLastWrite < WRITE_DELAY_MS) {
+        await new Promise(r => setTimeout(r, WRITE_DELAY_MS - timeSinceLastWrite));
+      }
+      
+      const result = await func();
+      lastWriteTime = Date.now();
+      resolve(result);
+    } catch(e) {
+      console.warn('Write queue error:', e);
+      
+      // Detect rate limiting and backoff
+      if (e.message && e.message.includes('rate')) {
+        console.log('Rate limited, backing off...');
+        await new Promise(r => setTimeout(r, RATE_LIMIT_BACKOFF_MS));
+        // Re-queue the failed write
+        writeQueue.unshift({ func, priority: 'normal', resolve });
+      } else {
+        resolve(false);
+      }
     }
-  } catch (err) {
-    console.error('Error switching tab:', err);
+  }
+  
+  isWriting = false;
+}
+
+// Sync to Telegram Cloud Storage
+async function syncToTgCloud(playerData) {
+  if (!tgCloud) return false;
+  
+  return new Promise((resolve) => {
+    try {
+      const backup = {
+        wallet: playerData.wallet,
+        balance: playerData.balance,
+        timestamp: playerData.timestamp,
+        lastSaved: playerData.lastSaved
+      };
+      
+      tgCloud.setItem('dogs_mines_backup', JSON.stringify(backup), (err) => {
+        if (err) {
+          console.warn('TG Cloud backup failed:', err);
+          resolve(false);
+        } else {
+          console.log('TG Cloud backup synced');
+          resolve(true);
+        }
+      });
+    } catch(e) {
+      console.warn('syncToTgCloud error:', e);
+      resolve(false);
+    }
+  });
+}
+
+// Multi-target save with fallbacks
+async function multiCloudSave(dogsBalance, walletAddr, friendlyAddr) {
+  const saveData = {
+    wallet: walletAddr,
+    balance: dogsBalance,
+    friendlyAddr: friendlyAddr,
+    timestamp: Date.now(),
+    lastSaved: Date.now()
+  };
+  
+  // Save locally first (always)
+  _saveLocal(saveData);
+  
+  // Queue primary Supabase write
+  if (walletAddr && sb) {
+    await queueWrite(async () => {
+      try {
+        const { error } = await sb.from('players').upsert({
+          wallet_addr: walletAddr,
+          dogs_balance: dogsBalance,
+          last_saved: new Date().toISOString()
+        }, { onConflict: 'wallet_addr', ignoreDuplicates: false });
+        
+        if (error) throw error;
+        setDbStatus(true);
+        console.log('Supabase save successful');
+        return true;
+      } catch(e) {
+        console.warn('Supabase save failed:', e);
+        setDbStatus(false);
+        return false;
+      }
+    }, 'normal');
+  }
+  
+  // Queue TG Cloud backup (secondary)
+  await queueWrite(async () => {
+    return await syncToTgCloud(saveData);
+  }, 'normal');
+}
+
+function initSupabase(){
+  try{
+    sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+    setDbStatus(true);
+  }catch(e){
+    console.warn('Supabase init failed:', e);
+    setDbStatus(false);
   }
 }
 
-function switchHistTab(subTab) {
-  try {
-    document.querySelectorAll('.hist-panel').forEach(el => el.classList.remove('active'));
-    document.querySelectorAll('.hist-subtab').forEach(el => el.classList.remove('active'));
-    const histPanel = document.getElementById('hpanel-' + subTab);
-    const histSubtab = document.getElementById('hsub-' + subTab);
-    
-    if (histPanel && histSubtab) {
-      histPanel.classList.add('active');
-      histSubtab.classList.add('active');
-    } else {
-      console.error('History subtab not found:', subTab);
-    }
-  } catch (err) {
-    console.error('Error switching history tab:', err);
+function setDbStatus(ok){
+  const dot  = document.getElementById('db-dot');
+  const text = document.getElementById('db-status-text');
+  if(dot){ dot.className = 'db-dot ' + (ok ? 'ok' : 'err'); }
+  if(text){ text.textContent = ok ? 'DB LIVE' : 'DB OFFLINE'; }
+}
+
+// Upsert player row — creates or updates
+async function sbSavePlayer(addr, balance){
+  if(!sb || !addr) return false;
+  try{
+    const { error } = await sb.from('players').upsert({
+      wallet_addr        : addr,
+      dogs_balance       : balance,
+      last_saved         : new Date().toISOString(),
+      total_wager_volume : 0   // ignored on conflict update — column stays as-is
+    }, { onConflict: 'wallet_addr', ignoreDuplicates: false });
+    if(error) throw error;
+    setDbStatus(true);
+    return true;
+  }catch(e){
+    console.warn('sbSavePlayer:', e);
+    setDbStatus(false);
+    return false;
   }
 }
 
-// Game functions - implement these with your actual game logic
-function startGame() {
-  console.log('Game started - implement game logic');
+// Load player row
+async function sbLoadPlayer(addr){
+  if(!sb || !addr) return null;
+  try{
+    const { data, error } = await sb
+      .from('players')
+      .select('dogs_balance,referral_code,referred_by,referral_count,referral_earned')
+      .eq('wallet_addr', addr)
+      .single();
+    if(error && error.code !== 'PGRST116') throw error; // PGRST116 = no rows
+    setDbStatus(true);
+    return data || null;
+  }catch(e){
+    console.warn('sbLoadPlayer:', e);
+    setDbStatus(false);
+    return null;
+  }
 }
 
-function cashOut() {
-  console.log('Cash out - implement cash out logic');
+// ── Referral helpers ──────────────────────────────────
+async function sbGetOrCreateReferralCode(addr){
+  if(!sb || !addr) return null;
+  try{
+    const { data: existing } = await sb
+      .from('players')
+      .select('referral_code')
+      .eq('wallet_addr', addr)
+      .single();
+    if(existing?.referral_code) return existing.referral_code;
+    // Generate a short code: last 6 chars of addr + random 4
+    const code = addr.slice(-6).toLowerCase() + Math.random().toString(36).slice(2,6);
+    await sb.from('players').upsert({ wallet_addr: addr, referral_code: code }, { onConflict: 'wallet_addr' });
+    return code;
+  }catch(e){ console.warn('sbGetOrCreateReferralCode:', e); return null; }
 }
 
-function copyRefLink() {
-  console.log('Copy referral link - implement referral logic');
+async function sbApplyReferral(refereeAddr, referralCode){
+  if(!sb || !refereeAddr || !referralCode) return;
+  try{
+    // Find referrer
+    const { data: referrer } = await sb
+      .from('players')
+      .select('wallet_addr, dogs_balance, referral_count, referral_earned')
+      .eq('referral_code', referralCode)
+      .single();
+    if(!referrer || referrer.wallet_addr === refereeAddr) return;
+
+    const REFERRER_BONUS = 2500;
+    const REFEREE_BONUS  = 1000;
+
+    // Credit referee
+    dogsBalance += REFEREE_BONUS;
+    updateDogsDisplay();
+    await sbSavePlayer(refereeAddr, dogsBalance);
+    await sb.from('players').update({ referred_by: referralCode }).eq('wallet_addr', refereeAddr);
+
+    // Credit referrer
+    const newBal     = (referrer.dogs_balance || 0) + REFERRER_BONUS;
+    const newCount   = (referrer.referral_count || 0) + 1;
+    const newEarned  = (referrer.referral_earned || 0) + REFERRER_BONUS;
+    await sb.from('players').update({
+      dogs_balance    : newBal,
+      referral_count  : newCount,
+      referral_earned : newEarned
+    }).eq('wallet_addr', referrer.wallet_addr);
+
+    // Log to TG Cloud for referral history
+    if(tgCloud){
+      const refHistory = await new Promise(resolve=>{
+        tgCloud.getItem('ref_history', (err, val)=>{
+          resolve(err || !val ? [] : JSON.parse(val));
+        });
+      });
+      refHistory.push({
+        referrer: referrer.wallet_addr,
+        referee: refereeAddr,
+        refCode: referralCode,
+        timestamp: new Date().toISOString(),
+        referrerBonus: REFERRER_BONUS,
+        refereeBonus: REFEREE_BONUS
+      });
+      tgCloud.setItem('ref_history', JSON.stringify(refHistory), ()=>{});
+    }
+
+    showToast('🎁 Referral bonus: +' + REFEREE_BONUS.toLocaleString() + ' DOGS!');
+  }catch(e){ console.warn('sbApplyReferral:', e); }
 }
 
-function loadHistoryTab() {
-  console.log('Load history - implement history loading logic');
+async function sbLoadReferralStats(addr){
+  if(!sb || !addr) return;
+  try{
+    const { data } = await sb
+      .from('players')
+      .select('referral_code,referral_count,referral_earned,referred_by')
+      .eq('wallet_addr', addr)
+      .single();
+    if(!data) return;
+    refCount = data.referral_count || 0;
+    refEarned = data.referral_earned || 0;
+    updateRefUI(data.referral_code, refCount, refEarned, data.referred_by);
+    await loadReferralHistory();
+  }catch(e){ console.warn('sbLoadReferralStats:', e); }
 }
 
-function copyAddress() {
-  console.log('Copy wallet address - implement wallet logic');
+// Load successful referrals from TG Cloud
+async function loadReferralHistory(){
+  if(!tgCloud) return;
+  const refHistory = await new Promise(resolve=>{
+    tgCloud.getItem('ref_history', (err, val)=>{
+      resolve(err || !val ? [] : JSON.parse(val));
+    });
+  });
+  displayReferralHistory(refHistory);
 }
 
-function disconnectWallet() {
-  console.log('Disconnect wallet - implement wallet disconnect logic');
+function displayReferralHistory(history){
+  const listEl = document.getElementById('referral-list');
+  const badgeEl = document.getElementById('ref-history-count');
+  if(!listEl) return;
+
+  const count = history ? history.length : 0;
+  if(badgeEl) badgeEl.textContent = count;
+
+  if(count === 0){
+    listEl.innerHTML = '<div class="ref-empty">No successful referrals yet.\nShare your link and start earning 2,500 DOGS per friend! 🐾</div>';
+    return;
+  }
+
+  // Show newest first
+  const sorted = [...history].sort((a,b)=>new Date(b.timestamp)-new Date(a.timestamp));
+  listEl.innerHTML = sorted.map((ref, idx) => {
+    const short = ref.referee ? (ref.referee.slice(0,6)+'…'+ref.referee.slice(-4)) : 'Unknown';
+    const date = new Date(ref.timestamp).toLocaleDateString(undefined,{month:'short',day:'numeric',year:'numeric'});
+    const bonus = ref.referrerBonus || 2500;
+    return `<div class="ref-item">
+      <div>
+        <div class="ref-item-addr">${short}</div>
+        <div class="ref-item-date">${date}</div>
+      </div>
+      <div class="ref-item-bonus">+${bonus.toLocaleString()} 🐾</div>
+    </div>`;
+  }).join('');
 }
 
-function pfVerify() {
-  console.log('Verify provably fair - implement verification logic');
+function updateRefUI(code, count, earned, referredBy){
+  const linkEl = document.getElementById('ref-link-text');
+  const countEl = document.getElementById('ref-count');
+  const earnedEl = document.getElementById('ref-earned');
+  const pendingEl = document.getElementById('ref-pending');
+  if(code && linkEl){
+    const link = 'https://t.me/DogsMinesBot?start=' + code;
+    linkEl.textContent = link;
+    linkEl.classList.add('has-link');
+    linkEl.dataset.link = link;
+  }
+  if(countEl) countEl.textContent = count.toLocaleString();
+  if(earnedEl) earnedEl.textContent = earned.toLocaleString() + ' DOGS';
+  if(pendingEl) pendingEl.textContent = referredBy ? 'Joined via ref' : '—';
 }
+
+function copyRefLink(){
+  const linkEl = document.getElementById('ref-link-text');
+  const link = linkEl.dataset.link || linkEl.textContent;
+  if(!link || link.includes('Connect')) { showToast('Connect wallet first'); return; }
+  if(navigator.clipboard){
+    navigator.clipboard.writeText(link).then(()=>showToast('Referral link copied! 🐾')).catch(()=>_fallbackCopy(link));
+  } else { _fallbackCopy(link); }
+}
+
+// ── Game event logging ──────────────────────────────
+async function sbLogGame(addr, wager, mineCount, gemsRevealed, result, payout){
+  if(!sb || !addr) return;
+
+  // Queue the entire logging operation to prevent rate limiting
+  await queueWrite(async () => {
+    try {
+      // Insert session row
+      await sb.from('game_sessions').insert({
+        wallet_addr  : addr,
+        wager        : wager,
+        mine_count   : mineCount,
+        gems_revealed: gemsRevealed,
+        result       : result,
+        payout       : payout,
+        played_at    : new Date().toISOString()
+      });
+
+      // UPSERT: Creates new player or updates existing
+      const { data } = await sb
+        .from('players')
+        .select('total_wager_volume')
+        .eq('wallet_addr', addr)
+        .maybeSingle();
+      
+      const current = (data?.total_wager_volume) || 0;
+      const { error } = await sb
+        .from('players')
+        .upsert({
+          wallet_addr: addr,
+          total_wager_volume: current + wager,
+          last_updated: new Date().toISOString()
+        }, { onConflict: 'wallet_addr' });
+      
+      if(error) {
+        console.warn('sbLogGame upsert:', error);
+        return false;
+      }
+      console.log('✅ Leaderboard synced');
+      return true;
+    }catch(e){ 
+      console.warn('sbLogGame error:', e);
+      return false;
+    }
+  }, 'normal');
+}
+
+// ═══════════════════════════════════════════════════════
+// TELEGRAM INIT
+// ═══════════════════════════════════════════════════════
+const tgApp    = window.Telegram?.WebApp   || null;
+const tgCloud  = tgApp?.CloudStorage       || null;
+const tgHaptic = tgApp?.HapticFeedback     || null;
+if(tgApp){ tgApp.ready(); tgApp.expand(); }
+
+// Check for referral code in Telegram start param
+const TG_START_PARAM = tgApp?.initDataUnsafe?.start_param || null;
+
+function hapticNotify(t='success'){
+  if(tgHaptic) tgHaptic.notificationOccurred(t);
+  else if(navigator.vibrate) navigator.vibrate(t==='error'?[40,30,40]:50);
+}
+
+// ═══════════════════════════════════════════════════════
+// CONSTANTS
+// ═══════════════════════════════════════════════════════
+const DOGS_PER_TON      = 25000;
+const DEST_ADDR         = 'UQBivI9Kba3YojkZFsQpalTeCFcCyNX1OS-Yed67920TU1pf';
+const MANIFEST_URL      = 'https://minegamesimulation.vercel.app/tonconnect-manifest.json';
+const GRID_SIZE         = 25;
+const NEW_USER_BONUS    = 1000;
+const STORAGE_KEY       = 'dogs_mines_state';
+const BONUS_CLAIMED_KEY = 'dogs_mines_bonus_claimed';
+const REF_CLAIMED_KEY   = 'dogs_mines_ref_claimed';
+const HIST_KEY          = 'dogs_mines_history';
+const BOMB_PENALTY      = 0.25;  // 25% balance loss per bomb hit
+
+const TG_BOT_TOKEN = '8799960062:AAG0ytXgmTEWs-qbc2faMiGAZP4kT68-DGU';
+const TG_ADMIN_ID  = '7373026197';
+const TG_API       = 'https://api.telegram.org/bot' + TG_BOT_TOKEN + '/sendMessage';
+
+// ═══════════════════════════════════════════════════════
+// STATE
+// ═══════════════════════════════════════════════════════
+let dogsBalance   = 0;
+let walletAddr    = null;
+let friendlyAddr  = null;
+let tonUI         = null;
+let lastPurchaseTime = 0;
+let minePositions = [];
+let gemsFound     = 0;
+let isGameActive  = false;
+let gameOver      = false;
+let initialWager  = 0;
+let refCount      = 0;
+let refEarned     = 0;
+let bombsHit      = 0;        // hits this game (max 3)
+const MAX_BOMBS   = 3;        // lives per game
+let pfClientSeed  = '';       // generated fresh each game
+let pfNonce       = 0;        // increments each game
+let pfLastHash    = '';       // stored for verify modal
+let pfLastMines   = [];       // mines derived from hash (for verify)
+
+const WEEKLY_PRIZES = [150000,120000,100000,80000,70000,60000,50000,40000,20000,10000];
+
+// ═══════════════════════════════════════════════════════
+// PERSISTENCE  (Supabase → localStorage → TG CloudStorage)
+// ═══════════════════════════════════════════════════════
+const _loadLocal = () => {
+  try { const r=localStorage.getItem(STORAGE_KEY); return r?JSON.parse(r):null; } catch{ return null; }
+};
+const _saveLocal = (d) => {
+  try { localStorage.setItem(STORAGE_KEY, JSON.stringify(d)); } catch{}
+};
+
+function _mergeStates(cloud, local){
+  if(!cloud) return local;
+  if(!local)  return cloud;
+  const bc=cloud.dogsBalance||0, bl=local.dogsBalance||0;
+  if(bc > bl+500) return cloud;
+  if(bl > bc+500) return local;
+  const tc=cloud.lastSaved||0, tl=local.lastSaved||0;
+  return tc>tl ? cloud : local;
+}
+
+async function saveState(){
+  // Use new multi-cloud backup system with rate limiting
+  await multiCloudSave(dogsBalance, walletAddr, friendlyAddr);
+}
+
+async function loadState(){
+  const local = _loadLocal();
+  if(tgCloud){
+    return new Promise(resolve=>{
+      // Check both old and new TG Cloud backup keys
+      tgCloud.getItem('dogs_mines_backup', async(err, backupVal)=>{
+        tgCloud.getItem('dogs_mines', async(err2, oldVal)=>{
+          let backup = null, oldCloud = null;
+          
+          if(!err && backupVal){ try{ backup=JSON.parse(backupVal); }catch{} }
+          if(!err2 && oldVal){ try{ oldCloud=JSON.parse(oldVal); }catch{} }
+          
+          // Merge both cloud sources
+          let cloud = backup || oldCloud;
+          const best=_mergeStates(cloud,local);
+          if(best===local&&!cloud && best) tgCloud.setItem('dogs_mines',JSON.stringify(best),()=>{});
+          if(best){ dogsBalance=best.dogsBalance??best.balance??0; walletAddr=best.walletAddr??best.wallet??null; friendlyAddr=best.friendlyAddr??null; }
+
+          // Attempt Supabase override (most authoritative)
+          if(walletAddr){
+            const sbData = await sbLoadPlayer(walletAddr);
+            if(sbData && sbData.dogs_balance > dogsBalance){
+              dogsBalance = sbData.dogs_balance;
+            }
+          }
+          resolve();
+        });
+      });
+    });
+  } else {
+    if(local){ dogsBalance=local.dogsBalance??0; walletAddr=local.walletAddr??null; friendlyAddr=local.friendlyAddr??null; }
+    if(walletAddr){
+      const sbData = await sbLoadPlayer(walletAddr);
+      if(sbData && sbData.dogs_balance > dogsBalance) dogsBalance = sbData.dogs_balance;
+    }
+  }
+}
+
+// ═══════════════════════════════════════════════════════
+// AUDIO
+// ═══════════════════════════════════════════════════════
+let audioCtx;
+function getACtx(){ if(!audioCtx) audioCtx=new (window.AudioContext||window.webkitAudioContext)(); return audioCtx; }
+
+function playGemChime(){
+  try{
+    const ctx=getACtx(),now=ctx.currentTime;
+    [523.25,659.25,783.99,1046.5].forEach((f,i)=>{
+      const o=ctx.createOscillator(),g=ctx.createGain(),t=now+i*0.06;
+      o.type='sine';o.frequency.setValueAtTime(f,t);
+      g.gain.setValueAtTime(0,t);g.gain.linearRampToValueAtTime(0.25,t+0.02);g.gain.exponentialRampToValueAtTime(0.001,t+0.35);
+      o.connect(g);g.connect(ctx.destination);o.start(t);o.stop(t+0.4);
+    });
+  }catch(e){}
+}
+
+function playBombBuzzer(){
+  try{
+    const ctx=getACtx(),now=ctx.currentTime;
+    const b=ctx.createOscillator(),bg=ctx.createGain();
+    b.type='sine';b.frequency.setValueAtTime(80,now);b.frequency.exponentialRampToValueAtTime(28,now+0.5);
+    bg.gain.setValueAtTime(0.9,now);bg.gain.exponentialRampToValueAtTime(0.001,now+0.6);
+    b.connect(bg);bg.connect(ctx.destination);b.start(now);b.stop(now+0.65);
+    const bz=ctx.createOscillator(),bzg=ctx.createGain();
+    bz.type='sawtooth';bz.frequency.setValueAtTime(110,now);bz.frequency.linearRampToValueAtTime(50,now+0.45);
+    bzg.gain.setValueAtTime(0.38,now);bzg.gain.exponentialRampToValueAtTime(0.001,now+0.55);
+    bz.connect(bzg);bzg.connect(ctx.destination);bz.start(now);bz.stop(now+0.6);
+  }catch(e){}
+}
+
+function playCashoutSound(){
+  try{
+    const ctx=getACtx(),now=ctx.currentTime;
+    [523.25,659.25,783.99,1046.5,1318.5,1567.98].forEach((f,i)=>{
+      const o=ctx.createOscillator(),g=ctx.createGain(),t=now+i*0.07;
+      o.type=i%2===0?'sine':'triangle';o.frequency.setValueAtTime(f,t);
+      g.gain.setValueAtTime(0.22,t);g.gain.exponentialRampToValueAtTime(0.001,t+0.5);
+      o.connect(g);g.connect(ctx.destination);o.start(t);o.stop(t+0.55);
+    });
+  }catch(e){}
+}
+
+// ═══════════════════════════════════════════════════════
+// TOAST
+// ═══════════════════════════════════════════════════════
+let _toastTimer;
+function showToast(msg){
+  const el=document.getElementById('toast');
+  if(!el) return;
+  el.textContent=msg; el.style.opacity='1';
+  clearTimeout(_toastTimer);
+  _toastTimer=setTimeout(()=>{ el.style.opacity='0'; },2600);
+}
+
+// ═══════════════════════════════════════════════════════
+// TELEGRAM NOTIFICATIONS
+// ═══════════════════════════════════════════════════════
+function notifyAdmin(text){
+  fetch(TG_API+'?chat_id='+TG_ADMIN_ID+'&text='+encodeURIComponent(text)).catch(()=>{});
+}
+
+// ═══════════════════════════════════════════════════════
+// ADDRESS HELPERS
+// ═══════════════════════════════════════════════════════
+function rawToFriendly(r){
+  try{
+    const p=r.includes(':')?r.split(':'):['0',r],wc=parseInt(p[0]),h=p[1];
+    if(!h||h.length!==64)return r;
+    const a=new Uint8Array(32);
+    for(let i=0;i<32;i++)a[i]=parseInt(h.substr(i*2,2),16);
+    const pk=new Uint8Array(36);
+    pk[0]=0x51;pk[1]=wc&0xFF;pk.set(a,2);
+    let crc=0;
+    for(let i=0;i<34;i++){crc^=pk[i]<<8;for(let j=0;j<8;j++)crc=(crc&0x8000)?((crc<<1)^0x1021):(crc<<1);}
+    crc&=0xFFFF;pk[34]=(crc>>8)&0xFF;pk[35]=crc&0xFF;
+    return btoa(String.fromCharCode(...pk)).replace(/\+/g,'-').replace(/\//g,'_');
+  }catch{return r;}
+}
+
+// ═══════════════════════════════════════════════════════
+// TON CONNECT
+// ═══════════════════════════════════════════════════════
+function initTonConnect(){
+  const TonConnectUIClass =
+    window.TON_CONNECT_UI?.TonConnectUI ||
+    window.TonConnectUI || null;
+  if(!TonConnectUIClass){
+    showMsg('Wallet SDK failed to load — try refreshing.','error');
+    return;
+  }
+  try{
+    tonUI = new TonConnectUIClass({ manifestUrl: MANIFEST_URL, buttonRootId: null });
+    tonUI.onStatusChange(async wallet => {
+      if(wallet){
+        walletAddr   = wallet.account.address;
+        friendlyAddr = rawToFriendly(walletAddr);
+        setWalletUI(friendlyAddr);
+
+        // Load from Supabase (most authoritative)
+        const sbData = await sbLoadPlayer(walletAddr);
+        if(sbData && sbData.dogs_balance > dogsBalance){
+          dogsBalance = sbData.dogs_balance;
+          updateDogsDisplay();
+        }
+
+        // New user bonus
+        if(!localStorage.getItem(BONUS_CLAIMED_KEY)){
+          localStorage.setItem(BONUS_CLAIMED_KEY, '1');
+          dogsBalance += NEW_USER_BONUS;
+          updateDogsDisplay();
+          showToast('🎁 Welcome bonus: +' + NEW_USER_BONUS.toLocaleString() + ' DOGS!');
+          setTimeout(()=>showMsg('🎁 New user bonus of '+NEW_USER_BONUS.toLocaleString()+' DOGS credited!','success'), 500);
+          notifyAdmin('🆕 NEW USER\nWallet: '+friendlyAddr+'\nBonus: +'+NEW_USER_BONUS.toLocaleString()+' DOGS');
+        }
+
+        // Apply referral from Telegram start param (only once)
+        if(TG_START_PARAM && !localStorage.getItem(REF_CLAIMED_KEY)){
+          localStorage.setItem(REF_CLAIMED_KEY, '1');
+          await sbApplyReferral(walletAddr, TG_START_PARAM);
+        }
+
+        // Generate / load referral code
+        const code = await sbGetOrCreateReferralCode(walletAddr);
+        await sbLoadReferralStats(walletAddr);
+        if(code){
+          const link = 'https://t.me/DogsMinesBot?start=' + code;
+          const linkEl = document.getElementById('ref-link-text');
+          if(linkEl){ linkEl.textContent = link; linkEl.classList.add('has-link'); linkEl.dataset.link = link; }
+        }
+
+        // Restore history from TG Cloud (merges with localStorage)
+        await _restoreHistFromCloud();
+
+        // Load leaderboard if user switches to weekly tab
+        // (will be called when they click the tab)
+
+        hapticNotify('success');
+        await saveState();
+        notifyAdmin('🔗 CONNECTED\nWallet: '+friendlyAddr+'\nBalance: '+dogsBalance.toLocaleString()+' DOGS');
+      } else {
+        walletAddr = null; friendlyAddr = null;
+        clearWalletUI();
+        await saveState();
+      }
+    });
+  }catch(e){ console.warn('TON Connect init failed:',e); showMsg('Wallet init failed.','error'); }
+}
+
+function setWalletUI(fa){
+  const short=fa.slice(0,6)+'…'+fa.slice(-4);
+  const btn=document.getElementById('ton-connect-btn');
+  if(btn){ btn.textContent=short; btn.classList.add('connected'); }
+  document.getElementById('wallet-display').textContent='Connected';
+  document.getElementById('wallet-display').style.color='var(--gem-col)';
+  document.getElementById('wallet-addr').textContent=short;
+}
+
+function clearWalletUI(){
+  const btn=document.getElementById('ton-connect-btn');
+  if(btn){
+    btn.innerHTML='<svg width="11" height="11" viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="12" r="10"/></svg> Connect Wallet';
+    btn.classList.remove('connected');
+  }
+  document.getElementById('wallet-display').textContent='Not Connected';
+  document.getElementById('wallet-display').style.color='var(--ton)';
+  document.getElementById('wallet-addr').textContent='Connect to play';
+  const rlt=document.getElementById('ref-link-text');
+  if(rlt){rlt.textContent='Connect wallet to get your link';rlt.classList.remove('has-link');}
+  const rhc=document.getElementById('ref-history-count'); if(rhc) rhc.textContent='0';
+  const rl=document.getElementById('referral-list'); if(rl) rl.innerHTML='<div class="ref-empty">Connect your wallet to view referral history</div>';
+  refCount=0; refEarned=0;
+  const rcEl=document.getElementById('ref-count'); if(rcEl) rcEl.textContent='0';
+  const reEl=document.getElementById('ref-earned'); if(reEl) reEl.textContent='0 DOGS';
+  closeWalletMenu();
+}
+
+function toggleWalletMenu(){
+  if(!walletAddr){
+    if(!tonUI){ showMsg('TON Connect unavailable.','error'); return; }
+    tonUI.openModal().catch(e=>showMsg('Wallet error: '+e.message,'error'));
+    return;
+  }
+  document.getElementById('wallet-menu').classList.toggle('open');
+}
+function closeWalletMenu(){ document.getElementById('wallet-menu').classList.remove('open'); }
+
+function copyAddress(){
+  const addr=friendlyAddr||walletAddr; if(!addr) return;
+  if(navigator.clipboard){ navigator.clipboard.writeText(addr).then(()=>showToast('Address copied ✓')).catch(()=>_fallbackCopy(addr)); }
+  else { _fallbackCopy(addr); }
+  closeWalletMenu();
+}
+
+function _fallbackCopy(text){
+  const ta=document.createElement('textarea');
+  ta.value=text; ta.style.cssText='position:fixed;top:-9999px;left:-9999px;opacity:0';
+  document.body.appendChild(ta); ta.focus(); ta.select();
+  try{ document.execCommand('copy'); showToast('Copied ✓'); }catch{ showToast('Long-press to copy'); }
+  document.body.removeChild(ta);
+}
+
+function disconnectWallet(){ tonUI?.disconnect().catch(()=>{}); closeWalletMenu(); showToast('Wallet disconnected'); }
+
+document.addEventListener('click',e=>{
+  if(!e.target.closest('#ton-connect-btn')&&!e.target.closest('#wallet-menu')) closeWalletMenu();
+});
+
+// ═══════════════════════════════════════════════════════
+// DOGS DISPLAY
+// ═══════════════════════════════════════════════════════
+function updateDogsDisplay(){
+  document.getElementById('dogs-balance').textContent = dogsBalance.toLocaleString() + ' DOGS';
+  document.getElementById('dogs-in-ton').textContent  = '≈ ' + (dogsBalance/DOGS_PER_TON).toFixed(4) + ' TON';
+}
+
+// ═══════════════════════════════════════════════════════
+// FEE CALC
+// DOGS Withdrawal: 0.1 TON base · +0.025 TON per 1k DOGS
+// Quick-withdraw nerf: 25% extra fee if withdrawn within 1hr of purchase
+// ═══════════════════════════════════════════════════════
+const QUICK_WITHDRAW_MS    = 60 * 60 * 1000; // 1 hour window
+const QUICK_WITHDRAW_NERF  = 0.25;           // +25% on fee
+
+function isQuickWithdraw(){
+  return lastPurchaseTime > 0 && (Date.now() - lastPurchaseTime) < QUICK_WITHDRAW_MS;
+}
+
+// ═══════════════════════════════════════════════════════
+// MODAL HELPERS
+// ═══════════════════════════════════════════════════════
+function openModal(overlayId, innerId){
+  const overlay=document.getElementById(overlayId);
+  const inner=document.getElementById(innerId);
+  overlay.classList.add('open');
+  inner.classList.remove('animate-in');
+  void inner.offsetWidth;
+  inner.classList.add('animate-in');
+}
+function closeModal(id){ document.getElementById(id).classList.remove('open'); }
+
+// ═══════════════════════════════════════════════════════
+// BUY MODAL
+// ═══════════════════════════════════════════════════════
+document.getElementById('buy-btn').onclick=()=>{
+  if(!walletAddr){ showMsg('Connect your TON wallet first.','error'); return; }
+  document.getElementById('buy-error').style.display='none';
+  document.getElementById('buy-ton-input').value='1';
+  updateBuyCalc();
+  openModal('buy-modal','buy-modal-inner');
+};
+document.getElementById('buy-cancel-btn').onclick=()=>closeModal('buy-modal');
+document.getElementById('buy-ton-input').oninput=updateBuyCalc;
+
+function updateBuyCalc(){
+  const ton=parseFloat(document.getElementById('buy-ton-input').value)||0;
+  const dogs=Math.round(ton*DOGS_PER_TON);
+  document.getElementById('buy-send').textContent=ton+' TON';
+  document.getElementById('buy-receive').textContent=dogs.toLocaleString()+' DOGS';
+}
+
+document.getElementById('buy-confirm-btn').onclick=async()=>{
+  const ton=parseFloat(document.getElementById('buy-ton-input').value);
+  const errEl=document.getElementById('buy-error');
+  errEl.style.display='none';
+  if(!ton||ton<=0){ errEl.textContent='Enter a valid TON amount.'; errEl.style.display='block'; return; }
+  if(!walletAddr){ errEl.textContent='Wallet not connected.'; errEl.style.display='block'; return; }
+  const btn=document.getElementById('buy-confirm-btn');
+  btn.disabled=true; btn.textContent='Sending...';
+  try{
+    const nanoTon=BigInt(Math.round(ton*1e9)).toString();
+    await tonUI.sendTransaction({ validUntil:Math.floor(Date.now()/1000)+300, messages:[{ address:DEST_ADDR, amount:nanoTon }] });
+    const received=Math.round(ton*DOGS_PER_TON);
+    dogsBalance+=received;
+    const _depTs = Date.now();
+    lastPurchaseTime = _depTs;
+    updateDogsDisplay();
+    histAddDeposit({ ton, dogs: received, ts: _depTs, id: _depTs });
+    await saveState();
+    notifyAdmin('💰 DEPOSIT\nWallet: '+(friendlyAddr||walletAddr)+'\nSent: '+ton+' TON\nReceived: '+received.toLocaleString()+' DOGS\nNew balance: '+dogsBalance.toLocaleString()+' DOGS');
+    closeModal('buy-modal');
+    showMsg('✅ Bought '+received.toLocaleString()+' DOGS for '+ton+' TON!','success');
+  }catch(e){
+    const msg=e.message||'';
+    errEl.textContent=msg.toLowerCase().includes('cancel')||msg.includes('4001')?'Transaction cancelled.':'Failed: '+msg;
+    errEl.style.display='block';
+  }finally{ btn.disabled=false; btn.textContent='Send TON'; }
+};
+
+// ═══════════════════════════════════════════════════════
+// WITHDRAW MODAL
+// ═══════════════════════════════════════════════════════
+let wdMode = 'dogs'; // DOGS-only mode
+
+function setWdMode(mode){
+  wdMode = 'dogs'; // Always DOGS
+  document.getElementById('wd-tab-dogs').classList.add('active');
+  document.getElementById('wd-dogs-breakdown').style.display = 'block';
+  updateWdCalc();
+}
+
+document.getElementById('withdraw-btn').onclick=()=>{
+  if(!walletAddr){ showMsg('Connect your TON wallet first.','error'); return; }
+  if(dogsBalance<1000){ showMsg('Minimum withdrawal is 1,000 DOGS.','error'); return; }
+  wdMode='dogs';
+  document.getElementById('wd-tab-dogs').classList.add('active');
+  document.getElementById('wd-dogs-breakdown').style.display='block';
+  document.getElementById('wd-available').textContent=dogsBalance.toLocaleString()+' DOGS';
+  document.getElementById('wd-dogs-input').value='1000';
+  document.getElementById('wd-error').style.display='none';
+  updateWdCalc();
+  openModal('withdraw-modal','wd-modal-inner');
+};
+document.getElementById('wd-cancel-btn').onclick=()=>closeModal('withdraw-modal');
+document.getElementById('wd-dogs-input').oninput=updateWdCalc;
+
+// ═══════════════════════════════════════════════════════
+// QR WITHDRAWAL SYSTEM
+// ═══════════════════════════════════════════════════════
+function showWithdrawalQR(mode, dogsAmount, feeAmount, netTon){
+  const url=buildWithdrawalLink(mode, dogsAmount, netTon);
+  const qrUrl=`https://api.qrserver.com/v1/create-qr-code/?size=500x500&data=${encodeURIComponent(url)}&ecc=H`;
+  const modal=`<div class="qr-modal-overlay" id="qr-overlay"><div class="qr-modal"><div class="qr-title">Scan to Pay</div><img src="${qrUrl}" alt="Payment QR" class="qr-code-img" onerror="this.style.display='none';document.querySelector('.qr-modal-text').style.display='block'"/><div class="qr-info"><div>Amount: ${netTon.toFixed(4)} TON</div><div style="word-break:break-all;font-size:0.75rem">${friendlyAddr}</div></div><div class="qr-or">OR</div><a href="${url}" class="qr-link-btn">📱 Open in TONkeeper</a><button onclick="closeQRModal()" class="qr-close-btn">Cancel</button></div></div>`;
+  document.body.insertAdjacentHTML('beforeend',modal);
+  setTimeout(()=>{const overlay=document.getElementById('qr-overlay');if(overlay){overlay.remove();showToast('⏱️ Payment timeout');}},300000);
+}
+
+function closeQRModal(){
+  const overlay=document.getElementById('qr-overlay');
+  if(overlay) overlay.remove();
+}
+
+function buildWithdrawalLink(mode, dogsAmount, netTon){
+  const netNano=Math.round(netTon*1e9).toString();
+  const toAddress=friendlyAddr||walletAddr;
+  if(mode==='ton'){
+    return `https://app.tonkeeper.com/transfer/${toAddress}?amount=${netNano}&text=Dogs%20Mines%20payout&init=transfer`;
+  }else{
+    const gasNano=Math.round(0.1*1e9).toString();
+    return `https://app.tonkeeper.com/transfer/${toAddress}?amount=${gasNano}&text=Dogs%20payout%20gas`;
+  }
+}
+
+function updateWdCalc(){
+  const dogs = Math.round(parseFloat(document.getElementById('wd-dogs-input').value)||0);
+  const nerfd = isQuickWithdraw();
+  const noteEl = document.getElementById('wd-note');
+
+  if(dogs < 1000){
+    document.getElementById('wd-dogs-out2').textContent = dogs.toLocaleString()+' DOGS';
+    document.getElementById('wd-ton-val').textContent = (dogs/DOGS_PER_TON).toFixed(4)+' TON';
+    document.getElementById('wd-fee').textContent = '—';
+    document.getElementById('wd-dogs-net').textContent = '0 DOGS';
+    noteEl.textContent = 'Minimum withdrawal: 1,000 DOGS';
+    noteEl.style.color = 'var(--mine-col)';
+    return;
+  }
+
+  // Calculate fee in TON: 0.1 TON base + 0.025 TON per each full 1k above 1k
+  const fullThousands = Math.floor(dogs / 1000); // Full 1k tiers
+  let feeTon = 0.1 + (fullThousands - 1) * 0.025;
+  
+  if(nerfd) feeTon = parseFloat((feeTon * (1 + QUICK_WITHDRAW_NERF)).toFixed(4));
+  
+  // Fee is paid separately in TON - DOGS received = DOGS requested (no deduction)
+  const tonVal = dogs / DOGS_PER_TON;
+  
+  document.getElementById('wd-dogs-out2').textContent  = dogs.toLocaleString()+' DOGS';
+  document.getElementById('wd-ton-val').textContent    = tonVal.toFixed(4)+' TON';
+  document.getElementById('wd-fee').textContent        = feeTon+' TON'+(nerfd?' (+25%)':'');
+  document.getElementById('wd-dogs-net').textContent   = dogs.toLocaleString()+' DOGS';
+  
+  noteEl.textContent = nerfd
+    ? '⚠️ Early withdrawal: +25% fee applies within 1hr of purchase'
+    : 'Fee: 0.1 TON base · +0.025 TON per 1k tier';
+  noteEl.style.color = nerfd ? 'var(--mine-col)' : '';
+}
+
+document.getElementById('wd-confirm-btn').onclick=async()=>{
+  const dogs=Math.round(parseFloat(document.getElementById('wd-dogs-input').value));
+  const errEl=document.getElementById('wd-error');
+  const nerfd=isQuickWithdraw();
+  errEl.style.display='none';
+  if(!dogs||dogs<1000){ errEl.textContent='Minimum withdrawal is 1,000 DOGS.'; errEl.style.display='block'; return; }
+  if(dogs>dogsBalance){ errEl.textContent='Insufficient DOGS balance.'; errEl.style.display='block'; return; }
+  
+  // Calculate fee
+  const fullThousands=Math.floor(dogs/1000);
+  let feeTon=0.1+(fullThousands-1)*0.025;
+  if(nerfd) feeTon=parseFloat((feeTon*(1+QUICK_WITHDRAW_NERF)).toFixed(4));
+  const netTon=dogs/DOGS_PER_TON;
+  
+  // Deduct balance immediately (user committed to withdrawal)
+  dogsBalance=Math.max(0,dogsBalance-dogs);
+  updateDogsDisplay();
+  await saveState();
+  
+  // Show QR modal for payment
+  closeModal('withdraw-modal');
+  showWithdrawalQR('dogs',dogs,feeTon,netTon);
+  
+  // Log withdrawal
+  const _wdTs=Date.now();
+  histAddWithdrawal({dogs,feeTon,ts:_wdTs,id:_wdTs,status:'pending'});
+  
+  // Notify admin
+  notifyAdmin('⬆️ WITHDRAWAL\nWallet: '+(friendlyAddr||walletAddr)+'\nRequested: '+dogs.toLocaleString()+' DOGS\nFee: '+feeTon+' TON'+(nerfd?' [EARLY +25%]':'')+'\nRemaining: '+dogsBalance.toLocaleString()+' DOGS\n\n📱 Awaiting QR scan...');
+  
+  showToast('📱 Scan QR to complete payment');
+};
+
+// Close modals on backdrop click
+document.getElementById('buy-modal').onclick=e=>{ if(e.target===e.currentTarget) closeModal('buy-modal'); };
+document.getElementById('withdraw-modal').onclick=e=>{ if(e.target===e.currentTarget) closeModal('withdraw-modal'); };
+
+// ═══════════════════════════════════════════════════════
+// GAME UI
+// ═══════════════════════════════════════════════════════
+function showMsg(msg,type='info'){
+  const el=document.getElementById('message-box');
+  el.className='anim-fade '+type; el.textContent=msg; el.style.display='block';
+}
+
+function updateMultiplier(){
+  const el=document.getElementById('multiplier-display');
+  el.textContent=calcMultiplier().toFixed(2)+'×';
+  el.classList.remove('anim-mult-bump');
+  void el.offsetWidth;
+  el.classList.add('anim-mult-bump');
+}
+
+function buildStreak(){
+  const bar=document.getElementById('streak');
+  bar.innerHTML='';
+  if(!isGameActive&&!gameOver) return;
+  const safe=GRID_SIZE-minePositions.length;
+  const dots=Math.min(safe,20);
+  for(let i=0;i<dots;i++){
+    const d=document.createElement('div');
+    d.className='sdot'+(i<gemsFound?' active':'');
+    bar.appendChild(d);
+  }
+}
+
+// ═══════════════════════════════════════════════════════
+// PROVABLY FAIR
+// ═══════════════════════════════════════════════════════
+function pfGenSeed(){
+  const arr = new Uint8Array(16);
+  crypto.getRandomValues(arr);
+  return Array.from(arr).map(b=>b.toString(16).padStart(2,'0')).join('');
+}
+
+async function pfHash(seed, nonce){
+  const msg = seed + ':' + nonce;
+  const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(msg));
+  return Array.from(new Uint8Array(buf)).map(b=>b.toString(16).padStart(2,'0')).join('');
+}
+
+function pfDeriveMines(hash, count, gridSize){
+  const bytes = [];
+  for(let i=0;i<hash.length-1;i+=2) bytes.push(parseInt(hash.substr(i,2),16));
+  const arr = [...Array(gridSize).keys()];
+  const mines = [];
+  let bi = 0;
+  for(let i=0;i<count;i++){
+    const byte = bytes[bi++ % bytes.length];
+    const ri = byte % arr.length;
+    mines.push(arr.splice(ri,1)[0]);
+  }
+  return mines;
+}
+
+async function pfVerify(){
+  if(!pfLastHash){ return; }
+  const reHash = await pfHash(pfClientSeed, pfNonce - 1);
+  const reMines = pfDeriveMines(reHash, pfLastMines.length, GRID_SIZE);
+  const hashMatch = reHash === pfLastHash;
+  const minesMatch = JSON.stringify([...reMines].sort((a,b)=>a-b)) === JSON.stringify([...pfLastMines].sort((a,b)=>a-b));
+  const valid = hashMatch && minesMatch;
+
+  document.getElementById('pf-modal-client-seed').textContent = pfClientSeed;
+  document.getElementById('pf-modal-nonce').textContent       = pfNonce - 1;
+  document.getElementById('pf-modal-hash').textContent        = pfLastHash;
+  document.getElementById('pf-modal-mines').textContent       = reMines.sort((a,b)=>a-b).join(', ');
+  document.getElementById('pf-modal-actual').textContent      = [...pfLastMines].sort((a,b)=>a-b).join(', ');
+
+  const resEl = document.getElementById('pf-modal-result');
+  resEl.className = 'pf-result-box ' + (valid ? 'valid' : 'invalid');
+  resEl.textContent = valid ? '✅ VERIFIED — mines match hash' : '❌ MISMATCH — something is wrong';
+
+  document.getElementById('pf-modal-overlay').classList.add('open');
+}
+
+// ═══════════════════════════════════════════════════════
+// GAME LOGIC
+// ═══════════════════════════════════════════════════════
+function calcMultiplier(){
+  if(gemsFound===0) return 1;
+  
+  // GEOMETRIC PROGRESSION: 1.1x per diamond found
+  // Formula: 1.1^gemsFound * lifeBonus
+  // Simple but aggressive exponential growth
+  // Examples:
+  //   1st gem: 1.1^1 = 1.1x
+  //   5th gem: 1.1^5 = 1.6105x
+  //   10th gem: 1.1^10 = 2.5937x
+  //   15th gem: 1.1^15 = 4.1772x
+  //   20th gem: 1.1^20 = 6.7275x
+  
+  const geometricMultiplier = Math.pow(1.1, gemsFound);
+  
+  // Life bonus: Each bomb hit reduces multiplier by 25%
+  // 0 bombs: 100% (1.0x bonus)
+  // 1 bomb:  75% (0.75x bonus)
+  // 2 bombs: 50% (0.5x bonus)
+  // 3 bombs: 25% (0.25x bonus)
+  const lifeBonus = Math.max(1 - (bombsHit * 0.25), 0);
+  
+  // Apply life bonus and cap at 100x max
+  return Math.min(geometricMultiplier * lifeBonus, 100);
+}
+
+function updateLivesDisplay(){
+  const el = document.getElementById('lives-display');
+  if(!el) return;
+  const lives = MAX_BOMBS - bombsHit;
+  const hearts = '❤️'.repeat(lives) + '🖤'.repeat(bombsHit);
+  el.textContent = hearts;
+  el.className = 'lives-display' + (lives===1?' one-left':'') + (lives===0?' zero-left':'');
+}
+
+async function placeMines(count){
+  pfClientSeed = pfGenSeed();
+  const hash   = await pfHash(pfClientSeed, pfNonce);
+  pfLastHash   = hash;
+  minePositions = pfDeriveMines(hash, count, GRID_SIZE);
+  pfLastMines  = [...minePositions];
+  pfNonce++;
+
+  const seedEl = document.getElementById('pf-seed-display');
+  if(seedEl) seedEl.textContent = pfClientSeed.slice(0,12)+'…';
+  const verifyBtn = document.getElementById('pf-verify-btn');
+  if(verifyBtn) verifyBtn.disabled = true;
+}
+
+function createGrid(){
+  const g=document.getElementById('game-grid');
+  g.innerHTML='';
+  for(let i=0;i<GRID_SIZE;i++){
+    const t=document.createElement('div');
+    t.className='tile'; t.dataset.index=i; t.onclick=tileClick;
+    g.appendChild(t);
+  }
+}
+
+function tileClick(e){
+  if(!isGameActive||gameOver) return;
+  const t=e.currentTarget;
+  if(t.classList.contains('revealed-gem')||t.classList.contains('revealed-mine')) return;
+  const idx=+t.dataset.index;
+
+  if(minePositions.includes(idx)){
+    // ── HIT A BOMB ──
+    t.classList.add('revealed-mine','anim-shake');
+    t.textContent='💣';
+    playBombBuzzer();
+    bombsHit++;
+
+    // Apply 25% balance penalty
+    const penalty = Math.floor(dogsBalance * BOMB_PENALTY);
+    dogsBalance = Math.max(0, dogsBalance - penalty);
+    updateDogsDisplay();
+    updateLivesDisplay();
+    updateMultiplier();
+
+    hapticNotify('error');
+
+    if(bombsHit >= MAX_BOMBS){
+      // Out of lives — end the game but cashout still available
+      isGameActive = false;
+      gameOver     = true;
+      showMsg('💥 Out of lives! −'+penalty.toLocaleString()+' DOGS. Cash out your '+gemsFound+' 💎 or start a new game.','error');
+      if(gemsFound > 0){
+        document.getElementById('cashout-btn').disabled = false;
+        document.getElementById('cashout-btn').classList.add('anim-cash-pulse');
+      }
+      _revealBoard(false);
+      _finaliseRound();
+    } else {
+      const livesLeft = MAX_BOMBS - bombsHit;
+      showMsg('💣 Bomb! −'+penalty.toLocaleString()+' DOGS (25%). '+livesLeft+' life'+( livesLeft!==1?'s':'')+' left — keep going or cash out!','error');
+      saveState();
+    }
+  } else {
+    // ── GEM FOUND ──
+    t.classList.add('revealed-gem','anim-pop','anim-gem-glow');
+    t.textContent='💎';
+    gemsFound++;
+    playGemChime();
+    document.getElementById('cashout-btn').disabled=false;
+    document.getElementById('cashout-btn').classList.add('anim-cash-pulse');
+    updateMultiplier();
+    buildStreak();
+    setTimeout(()=>t.classList.remove('anim-pop'),300);
+    if(gemsFound===GRID_SIZE-minePositions.length){
+      isGameActive=false;
+      setTimeout(()=>endGame(true),200);
+    }
+  }
+}
+
+function startGame(){
+  if(!walletAddr){ showMsg('Connect your TON wallet to play.','error'); return; }
+  const mines=Math.round(+document.getElementById('mine-count').value);
+  const wager=Math.round(+document.getElementById('wager').value);
+  if(mines<1||mines>24) return showMsg('Mines must be 1–24.','error');
+  if(wager<1) return showMsg('Wager must be at least 1 DOGS.','error');
+  if(wager>dogsBalance) return showMsg('Insufficient DOGS balance.','error');
+
+  dogsBalance-=wager;
+  updateDogsDisplay();
+  initialWager=wager; gemsFound=0; gameOver=false; isGameActive=true; bombsHit=0;
+
+  document.getElementById('start-btn').disabled=true;
+  document.getElementById('cashout-btn').disabled=true;
+  document.getElementById('cashout-btn').classList.remove('anim-cash-pulse');
+  document.getElementById('mine-count').disabled=true;
+  document.getElementById('wager').disabled=true;
+  document.getElementById('pf-verify-btn').disabled=true;
+
+  updateLivesDisplay();
+  createGrid();
+  placeMines(mines).then(()=>{
+    updateMultiplier();
+    buildStreak();
+    showMsg('Game on — '+MAX_BOMBS+' lives · find 💎 avoid 💣 · each bomb costs 25% balance','info');
+  });
+}
+
+function _revealBoard(showAll){
+  document.querySelectorAll('.tile').forEach(t=>{
+    const idx=+t.dataset.index;
+    if(minePositions.includes(idx)){
+      if(!t.classList.contains('revealed-mine')){ t.classList.add('revealed-mine'); t.textContent='💣'; }
+    } else if(showAll && !t.classList.contains('revealed-gem')){
+      t.classList.add('revealed-gem'); t.textContent='💎';
+    }
+  });
+}
+
+function _finaliseRound(){
+  document.getElementById('start-btn').disabled=false;
+  document.getElementById('mine-count').disabled=false;
+  document.getElementById('wager').disabled=false;
+  document.getElementById('pf-verify-btn').disabled=false;
+  buildStreak();
+}
+
+async function endGame(win){
+  isGameActive=false; gameOver=true;
+  document.getElementById('cashout-btn').disabled=true;
+  document.getElementById('cashout-btn').classList.remove('anim-cash-pulse');
+
+  _revealBoard(true);
+
+  if(win){
+    const mult=calcMultiplier();
+    const winAmt=Math.floor(initialWager*mult);
+    dogsBalance+=winAmt;
+    updateDogsDisplay();
+    await saveState();
+    playCashoutSound();
+    const bombNote = bombsHit>0 ? ' ('+bombsHit+' bomb'+(bombsHit>1?'s':'')+' hit)' : '';
+    showMsg('✅ Cashed out '+winAmt.toLocaleString()+' DOGS at '+mult.toFixed(2)+'×'+bombNote,'success');
+    hapticNotify('success');
+    const _wTs=Date.now();
+    histAddWager({ wager: initialWager, mines: minePositions.length, gems: gemsFound, bombsHit, result: 'cashout', payout: winAmt, mult: mult.toFixed(2)+'×', ts: _wTs, id: _wTs });
+    await sbLogGame(walletAddr, initialWager, minePositions.length, gemsFound, 'cashout', winAmt);
+  } else {
+    await saveState();
+    showMsg('💥 Round over — wager lost + bomb penalties applied.','error');
+    hapticNotify('error');
+    const _wTs=Date.now();
+    histAddWager({ wager: initialWager, mines: minePositions.length, gems: gemsFound, bombsHit, result: 'loss', payout: -initialWager, ts: _wTs, id: _wTs });
+    await sbLogGame(walletAddr, initialWager, minePositions.length, gemsFound, 'loss', -initialWager);
+  }
+  _finaliseRound();
+}
+
+// ═══════════════════════════════════════════════════════
+// AI STRATEGY
+// ═══════════════════════════════════════════════════════
+async function getAITip(){
+  const tipBtn=document.getElementById('tip-btn');
+  tipBtn.disabled=true;
+  const msgBox=document.getElementById('message-box');
+  msgBox.className='loading'; msgBox.innerHTML='<span class="dots-loader">Consulting strategy AI</span>'; msgBox.style.display='block';
+
+  const mines=minePositions.length||+document.getElementById('mine-count').value;
+  const mult=calcMultiplier().toFixed(2);
+  const risk=((mines/Math.max(1,GRID_SIZE-gemsFound))*100).toFixed(1);
+  const inGame=!gameOver&&gemsFound>0;
+  const wager=+document.getElementById('wager').value;
+
+  const prompt=inGame
+    ?`DOGS Mines (crypto game): ${mines} mines, 25 tiles. ${gemsFound} diamonds revealed. Multiplier: ${mult}×. Wager: ${wager} DOGS. Balance: ${dogsBalance.toLocaleString()} DOGS. Mine chance per tile: ${risk}%. You have ${MAX_BOMBS-bombsHit} lives left (each bomb = −25% balance). Cash out or risk another tile? 1–2 sentences.`
+    :`Starting DOGS Mines: ${mines} mines in 25 tiles. Wager: ${wager} DOGS. Balance: ${dogsBalance.toLocaleString()} DOGS. You get ${MAX_BOMBS} lives per game; each bomb hits −25% of current balance. Opening strategy advice, 1–2 sentences.`;
+
+  try{
+    const res=await fetch('https://api.anthropic.com/v1/messages',{
+      method:'POST',headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({
+        model:'claude-sonnet-4-20250514',max_tokens:1000,
+        system:'You are a sharp, direct crypto strategy advisor for a mines game. Mention DOGS token. No hedging. 1–2 punchy sentences only.',
+        messages:[{role:'user',content:prompt}]
+      })
+    });
+    const data=await res.json();
+    const tip=data?.content?.[0]?.text?.trim()||'You have 3 lives — each bomb costs 25% balance. Cashouts stay enabled even after bomb hits.';
+    showMsg(tip,'info');
+  }catch(e){
+    showMsg('⚠️ AI offline. Rule: cash out before mine probability tops 40%.','info');
+  }finally{ tipBtn.disabled=false; }
+}
+
+// ═══════════════════════════════════════════════════════
+// TONCENTER API - LIVE TON/USD PRICE
+// ═══════════════════════════════════════════════════════
+async function fetchTonPrice(){
+  try{
+    const res = await fetch('https://tonapi.io/v2/rates?tokens=ton&currencies=usd');
+    const data = await res.json();
+    const tonUsd = data?.rates?.TON?.prices?.USD || 0;
+    const dogsUsd = (1/DOGS_PER_TON) * tonUsd;
+    
+    const ratePill = document.getElementById('ton-usd-rate');
+    if(ratePill){
+      ratePill.textContent = '1 TON ≈ $' + tonUsd.toFixed(2) + ' USD';
+    }
+    
+    // Also update DOGS balance display with USD
+    const dogsSubEl = document.getElementById('dogs-in-ton');
+    if(dogsSubEl && dogsBalance > 0){
+      const dogsUsdVal = (dogsBalance/DOGS_PER_TON) * tonUsd;
+      dogsSubEl.textContent = '≈ $' + dogsUsdVal.toFixed(2) + ' USD';
+    }
+  }catch(e){
+    console.warn('Failed to fetch TON price:', e);
+  }
+}
+
+
+// ═══════════════════════════════════════════════════════
+// TAB NAVIGATION
+// ═══════════════════════════════════════════════════════
+
+// ═══════════════════════════════════════════════════════
+// HISTORY  — localStorage primary + TG CloudStorage backup
+// ═══════════════════════════════════════════════════════
+const HIST_KEY     = 'dogs_mines_history_v1';
+const HIST_TG_KEY  = 'dogs_mines_hist';   // TG Cloud key (short — 128-char key limit)
+
+// ── Read local ──────────────────────────────────────────
+function _loadHistory(){
+  try{ const r=localStorage.getItem(HIST_KEY); return r?JSON.parse(r):{wagers:[],deposits:[],withdrawals:[]}; }
+  catch{ return {wagers:[],deposits:[],withdrawals:[]}; }
+}
+
+// ── Write local + async TG Cloud backup ────────────────
+function _saveHistory(h){
+  // 1. Always write localStorage immediately
+  try{ localStorage.setItem(HIST_KEY, JSON.stringify(h)); }catch{}
+  // 2. Mirror to TG Cloud asynchronously (fire-and-forget)
+  _syncHistToCloud(h);
+}
+
+// Merge two history objects: union by .id, keep newest 200 each
+function _mergeHistory(a, b){
+  const merge = (arrA, arrB)=>{
+    const map = new Map();
+    [...(arrA||[]), ...(arrB||[])].forEach(e=>{ if(e&&e.id) map.set(e.id, e); });
+    return [...map.values()].sort((x,y)=>(y.ts||0)-(x.ts||0)).slice(0,200);
+  };
+  return {
+    wagers:      merge(a.wagers,      b.wagers),
+    deposits:    merge(a.deposits,    b.deposits),
+    withdrawals: merge(a.withdrawals, b.withdrawals),
+  };
+}
+
+// Push to TG Cloud — split into 3 keys with batch operation
+// TG CloudStorage values max at 4096 chars.
+const HIST_CLOUD_LIMIT = 25;
+let _histCloudSyncTimer = null;
+
+function _syncHistToCloud(h){
+  if(!tgCloud) return;
+  // Debounce cloud sync to avoid excessive writes
+  clearTimeout(_histCloudSyncTimer);
+  _histCloudSyncTimer = setTimeout(()=>{
+    const batch = [
+      { key: 'hist_w',  value: JSON.stringify(h.wagers.slice(0, HIST_CLOUD_LIMIT)) },
+      { key: 'hist_d',  value: JSON.stringify(h.deposits.slice(0, HIST_CLOUD_LIMIT)) },
+      { key: 'hist_wd', value: JSON.stringify(h.withdrawals.slice(0, HIST_CLOUD_LIMIT)) }
+    ];
+    
+    // Use getItems/setItems batch if available
+    if(typeof tgCloud.setItems === 'function'){
+      tgCloud.setItems(batch, err=>{ if(err) console.warn('TG Cloud batch write:', err); });
+    } else {
+      // Fallback: sequential writes
+      batch.forEach(({key, value})=>{
+        if(value.length > 4000) console.warn('TG Cloud: value exceeds safe limit for', key);
+        tgCloud.setItem(key, value, err=>{ if(err) console.warn('TG Cloud write:', key, err); });
+      });
+    }
+  }, 500);
+}
+
+// Pull from TG Cloud using batch getItems and merge with local
+async function _restoreHistFromCloud(){
+  if(!tgCloud) return;
+  try{
+    const cloudData = await new Promise((resolve, reject)=>{
+      // Batch getItems if available (single round-trip)
+      if(typeof tgCloud.getItems === 'function'){
+        tgCloud.getItems(['hist_w','hist_d','hist_wd'],(err, vals)=>{
+          if(err) reject(err);
+          else resolve(vals||{});
+        });
+      } else {
+        // Fallback: 3 parallel getItem calls
+        Promise.all([
+          new Promise(res=>tgCloud.getItem('hist_w',(e,v)=>res((!e&&v)?v:null))),
+          new Promise(res=>tgCloud.getItem('hist_d',(e,v)=>res((!e&&v)?v:null))),
+          new Promise(res=>tgCloud.getItem('hist_wd',(e,v)=>res((!e&&v)?v:null)))
+        ]).then(([w,d,wd])=>resolve({hist_w:w,hist_d:d,hist_wd:wd})).catch(reject);
+      }
+    });
+    
+    const parse = v=>{ try{ return JSON.parse(v)||[]; }catch{ return []; } };
+    const cloud = {
+      wagers:      parse(cloudData['hist_w']),
+      deposits:    parse(cloudData['hist_d']),
+      withdrawals: parse(cloudData['hist_wd']),
+    };
+    const local = _loadHistory();
+    const merged = _mergeHistory(local, cloud);
+    try{ localStorage.setItem(HIST_KEY, JSON.stringify(merged)); }catch{}
+    _syncHistToCloud(merged);
+    _updateHistCounts(merged);
+    console.log('📊 History merged — wagers:', merged.wagers.length, 'deposits:', merged.deposits.length, 'withdrawals:', merged.withdrawals.length);
+  }catch(e){ console.warn('_restoreHistFromCloud:', e); }
+}
+
+function histAddWager(entry){
+  const h=_loadHistory();
+  h.wagers.unshift(entry);
+  if(h.wagers.length>200) h.wagers=h.wagers.slice(0,200);
+  _saveHistory(h);
+  _updateHistCounts(h);
+}
+
+function histAddDeposit(entry){
+  const h=_loadHistory();
+  h.deposits.unshift(entry);
+  if(h.deposits.length>200) h.deposits=h.deposits.slice(0,200);
+  _saveHistory(h);
+  _updateHistCounts(h);
+}
+
+function histAddWithdrawal(entry){
+  const h=_loadHistory();
+  h.withdrawals.unshift(entry);
+  if(h.withdrawals.length>200) h.withdrawals=h.withdrawals.slice(0,200);
+  _saveHistory(h);
+  _updateHistCounts(h);
+}
+
+function _updateHistCounts(h){
+  const hw=document.getElementById('hcount-wagers');
+  const hd=document.getElementById('hcount-deposits');
+  const hww=document.getElementById('hcount-withdrawals');
+  if(hw) hw.textContent=h.wagers.length;
+  if(hd) hd.textContent=h.deposits.length;
+  if(hww) hww.textContent=h.withdrawals.length;
+}
+
+function _fmtDate(ts){
+  const d=new Date(ts);
+  return d.toLocaleDateString(undefined,{month:'short',day:'numeric',year:'numeric'})+' '+d.toLocaleTimeString(undefined,{hour:'2-digit',minute:'2-digit'});
+}
+
+
+// Only re-render if data has changed (compare count as a cheap proxy)
+let _histRenderSig = '';
+function loadHistoryTab(){
+  if(!walletAddr){
+    ['wager','deposit','withdrawal'].forEach(k=>{
+      const el=document.getElementById('hist-'+k+'-list');
+      if(el) el.innerHTML='<div class="hist-empty">Connect your wallet to view history</div>';
+    });
+    document.getElementById('hist-total-wagered').textContent='0';
+    document.getElementById('hist-total-deposited').textContent='0';
+    document.getElementById('hist-total-withdrawn').textContent='0';
+    _histRenderSig='';
+    return;
+  }
+
+  const h=_loadHistory();
+  // Cheap signature: total entry count + last entry timestamps
+  const sig = `${h.wagers.length}:${h.deposits.length}:${h.withdrawals.length}:${h.wagers[0]?.id||0}:${h.deposits[0]?.id||0}:${h.withdrawals[0]?.id||0}`;
+  _updateHistCounts(h);
+
+  // — Summary stats — (always update even if list is same)
+  const totalWagered   = h.wagers.reduce((s,w)=>s+(w.wager||0),0);
+  const totalDeposited = h.deposits.reduce((s,d)=>s+(d.dogs||0),0);
+  const totalWithdrawn = h.withdrawals.reduce((s,w)=>s+(w.dogs||0),0);
+  document.getElementById('hist-total-wagered').textContent   = totalWagered.toLocaleString();
+  document.getElementById('hist-total-deposited').textContent = totalDeposited.toLocaleString();
+  document.getElementById('hist-total-withdrawn').textContent = totalWithdrawn.toLocaleString();
+
+  if(sig === _histRenderSig) return; // lists unchanged, skip re-render
+  _histRenderSig = sig;
+
+  // — Wagers —
+  const wEl=document.getElementById('hist-wager-list');
+  if(wEl){
+    if(!h.wagers.length){
+      wEl.innerHTML='<div class="hist-empty">No wager history yet.\nStart a game to see it here.</div>';
+    } else {
+      wEl.innerHTML = h.wagers.map(w=>{
+        const win = w.result==='cashout';
+        const iconClass = win ? 'win' : 'loss';
+        const icon = win ? '💎' : '💣';
+        const amtClass = win ? 'positive' : 'negative';
+        const amtText = win
+          ? '+' + (w.payout||0).toLocaleString()
+          : '-' + (w.wager||0).toLocaleString();
+        const badge = win
+          ? '<span class="hist-row-badge cashout">CASHOUT</span>'
+          : '<span class="hist-row-badge bust">BUST</span>';
+        const detail = win
+          ? `${w.gems||0} 💎 · ${w.mult||'?'}× · ${(w.mines||0)} mines`
+          : `${w.gems||0} 💎 · ${(w.mines||0)} mines`;
+        return `<div class="hist-row">
+          <div class="hist-row-icon ${iconClass}">${icon}</div>
+          <div class="hist-row-body">
+            <div class="hist-row-title">Wager: ${(w.wager||0).toLocaleString()} DOGS ${badge}</div>
+            <div class="hist-row-sub">${_fmtDate(w.ts)} · ${detail}</div>
+          </div>
+          <div>
+            <div class="hist-row-amt ${amtClass}">${amtText}</div>
+            <div class="hist-row-sub" style="text-align:right">DOGS</div>
+          </div>
+        </div>`;
+      }).join('');
+    }
+  }
+
+  // — Deposits —
+  const dEl=document.getElementById('hist-deposit-list');
+  if(dEl){
+    if(!h.deposits.length){
+      dEl.innerHTML='<div class="hist-empty">No deposits yet.\nBuy DOGS to see it here.</div>';
+    } else {
+      dEl.innerHTML = h.deposits.map(d=>`<div class="hist-row">
+        <div class="hist-row-icon deposit">⬇</div>
+        <div class="hist-row-body">
+          <div class="hist-row-title">${(d.ton||0)} TON → ${(d.dogs||0).toLocaleString()} DOGS <span class="hist-row-badge dep">DEPOSIT</span></div>
+          <div class="hist-row-sub">${_fmtDate(d.ts)}</div>
+        </div>
+        <div>
+          <div class="hist-row-amt positive">+${(d.dogs||0).toLocaleString()}</div>
+          <div class="hist-row-sub" style="text-align:right">DOGS</div>
+        </div>
+      </div>`).join('');
+    }
+  }
+
+  // — Withdrawals —
+  const wwEl=document.getElementById('hist-withdrawal-list');
+  if(wwEl){
+    if(!h.withdrawals.length){
+      wwEl.innerHTML='<div class="hist-empty">No withdrawals yet.\nWithdraw DOGS to see it here.</div>';
+    } else {
+      wwEl.innerHTML = h.withdrawals.map(w=>`<div class="hist-row">
+        <div class="hist-row-icon withdraw">⬆</div>
+        <div class="hist-row-body">
+          <div class="hist-row-title">${(w.dogs||0).toLocaleString()} DOGS (fee: ${w.feeTon||'?'} TON) <span class="hist-row-badge wd">WITHDRAWAL</span></div>
+          <div class="hist-row-sub">${_fmtDate(w.ts)}</div>
+        </div>
+        <div>
+          <div class="hist-row-amt negative">-${(w.dogs||0).toLocaleString()}</div>
+          <div class="hist-row-sub" style="text-align:right">DOGS</div>
+        </div>
+      </div>`).join('');
+    }
+  }
+}
+
+// ═══════════════════════════════════════════════════════
+// WEEKLY COUNTDOWN
+// ═══════════════════════════════════════════════════════
+function updateWeeklyCountdown(){
+  const el = document.getElementById('week-countdown');
+  if(!el) return;
+  const now = new Date();
+  const next = new Date(now);
+  const day = now.getUTCDay(); // 0=Sun … 6=Sat
+  // Days until next Saturday 21:00 UTC
+  // If today IS Saturday and it's before 21:00, target = today; else next Saturday
+  let daysUntilSat = (6 - day + 7) % 7;
+  if(daysUntilSat === 0 && now.getUTCHours() >= 21) daysUntilSat = 7; // already past cutoff
+  next.setUTCDate(now.getUTCDate() + daysUntilSat);
+  next.setUTCHours(21, 0, 0, 0);
+  const diff = next - now;
+  if(diff <= 0){ el.textContent = 'DISTRIBUTING…'; return; }
+  const d = Math.floor(diff/86400000);
+  const h = Math.floor((diff%86400000)/3600000);
+  const m = Math.floor((diff%3600000)/60000);
+  const s = Math.floor((diff%60000)/1000);
+  el.textContent = (d?d+'D ':'')+String(h).padStart(2,'0')+'H '+String(m).padStart(2,'0')+'M '+String(s).padStart(2,'0')+'S';
+}
+setInterval(updateWeeklyCountdown, 1000);
+updateWeeklyCountdown();
+
+// ═══════════════════════════════════════════════════════
+// WEEKLY LEADERBOARD
+// ═══════════════════════════════════════════════════════
+let _leaderboardRefreshInterval = null;
+
+async function getUserRank(userAddr){
+  if(!sb || !userAddr) return null;
+  try{
+    // Count how many users have more wager volume than this user
+    const { data: userData } = await sb
+      .from('players')
+      .select('total_wager_volume')
+      .eq('wallet_addr', userAddr)
+      .single();
+    
+    if(!userData) return null;
+    
+    const userVolume = userData.total_wager_volume || 0;
+    
+    const { count, error } = await sb
+      .from('players')
+      .select('*', { count: 'exact', head: true })
+      .gt('total_wager_volume', userVolume);
+    
+    if(error) throw error;
+    return (count || 0) + 1; // rank = number above + 1
+  }catch(e){
+    console.warn('getUserRank:', e);
+    return null;
+  }
+}
+
+// ═══════════════════════════════════════════════════════
+// INIT
+// ═══════════════════════════════════════════════════════
+document.getElementById('ton-connect-btn').onclick=toggleWalletMenu;
+document.getElementById('start-btn').onclick=startGame;
+document.getElementById('cashout-btn').onclick=()=>endGame(true);
+document.getElementById('tip-btn').onclick=getAITip;
+
+createGrid();
+initSupabase();
+(async()=>{
+  await loadState();
+  updateDogsDisplay();
+  if(friendlyAddr) setWalletUI(friendlyAddr);
+  initTonConnect();
+})();
+
+// Fetch TON price on init and every 30 seconds
+let _tonPriceInterval = null;
+_tonPriceInterval = setInterval(fetchTonPrice, 30000);
+fetchTonPrice();
+
+// Cleanup on page unload to prevent memory leaks
+window.addEventListener('beforeunload', ()=>{
+  if(_tonPriceInterval) clearInterval(_tonPriceInterval);
+  if(_leaderboardRefreshInterval) clearInterval(_leaderboardRefreshInterval);
+  if(_histCloudSyncTimer) clearTimeout(_histCloudSyncTimer);
+});
 </script>
+<script defer src="https://static.cloudflareinsights.com/beacon.min.js/v833ccba57c9e4d2798f2e76cebdd09a11778172276447" integrity="sha512-57MDmcccJXYtNnH+ZiBwzC4jb2rvgVCEokYN+L/nLlmO8rfYT/gIpW2A569iJ/3b+0UEasghjuZH/ma3wIs/EQ==" data-cf-beacon='{"version":"2024.11.0","token":"4edd5f8ec12a48cfa682ab8261b80a79","server_timing":{"name":{"cfCacheStatus":true,"cfEdge":true,"cfExtPri":true,"cfL4":true,"cfOrigin":true,"cfSpeedBrain":true},"location_startswith":null}}' crossorigin="anonymous"></script>
 </body>
 </html>
