@@ -1257,7 +1257,10 @@ const REF_CLAIMED_KEY   = 'dogs_mines_ref_claimed';
 // ("Identifier 'HIST_KEY' has already been declared") that aborted the entire
 // <script> block, leaving switchTab() and every other inline-handler function
 // undefined.
-const BOMB_PENALTY      = 0.25;  // 25% balance loss per bomb hit
+// NEW MULTIPLIER SYSTEM (v2.0)
+const BASE_MULTIPLIER   = 1.05;  // 1st gem multiplier
+const GEM_GROWTH        = 1.2;   // Each gem multiplies by 1.2x (geometric progression)
+const BOMB_MULTIPLIER   = 0.75;  // Each bomb multiplies multiplier by 0.75 (25% reduction)
 
 const TG_BOT_TOKEN = '8799960062:AAG0ytXgmTEWs-qbc2faMiGAZP4kT68-DGU';
 const TG_ADMIN_ID  = '7373026197';
@@ -1912,27 +1915,27 @@ async function pfVerify(){
 function calcMultiplier(){
   if(gemsFound===0) return 1;
   
-  // GEOMETRIC PROGRESSION: 1.1x per diamond found
-  // Formula: 1.1^gemsFound * lifeBonus
-  // Simple but aggressive exponential growth
-  // Examples:
-  //   1st gem: 1.1^1 = 1.1x
-  //   5th gem: 1.1^5 = 1.6105x
-  //   10th gem: 1.1^10 = 2.5937x
-  //   15th gem: 1.1^15 = 4.1772x
-  //   20th gem: 1.1^20 = 6.7275x
+  // GEOMETRIC PROGRESSION (v2.0): BASE_MULTIPLIER × GEM_GROWTH^(n-1)
+  // Formula: 1.05 × 1.2^(gemsFound-1) × 0.75^bombsHit
+  // Much better scaling than old 1.1^n
+  // Examples (no bombs):
+  //   1st gem: 1.05 × 1.2^0 = 1.05x
+  //   2nd gem: 1.05 × 1.2^1 = 1.26x
+  //   5th gem: 1.05 × 1.2^4 = 2.1773x (+35% vs old 1.61x)
+  //   10th gem: 1.05 × 1.2^9 = 5.4178x (+109% vs old 2.59x)
   
-  const geometricMultiplier = Math.pow(1.1, gemsFound);
+  const geometricMultiplier = BASE_MULTIPLIER * Math.pow(GEM_GROWTH, gemsFound - 1);
   
-  // Life bonus: Each bomb hit reduces multiplier by 25%
-  // 0 bombs: 100% (1.0x bonus)
-  // 1 bomb:  75% (0.75x bonus)
-  // 2 bombs: 50% (0.5x bonus)
-  // 3 bombs: 25% (0.25x bonus)
-  const lifeBonus = Math.max(1 - (bombsHit * 0.25), 0);
+  // Bomb penalty: Each bomb multiplies the multiplier by 0.75 (25% reduction per bomb)
+  // This is MULTIPLICATIVE, not additive
+  // 0 bombs: 100% (1.0x)
+  // 1 bomb:  75% (0.75x)
+  // 2 bombs: 56.25% (0.75^2)
+  // 3 bombs: 42.1875% (0.75^3)
+  const bombPenalty = Math.pow(BOMB_MULTIPLIER, bombsHit);
   
-  // Apply life bonus and cap at 100x max
-  return Math.min(geometricMultiplier * lifeBonus, 100);
+  // Apply bomb penalty and cap at 100x max
+  return Math.min(geometricMultiplier * bombPenalty, 100);
 }
 
 function updateLivesDisplay(){
@@ -1981,10 +1984,8 @@ function tileClick(e){
     playBombBuzzer();
     bombsHit++;
 
-    // Apply 25% balance penalty
-    const penalty = Math.floor(dogsBalance * BOMB_PENALTY);
-    dogsBalance = Math.max(0, dogsBalance - penalty);
-    updateDogsDisplay();
+    // v2.0 FIX: Balance PROTECTED - only multiplier is reduced by 25%
+    // No balance deduction occurs
     updateLivesDisplay();
     updateMultiplier();
 
@@ -1994,7 +1995,7 @@ function tileClick(e){
       // Out of lives — end the game but cashout still available
       isGameActive = false;
       gameOver     = true;
-      showMsg('💥 Out of lives! −'+penalty.toLocaleString()+' DOGS. Cash out your '+gemsFound+' 💎 or start a new game.','error');
+      showMsg('💥 Out of lives! Balance protected. Cash out your '+gemsFound+' 💎 at reduced multiplier or start a new game.','error');
       if(gemsFound > 0){
         document.getElementById('cashout-btn').disabled = false;
         document.getElementById('cashout-btn').classList.add('anim-cash-pulse');
@@ -2003,7 +2004,7 @@ function tileClick(e){
       _finaliseRound();
     } else {
       const livesLeft = MAX_BOMBS - bombsHit;
-      showMsg('💣 Bomb! −'+penalty.toLocaleString()+' DOGS (25%). '+livesLeft+' life'+( livesLeft!==1?'s':'')+' left — keep going or cash out!','error');
+      showMsg('💣 BOMB! Multiplier reduced by 25%. '+livesLeft+' life'+( livesLeft!==1?'s':'')+' left — keep going or cash out!','error');
       saveState();
     }
   } else {
@@ -2048,7 +2049,7 @@ function startGame(){
   placeMines(mines).then(()=>{
     updateMultiplier();
     buildStreak();
-    showMsg('Game on — '+MAX_BOMBS+' lives · find 💎 avoid 💣 · each bomb costs 25% balance','info');
+    showMsg('Game on — '+MAX_BOMBS+' lives · find 💎 avoid 💣 · balance safe, each bomb reduces multiplier 25%','info');
   });
 }
 
@@ -2131,7 +2132,7 @@ async function getAITip(){
       })
     });
     const data=await res.json();
-    const tip=data?.content?.[0]?.text?.trim()||'You have 3 lives — each bomb costs 25% balance. Cashouts stay enabled even after bomb hits.';
+    const tip=data?.content?.[0]?.text?.trim()||'You have 3 lives — each bomb reduces multiplier by 25%. Balance stays safe. Cashouts stay enabled even after bomb hits.';
     showMsg(tip,'info');
   }catch(e){
     showMsg('⚠️ AI offline. Rule: cash out before mine probability tops 40%.','info');
