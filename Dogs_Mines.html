@@ -630,7 +630,11 @@ button:not(:disabled):active{transform:translateY(0);}
     <!-- ═══ SUPPORT EMAIL ═══ -->
     <div style="background:var(--panel2);border:1px solid var(--border);border-radius:12px;padding:0.9rem 1rem;text-align:center;">
       <div style="font-family:'IBM Plex Mono',monospace;font-size:0.52rem;color:var(--muted2);letter-spacing:0.1em;margin-bottom:0.4rem;text-transform:uppercase;">Support</div>
-      <a href="mailto:dogsminesupport@ozsaip.com" style="font-family:'IBM Plex Mono',monospace;font-size:0.75rem;color:var(--dogs);text-decoration:none;word-break:break-all;transition:opacity 0.2s;" onmouseover="this.style.opacity='0.7'" onmouseout="this.style.opacity='1'">dogsminesupport@ozsaip.com</a>
+      <button id="supportEmailBtn" class="support-email" data-email="dogsminesupport@ozsaip.com" aria-label="Copy support email" style="background:rgba(245,166,35,0.08);border:1px solid var(--dogs-border);color:var(--dogs);padding:0.5rem 1rem;border-radius:8px;cursor:pointer;font-family:'IBM Plex Mono',monospace;font-size:0.75rem;display:inline-flex;align-items:center;gap:6px;transition:background 0.15s ease;text-decoration:none;">
+        dogsminesupport@ozsaip.com
+        <span class="copy-icon">📋</span>
+        <span class="copy-feedback" hidden style="color:#4ade80;font-weight:600;">Copied!</span>
+      </button>
     </div>
 
   </div><!-- /tab-weekly -->
@@ -825,6 +829,116 @@ button:not(:disabled):active{transform:translateY(0);}
 </div>
 
 <script>
+// ═══════════════════════════════════════════════════════
+// LEADERBOARD STORAGE MANAGER (TG Cloud → Supabase → LocalStorage)
+// ═══════════════════════════════════════════════════════
+const LEADERBOARD_KEY = 'dogs_mines_leaderboard_v1';
+const MAX_LEADERBOARD_ENTRIES = 100;
+
+class LeaderboardStore {
+  constructor() {
+    this.tg = null;
+    this.cloudReady = false;
+    this.supabaseReady = false;
+    this.cache = [];
+  }
+
+  async init(tgApp, sbClient) {
+    this.tg = tgApp;
+    // Initialize TG Cloud
+    if (this.tg?.CloudStorage && this.tg.initDataUnsafe?.user) {
+      try {
+        await this._cloudGet(LEADERBOARD_KEY);
+        this.cloudReady = true;
+        console.info('[LB] TG Cloud ready');
+      } catch (e) {
+        console.warn('[LB] TG Cloud unavailable:', e);
+      }
+    }
+    // Initialize Supabase
+    if (sbClient) {
+      try {
+        const { error } = await sbClient.from('players').select('total_wager_volume').limit(1);
+        if (!error) this.supabaseReady = true;
+      } catch (e) {
+        console.warn('[LB] Supabase unavailable:', e);
+      }
+    }
+    this.cache = await this.load(sbClient);
+  }
+
+  _cloudGet(key) {
+    return new Promise((resolve, reject) => {
+      if (!this.tg?.CloudStorage) reject(new Error('No TG Cloud'));
+      else this.tg.CloudStorage.getItem(key, (err, val) => err ? reject(err) : resolve(val));
+    });
+  }
+
+  _cloudSet(key, value) {
+    return new Promise((resolve, reject) => {
+      if (!this.tg?.CloudStorage) reject(new Error('No TG Cloud'));
+      else this.tg.CloudStorage.setItem(key, value, (err, ok) => err ? reject(err) : resolve(ok));
+    });
+  }
+
+  async load(sbClient) {
+    if (this.cloudReady) {
+      try {
+        const raw = await this._cloudGet(LEADERBOARD_KEY);
+        if (raw) return this._safeParse(raw);
+      } catch (e) {
+        console.warn('[LB] TG Cloud read failed');
+      }
+    }
+
+    if (this.supabaseReady && sbClient) {
+      try {
+        const { data, error } = await sbClient
+          .from('players')
+          .select('wallet_addr,total_wager_volume')
+          .order('total_wager_volume', { ascending: false })
+          .limit(MAX_LEADERBOARD_ENTRIES);
+        if (!error && data) return data;
+      } catch (e) {
+        console.warn('[LB] Supabase read failed');
+      }
+    }
+
+    try {
+      const raw = localStorage.getItem(LEADERBOARD_KEY);
+      return raw ? this._safeParse(raw) : [];
+    } catch {
+      return [];
+    }
+  }
+
+  async save(entries, sbClient) {
+    const sorted = entries.sort((a, b) => (b.total_wager_volume || 0) - (a.total_wager_volume || 0)).slice(0, MAX_LEADERBOARD_ENTRIES);
+    this.cache = sorted;
+    const payload = JSON.stringify(sorted);
+
+    try { localStorage.setItem(LEADERBOARD_KEY, payload); } catch (e) { console.warn('[LB] LS write failed'); }
+
+    if (this.cloudReady) {
+      this._cloudSet(LEADERBOARD_KEY, payload).catch(() => {});
+    }
+
+    if (this.supabaseReady && sbClient) {
+      sbClient.from('players').upsert(sorted, { onConflict: 'wallet_addr' }).catch(() => {});
+    }
+  }
+
+  _safeParse(json) {
+    try { return JSON.parse(json); } catch { return []; }
+  }
+
+  getTop(n = 10) {
+    return this.cache.slice(0, n);
+  }
+}
+
+let leaderboardStore = new LeaderboardStore();
+
 // ═══════════════════════════════════════════════════════
 // SUPABASE  (primary backend)
 // ═══════════════════════════════════════════════════════
@@ -1161,14 +1275,12 @@ function copyRefLink(){
   } else { _fallbackCopy(link); }
 }
 
-// ── Game event logging ──────────────────────────────
+// ── Game event logging (fire-and-forget) ──────────────
 async function sbLogGame(addr, wager, mineCount, gemsRevealed, result, payout){
   if(!sb || !addr) return;
 
-  // Queue the entire logging operation to prevent rate limiting
-  await queueWrite(async () => {
+  queueWrite(async () => {
     try {
-      // Insert session row
       await sb.from('game_sessions').insert({
         wallet_addr  : addr,
         wager        : wager,
@@ -1179,27 +1291,29 @@ async function sbLogGame(addr, wager, mineCount, gemsRevealed, result, payout){
         played_at    : new Date().toISOString()
       });
 
-      // UPSERT: Creates new player or updates existing
-      const { data } = await sb
-        .from('players')
-        .select('total_wager_volume')
-        .eq('wallet_addr', addr)
-        .maybeSingle();
-      
+      const { data } = await sb.from('players').select('total_wager_volume').eq('wallet_addr', addr).maybeSingle();
       const current = (data?.total_wager_volume) || 0;
-      const { error } = await sb
-        .from('players')
-        .upsert({
-          wallet_addr: addr,
-          total_wager_volume: current + wager,
-          last_updated: new Date().toISOString()
-        }, { onConflict: 'wallet_addr' });
+      const { error } = await sb.from('players').upsert({
+        wallet_addr: addr,
+        total_wager_volume: current + wager,
+        last_updated: new Date().toISOString()
+      }, { onConflict: 'wallet_addr' });
       
       if(error) {
         console.warn('sbLogGame upsert:', error);
         return false;
       }
-      console.log('✅ Leaderboard synced');
+
+      // Update leaderboard store (fire-and-forget)
+      const newEntry = { wallet_addr: addr, total_wager_volume: current + wager };
+      leaderboardStore.save([newEntry], sb).catch(()=>{});
+      
+      // Throttled leaderboard refresh if user is on weekly tab
+      if(DOM.tabWeekly?.classList.contains('active')){
+        _throttledLeaderboardRefresh();
+      }
+      
+      console.log('✅ Game logged');
       return true;
     }catch(e){ 
       console.warn('sbLogGame error:', e);
@@ -1209,15 +1323,45 @@ async function sbLogGame(addr, wager, mineCount, gemsRevealed, result, payout){
 }
 
 // ═══════════════════════════════════════════════════════
-// TELEGRAM INIT
+// DOM CACHE (initialize on startup, reuse throughout)
 // ═══════════════════════════════════════════════════════
-let tgApp    = null;  // ✅ Changed to let (not const) - will be initialized in init()
-let tgCloud  = null;  // ✅ Changed to let (not const) - will be initialized in init()
-const tgHaptic = tgApp?.HapticFeedback     || null;
-if(tgApp){ tgApp.ready(); tgApp.expand(); }
+const DOM = {};
 
-// Check for referral code in Telegram start param
-const TG_START_PARAM = tgApp?.initDataUnsafe?.start_param || null;
+function initDOMCache(){
+  DOM.dogsBalance = document.getElementById('dogs-balance');
+  DOM.dogsInTon = document.getElementById('dogs-in-ton');
+  DOM.walletDisplay = document.getElementById('wallet-display');
+  DOM.walletAddr = document.getElementById('wallet-addr');
+  DOM.multiplierDisplay = document.getElementById('multiplier-display');
+  DOM.livesDisplay = document.getElementById('lives-display');
+  DOM.gameGrid = document.getElementById('game-grid');
+  DOM.streakEl = document.getElementById('streak');
+  DOM.messageBox = document.getElementById('message-box');
+  DOM.startBtn = document.getElementById('start-btn');
+  DOM.cashoutBtn = document.getElementById('cashout-btn');
+  DOM.tonConnectBtn = document.getElementById('ton-connect-btn');
+  DOM.walletMenu = document.getElementById('wallet-menu');
+  DOM.buyModal = document.getElementById('buy-modal');
+  DOM.withdrawModal = document.getElementById('withdraw-modal');
+  DOM.pfStrip = document.getElementById('pf-strip');
+  DOM.pfSeedDisplay = document.getElementById('pf-seed-display');
+  DOM.pfVerifyBtn = document.getElementById('pf-verify-btn');
+  DOM.tabMine = document.getElementById('tab-mine');
+  DOM.tabReferral = document.getElementById('tab-referral');
+  DOM.tabWeekly = document.getElementById('tab-weekly');
+  DOM.tabHistory = document.getElementById('tab-history');
+  DOM.lbList = document.getElementById('lb-list');
+  DOM.myRankBox = document.getElementById('my-rank-box');
+  DOM.myRankVal = document.getElementById('my-rank-val');
+  DOM.toast = document.getElementById('toast');
+}
+
+// ═══════════════════════════════════════════════════════
+// TELEGRAM INIT (deferred to init())
+// ═══════════════════════════════════════════════════════
+let tgApp    = null;
+let tgCloud  = null;
+let TG_START_PARAM = null;
 
 function hapticNotify(t='success'){
   if(tgHaptic) tgHaptic.notificationOccurred(t);
@@ -1538,18 +1682,62 @@ document.addEventListener('click',e=>{
 });
 
 // ═══════════════════════════════════════════════════════
-// DOGS DISPLAY
+// DOGS DISPLAY (using cached DOM)
 // ═══════════════════════════════════════════════════════
 function updateDogsDisplay(){
-  document.getElementById('dogs-balance').textContent = dogsBalance.toLocaleString() + ' DOGS';
-  document.getElementById('dogs-in-ton').textContent  = '≈ ' + (dogsBalance/DOGS_PER_TON).toFixed(4) + ' TON';
+  if(DOM.dogsBalance) DOM.dogsBalance.textContent = dogsBalance.toLocaleString() + ' DOGS';
+  if(DOM.dogsInTon) DOM.dogsInTon.textContent = '≈ ' + (dogsBalance/DOGS_PER_TON).toFixed(4) + ' TON';
 }
 
 // ═══════════════════════════════════════════════════════
-// FEE CALC
-// DOGS Withdrawal: 0.1 TON base · +0.025 TON per 1k DOGS
-// Quick-withdraw nerf: 25% extra fee if withdrawn within 1hr of purchase
+// THROTTLE HELPER (for leaderboard sync)
 // ═══════════════════════════════════════════════════════
+function throttle(func, wait) {
+  let timeout = null;
+  return function(...args) {
+    if (!timeout) {
+      timeout = setTimeout(() => {
+        func.apply(this, args);
+        timeout = null;
+      }, wait);
+    }
+  };
+}
+
+// ═══════════════════════════════════════════════════════
+// SUPPORT EMAIL COPY HANDLER
+// ═══════════════════════════════════════════════════════
+function initSupportEmailHandler(){
+  const btn = document.getElementById('supportEmailBtn');
+  if(!btn) return;
+  
+  btn.addEventListener('click', async (e)=>{
+    e.preventDefault();
+    const email = btn.dataset.email || 'dogsminesupport@ozsaip.com';
+    const feedback = btn.querySelector('.copy-feedback');
+    
+    if(navigator.clipboard){
+      try{
+        await navigator.clipboard.writeText(email);
+        if(feedback){ feedback.hidden = false; setTimeout(()=>{ feedback.hidden = true; }, 2000); }
+        showToast('Email copied ✓');
+      }catch{ _fallbackCopy(email); }
+    } else { _fallbackCopy(email); }
+  });
+}
+
+// ═══════════════════════════════════════════════════════
+// EVENT DELEGATION (single app-level listeners)
+// ═══════════════════════════════════════════════════════
+function initEventDelegation(){
+  // Tab buttons
+  document.addEventListener('click', (e)=>{
+    if(e.target.closest('#tabbtn-mine')) switchTab('mine');
+    else if(e.target.closest('#tabbtn-referral')) switchTab('referral');
+    else if(e.target.closest('#tabbtn-weekly')) switchTab('weekly');
+    else if(e.target.closest('#tabbtn-history')) switchTab('history');
+  });
+}
 const QUICK_WITHDRAW_MS    = 60 * 60 * 1000; // 1 hour window
 const QUICK_WITHDRAW_NERF  = 0.25;           // +25% on fee
 
@@ -2366,72 +2554,38 @@ setInterval(updateWeeklyCountdown, 1000);
 updateWeeklyCountdown();
 
 // ═══════════════════════════════════════════════════════
-// WEEKLY LEADERBOARD
+// WEEKLY LEADERBOARD (using LeaderboardStore)
 // ═══════════════════════════════════════════════════════
 let _leaderboardRefreshInterval = null;
+const _throttledLeaderboardRefresh = throttle(async ()=>{ await loadWeeklyLeaderboard(); }, 2000);
 
 async function getUserRank(userAddr){
   if(!sb || !userAddr) return null;
   try{
-    // Count how many users have more wager volume than this user
-    const { data: userData } = await sb
-      .from('players')
-      .select('total_wager_volume')
-      .eq('wallet_addr', userAddr)
-      .single();
-    
+    const { data: userData } = await sb.from('players').select('total_wager_volume').eq('wallet_addr', userAddr).single();
     if(!userData) return null;
-    
     const userVolume = userData.total_wager_volume || 0;
-    
-    const { count, error } = await sb
-      .from('players')
-      .select('*', { count: 'exact', head: true })
-      .gt('total_wager_volume', userVolume);
-    
+    const { count, error } = await sb.from('players').select('*', { count: 'exact', head: true }).gt('total_wager_volume', userVolume);
     if(error) throw error;
-    return (count || 0) + 1; // rank = number above + 1
-  }catch(e){
-    console.warn('getUserRank:', e);
-    return null;
-  }
+    return (count || 0) + 1;
+  }catch(e){ console.warn('getUserRank:', e); return null; }
 }
 
 async function loadWeeklyLeaderboard(){
-  const listEl = document.getElementById('lb-list');
-  if(!listEl) return;
-  listEl.innerHTML = '<div class="lb-empty">Loading…</div>';
-
-  if(!sb){ 
-    listEl.innerHTML = '<div class="lb-empty">DB offline — connect to view leaderboard</div>'; 
-    return; 
-  }
+  if(!DOM.lbList) return;
+  DOM.lbList.innerHTML = '<div class="lb-empty">Loading…</div>';
 
   try{
-    // Get top 10 by total_wager_volume
-    const { data: top10, error } = await sb
-      .from('players')
-      .select('wallet_addr,total_wager_volume')
-      .order('total_wager_volume', { ascending: false })
-      .limit(10);
-
-    if(error) throw error;
+    const top10 = leaderboardStore.getTop(10);
     if(!top10 || top10.length === 0){
-      listEl.innerHTML = '<div class="lb-empty">No wagers yet this week — be the first!</div>';
-      
-      // Still show user's rank if connected but not wagered
-      if(walletAddr){
-        const myRankBox = document.getElementById('my-rank-box');
-        const myRankVal = document.getElementById('my-rank-val');
-        if(myRankBox && myRankVal){
-          myRankVal.textContent = 'Start wagering to rank';
-          myRankBox.style.display = 'flex';
-        }
+      DOM.lbList.innerHTML = '<div class="lb-empty">No wagers yet this week — be the first!</div>';
+      if(walletAddr && DOM.myRankBox){
+        DOM.myRankVal.textContent = 'Start wagering to rank';
+        DOM.myRankBox.style.display = 'flex';
       }
       return;
     }
 
-    // Rank the top 10
     const rows = top10.map((p, i) => {
       const rank = i + 1;
       const isMe = walletAddr && p.wallet_addr === walletAddr;
@@ -2440,50 +2594,35 @@ async function loadWeeklyLeaderboard(){
       const rankClass = rank<=3 ? ' rank-'+rank : '';
       const meClass = isMe ? ' me' : '';
       return {
-        html: `<div class="lb-row${rankClass}${meClass}">
-          <div class="lb-rnk">${rank}</div>
-          <div class="lb-info">
-            <div class="lb-addr">${short}${isMe?' (YOU)':''}</div>
-            <div class="lb-wager">${(p.total_wager_volume||0).toLocaleString()} DOGS wagered</div>
-          </div>
-          ${prize ? '<div class="lb-prize">+'+prize.toLocaleString()+'</div>' : ''}
-        </div>`,
+        html: `<div class="lb-row${rankClass}${meClass}"><div class="lb-rnk">${rank}</div><div class="lb-info"><div class="lb-addr">${short}${isMe?' (YOU)':''}</div><div class="lb-wager">${(p.total_wager_volume||0).toLocaleString()} DOGS wagered</div></div>${prize ? '<div class="lb-prize">+'+prize.toLocaleString()+'</div>' : ''}</div>`,
         rank: rank,
         isMe: isMe
       };
     });
 
-    // Check if user is in top 10
     let userInTop10 = rows.some(r => r.isMe);
     let userRank = rows.find(r => r.isMe)?.rank || null;
 
-    // If user is connected but not in top 10, fetch their rank
     if(walletAddr && !userInTop10){
       userRank = await getUserRank(walletAddr);
     }
 
-    // Render leaderboard
-    listEl.innerHTML = rows.map(r => r.html).join('');
+    DOM.lbList.innerHTML = rows.map(r => r.html).join('');
 
-    // Show/update user's rank box
-    const myRankBox = document.getElementById('my-rank-box');
-    const myRankVal = document.getElementById('my-rank-val');
-    if(myRankBox && myRankVal){
+    if(DOM.myRankBox && DOM.myRankVal){
       if(userRank && userRank <= 10){
-        // User is in top 10
-        myRankVal.textContent = '#'+userRank+' — '+WEEKLY_PRIZES[userRank-1].toLocaleString()+' DOGS prize';
-        myRankBox.style.display = 'flex';
+        DOM.myRankVal.textContent = '#'+userRank+' — '+WEEKLY_PRIZES[userRank-1].toLocaleString()+' DOGS prize';
+        DOM.myRankBox.style.display = 'flex';
       } else if(walletAddr && userRank){
-        // User is ranked but outside top 10
-        myRankVal.textContent = '#'+userRank+' — Outside top 10';
-        myRankBox.style.display = 'flex';
+        DOM.myRankVal.textContent = '#'+userRank+' — Outside top 10';
+        DOM.myRankBox.style.display = 'flex';
       } else if(walletAddr){
-        myRankVal.textContent = 'Not ranked yet — start wagering!';
-        myRankBox.style.display = 'flex';
+        DOM.myRankVal.textContent = 'Not ranked yet — start wagering!';
+        DOM.myRankBox.style.display = 'flex';
       }
     }
   }catch(e){
-    listEl.innerHTML = '<div class="lb-empty">Failed to load leaderboard</div>';
+    DOM.lbList.innerHTML = '<div class="lb-empty">Failed to load leaderboard</div>';
     console.warn('loadWeeklyLeaderboard:', e);
   }
 }
@@ -2491,52 +2630,89 @@ async function loadWeeklyLeaderboard(){
 function startLeaderboardAutoRefresh(){
   if(_leaderboardRefreshInterval) clearInterval(_leaderboardRefreshInterval);
   _leaderboardRefreshInterval = setInterval(()=>{
-    const tab = document.getElementById('tab-weekly');
-    if(tab && tab.classList.contains('active')){
+    if(DOM.tabWeekly?.classList.contains('active')){
       loadWeeklyLeaderboard();
     }
-  }, 10000); // Refresh every 10 seconds when tab is active
+  }, 10000);
 }
 
 function stopLeaderboardAutoRefresh(){
-  if(_leaderboardRefreshInterval){
-    clearInterval(_leaderboardRefreshInterval);
-    _leaderboardRefreshInterval = null;
-  }
+  if(_leaderboardRefreshInterval) clearInterval(_leaderboardRefreshInterval);
 }
 
 // ═══════════════════════════════════════════════════════
 // INIT
 // ═══════════════════════════════════════════════════════
-// ✅ Initialize Telegram Web App now that page is ready
+// ✅ 1. Initialize DOM cache (reuse throughout app)
+initDOMCache();
+
+// ✅ 2. Initialize Telegram Web App (once at boot)
 tgApp = window.Telegram?.WebApp || null;
 if(tgApp) {
   tgApp.ready();
+  tgApp.expand();
+  tgCloud = tgApp.CloudStorage || null;
+  TG_START_PARAM = tgApp.initDataUnsafe?.start_param || null;
 }
-tgCloud = tgApp?.CloudStorage || null;
 
-document.getElementById('ton-connect-btn').onclick=toggleWalletMenu;
-document.getElementById('start-btn').onclick=startGame;
-document.getElementById('cashout-btn').onclick=()=>endGame(true);
-document.getElementById('tip-btn').onclick=getAITip;
-
-createGrid();
+// ✅ 3. Initialize Supabase and leaderboard store
 initSupabase();
-(async()=>{
+(async ()=>{
+  // Wait for Supabase to be ready
+  await new Promise(r => setTimeout(r, 100));
+  
+  // Initialize leaderboard store with TG and Supabase
+  await leaderboardStore.init(tgApp, sb);
+  
+  // Continue with game initialization
   await loadState();
   updateDogsDisplay();
   if(friendlyAddr) setWalletUI(friendlyAddr);
-  // ✅ Restore history from TG Cloud after wallet connects
   if(tgCloud) await _restoreHistFromCloud();
   initTonConnect();
 })();
 
-// Fetch TON price on init and every 30 seconds
-let _tonPriceInterval = null;
-_tonPriceInterval = setInterval(fetchTonPrice, 30000);
+// ✅ 4. Initialize event delegation and handlers
+initEventDelegation();
+initSupportEmailHandler();
+
+// ✅ 5. Wire up UI buttons (not delegated)
+DOM.startBtn.onclick = startGame;
+DOM.cashoutBtn.onclick = () => endGame(true);
+document.getElementById('tip-btn').onclick = getAITip;
+DOM.tonConnectBtn.onclick = toggleWalletMenu;
+document.getElementById('buy-btn').onclick = ()=>{
+  if(!walletAddr){ showMsg('Connect your TON wallet first.','error'); return; }
+  document.getElementById('buy-error').style.display='none';
+  document.getElementById('buy-ton-input').value='1';
+  updateBuyCalc();
+  openModal('buy-modal','buy-modal-inner');
+};
+document.getElementById('buy-cancel-btn').onclick=()=>closeModal('buy-modal');
+document.getElementById('buy-ton-input').oninput=updateBuyCalc;
+document.getElementById('withdraw-btn').onclick=()=>{
+  if(!walletAddr){ showMsg('Connect your TON wallet first.','error'); return; }
+  if(dogsBalance<1000){ showMsg('Minimum withdrawal is 1,000 DOGS.','error'); return; }
+  wdMode='dogs';
+  document.getElementById('wd-tab-dogs').classList.add('active');
+  document.getElementById('wd-dogs-breakdown').style.display='block';
+  document.getElementById('wd-available').textContent=dogsBalance.toLocaleString()+' DOGS';
+  document.getElementById('wd-dogs-input').value='1000';
+  document.getElementById('wd-error').style.display='none';
+  updateWdCalc();
+  openModal('withdraw-modal','wd-modal-inner');
+};
+document.getElementById('wd-cancel-btn').onclick=()=>closeModal('withdraw-modal');
+document.getElementById('wd-dogs-input').oninput=updateWdCalc;
+
+// Existing modal handlers remain in the HTML
+
+// ✅ 6. Initialize grid and fetch prices
+createGrid();
+let _tonPriceInterval = setInterval(fetchTonPrice, 30000);
 fetchTonPrice();
 
-// Cleanup on page unload to prevent memory leaks
+// ✅ 7. Cleanup on unload
 window.addEventListener('beforeunload', ()=>{
   if(_tonPriceInterval) clearInterval(_tonPriceInterval);
   if(_leaderboardRefreshInterval) clearInterval(_leaderboardRefreshInterval);
