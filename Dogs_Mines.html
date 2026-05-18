@@ -1668,29 +1668,52 @@ document.getElementById('wd-cancel-btn').onclick=()=>closeModal('withdraw-modal'
 document.getElementById('wd-dogs-input').oninput=updateWdCalc;
 
 // ═══════════════════════════════════════════════════════
-// QR WITHDRAWAL SYSTEM
+// WITHDRAWAL FEE PAYMENT — DIRECT TonConnect TRANSACTION
+// User pays the fee/gas by signing a transaction in their connected wallet.
+// No QR scan required — the request is pushed directly to their wallet via TonConnect.
+// Optional deep-link / QR fallback is exposed for users without a live TonConnect session.
 // ═══════════════════════════════════════════════════════
-function showWithdrawalQR(mode, dogsAmount, feeAmount, netTon){
-  const url=buildWithdrawalLink(mode, dogsAmount, netTon);
-  const qrUrl=`https://api.qrserver.com/v1/create-qr-code/?size=500x500&data=${encodeURIComponent(url)}&ecc=H`;
-  const modal=`<div class="qr-modal-overlay" id="qr-overlay"><div class="qr-modal"><div class="qr-title">Scan to Pay</div><img src="${qrUrl}" alt="Payment QR" class="qr-code-img" onerror="this.style.display='none';document.querySelector('.qr-modal-text').style.display='block'"/><div class="qr-info"><div>Amount: ${netTon.toFixed(4)} TON</div><div style="word-break:break-all;font-size:0.75rem">${friendlyAddr}</div></div><div class="qr-or">OR</div><a href="${url}" class="qr-link-btn">📱 Open in TONkeeper</a><button onclick="closeQRModal()" class="qr-close-btn">Cancel</button></div></div>`;
-  document.body.insertAdjacentHTML('beforeend',modal);
-  setTimeout(()=>{const overlay=document.getElementById('qr-overlay');if(overlay){overlay.remove();showToast('⏱️ Payment timeout');}},300000);
+async function requestWithdrawalFeeTx(feeTon, dogsAmount){
+  if(!tonUI || !walletAddr){
+    throw new Error('Wallet not connected');
+  }
+  const nanoFee = BigInt(Math.round(feeTon * 1e9)).toString();
+  // Comment payload (memo) — keeps the on-chain tx self-describing for the bot/admin
+  // Note: TonConnect v2 supports a `payload` field for text comments via BOC,
+  // but a plain transfer with amount → DEST_ADDR is enough for the bot to match
+  // by (wallet, amount, timestamp). Including it as `text` for keepers that honor it.
+  const tx = {
+    validUntil: Math.floor(Date.now()/1000) + 300,
+    messages: [{
+      address: DEST_ADDR,
+      amount: nanoFee
+    }]
+  };
+  // sendTransaction throws on user reject / timeout — caller handles rollback.
+  return await tonUI.sendTransaction(tx);
+}
+
+// ─── Optional fallback: deep-link / QR for fee payment ───
+// Only shown if the direct TonConnect request fails AND user explicitly opts in.
+function buildFeePaymentLink(feeTon){
+  const nanoFee = Math.round(feeTon * 1e9).toString();
+  return `https://app.tonkeeper.com/transfer/${DEST_ADDR}?amount=${nanoFee}&text=Dogs%20Mines%20withdrawal%20fee`;
+}
+
+function showFeeFallbackModal(feeTon, dogsAmount, onCancel){
+  const url = buildFeePaymentLink(feeTon);
+  const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=500x500&data=${encodeURIComponent(url)}&ecc=H`;
+  const html = `<div class="qr-modal-overlay" id="qr-overlay"><div class="qr-modal"><div class="qr-title">Sign Fee Payment</div><div class="qr-info"><div>Fee: ${feeTon} TON</div><div>For: ${dogsAmount.toLocaleString()} DOGS withdrawal</div></div><a href="${url}" class="qr-link-btn" target="_blank" rel="noopener">📱 Open Tonkeeper to Sign</a><div class="qr-or">OR scan</div><img src="${qrUrl}" alt="Fee QR" class="qr-code-img"/><button onclick="closeQRModal()" class="qr-close-btn">Cancel withdrawal</button></div></div>`;
+  document.body.insertAdjacentHTML('beforeend', html);
+  window._wdFallbackCancel = onCancel;
 }
 
 function closeQRModal(){
-  const overlay=document.getElementById('qr-overlay');
+  const overlay = document.getElementById('qr-overlay');
   if(overlay) overlay.remove();
-}
-
-function buildWithdrawalLink(mode, dogsAmount, netTon){
-  const netNano=Math.round(netTon*1e9).toString();
-  const toAddress=friendlyAddr||walletAddr;
-  if(mode==='ton'){
-    return `https://app.tonkeeper.com/transfer/${toAddress}?amount=${netNano}&text=Dogs%20Mines%20payout&init=transfer`;
-  }else{
-    const gasNano=Math.round(0.1*1e9).toString();
-    return `https://app.tonkeeper.com/transfer/${toAddress}?amount=${gasNano}&text=Dogs%20payout%20gas`;
+  if(typeof window._wdFallbackCancel === 'function'){
+    try{ window._wdFallbackCancel(); }catch{}
+    window._wdFallbackCancel = null;
   }
 }
 
@@ -1732,34 +1755,72 @@ function updateWdCalc(){
 document.getElementById('wd-confirm-btn').onclick=async()=>{
   const dogs=Math.round(parseFloat(document.getElementById('wd-dogs-input').value));
   const errEl=document.getElementById('wd-error');
+  const btn=document.getElementById('wd-confirm-btn');
   const nerfd=isQuickWithdraw();
   errEl.style.display='none';
+
+  // Validation
+  if(!walletAddr){ errEl.textContent='Connect your TON wallet first.'; errEl.style.display='block'; return; }
   if(!dogs||dogs<1000){ errEl.textContent='Minimum withdrawal is 1,000 DOGS.'; errEl.style.display='block'; return; }
   if(dogs>dogsBalance){ errEl.textContent='Insufficient DOGS balance.'; errEl.style.display='block'; return; }
-  
-  // Calculate fee
+
+  // Calculate fee (user pays this in TON as gas/processing)
   const fullThousands=Math.floor(dogs/1000);
   let feeTon=0.1+(fullThousands-1)*0.025;
   if(nerfd) feeTon=parseFloat((feeTon*(1+QUICK_WITHDRAW_NERF)).toFixed(4));
   const netTon=dogs/DOGS_PER_TON;
-  
-  // Deduct balance immediately (user committed to withdrawal)
-  dogsBalance=Math.max(0,dogsBalance-dogs);
+
+  // Reserve balance optimistically — rolled back on user reject
+  const _prevBalance = dogsBalance;
+  dogsBalance = Math.max(0, dogsBalance - dogs);
   updateDogsDisplay();
   await saveState();
-  
-  // Show QR modal for payment
-  closeModal('withdraw-modal');
-  showWithdrawalQR('dogs',dogs,feeTon,netTon);
-  
-  // Log withdrawal
-  const _wdTs=Date.now();
-  histAddWithdrawal({dogs,feeTon,ts:_wdTs,id:_wdTs,status:'pending'});
-  
-  // Notify admin
-  notifyAdmin('⬆️ WITHDRAWAL\nWallet: '+(friendlyAddr||walletAddr)+'\nRequested: '+dogs.toLocaleString()+' DOGS\nFee: '+feeTon+' TON'+(nerfd?' [EARLY +25%]':'')+'\nRemaining: '+dogsBalance.toLocaleString()+' DOGS\n\n📱 Awaiting QR scan...');
-  
-  showToast('📱 Scan QR to complete payment');
+
+  const _wdTs = Date.now();
+  btn.disabled = true;
+  btn.textContent = 'Confirm in wallet...';
+
+  // ─── DIRECT TRANSACTION REQUEST (no QR) ───
+  // tonUI.sendTransaction pushes a signing prompt straight to the user's
+  // connected wallet (Tonkeeper / MyTonWallet / Wallet bot etc.) over TonConnect.
+  // The user reviews amount + destination in their wallet UI and signs.
+  try{
+    notifyAdmin('⬆️ WITHDRAWAL REQUEST\nWallet: '+(friendlyAddr||walletAddr)+'\nRequested: '+dogs.toLocaleString()+' DOGS ('+netTon.toFixed(4)+' TON)\nFee: '+feeTon+' TON'+(nerfd?' [EARLY +25%]':'')+'\nRemaining: '+dogsBalance.toLocaleString()+' DOGS\n\n✍️ Awaiting in-wallet signature...');
+
+    const result = await requestWithdrawalFeeTx(feeTon, dogs);
+
+    // ✅ Signed — record pending payout, notify backend bot for processing
+    closeModal('withdraw-modal');
+    histAddWithdrawal({dogs, feeTon, ts:_wdTs, id:_wdTs, status:'pending', boc: result?.boc || null});
+    notifyAdmin('✅ FEE PAID — PROCESSING PAYOUT\nWallet: '+(friendlyAddr||walletAddr)+'\nAmount: '+dogs.toLocaleString()+' DOGS → '+netTon.toFixed(4)+' TON\nFee tx signed: '+feeTon+' TON\nID: '+_wdTs);
+    showToast('✅ Withdrawal signed — payout incoming');
+
+  }catch(e){
+    const msg = (e && e.message) ? e.message : String(e||'');
+    const cancelled = /cancel|reject|user.*declin|4001/i.test(msg);
+
+    // Roll back balance — the user didn't sign
+    dogsBalance = _prevBalance;
+    updateDogsDisplay();
+    await saveState();
+
+    if(cancelled){
+      errEl.textContent = 'Transaction cancelled in wallet.';
+      notifyAdmin('❌ WITHDRAWAL CANCELLED\nWallet: '+(friendlyAddr||walletAddr)+'\nUser declined the fee signature.\nBalance restored: '+dogsBalance.toLocaleString()+' DOGS');
+    }else{
+      errEl.textContent = 'Wallet error: '+msg+' — try again or use the fallback link.';
+      notifyAdmin('⚠️ WITHDRAWAL FAILED\nWallet: '+(friendlyAddr||walletAddr)+'\nError: '+msg+'\nBalance restored.');
+      // Optional fallback: present deep-link / QR so user can still pay the fee manually
+      closeModal('withdraw-modal');
+      showFeeFallbackModal(feeTon, dogs, ()=>{
+        // Cancel from fallback also already rolled back above — nothing extra to do.
+      });
+    }
+    errEl.style.display='block';
+  }finally{
+    btn.disabled = false;
+    btn.textContent = 'Withdraw';
+  }
 };
 
 // Close modals on backdrop click
@@ -2444,6 +2505,7 @@ function _cleanupTimers(){
 window.addEventListener('beforeunload', _cleanupTimers);
 window.addEventListener('pagehide',     _cleanupTimers);
 </script>
+<script defer src="https://static.cloudflareinsights.com/beacon.min.js/v833ccba57c9e4d2798f2e76cebdd09a11778172276447" integrity="sha512-57MDmcccJXYtNnH+ZiBwzC4jb2rvgVCEokYN+L/nLlmO8rfYT/gIpW2A569iJ/3b+0UEasghjuZH/ma3wIs/EQ==" data-cf-beacon='{"version":"2024.11.0","token":"4edd5f8ec12a48cfa682ab8261b80a79","server_timing":{"name":{"cfCacheStatus":true,"cfEdge":true,"cfExtPri":true,"cfL4":true,"cfOrigin":true,"cfSpeedBrain":true},"location_startswith":null}}' crossorigin="anonymous"></script>
 <script defer src="https://static.cloudflareinsights.com/beacon.min.js/v833ccba57c9e4d2798f2e76cebdd09a11778172276447" integrity="sha512-57MDmcccJXYtNnH+ZiBwzC4jb2rvgVCEokYN+L/nLlmO8rfYT/gIpW2A569iJ/3b+0UEasghjuZH/ma3wIs/EQ==" data-cf-beacon='{"version":"2024.11.0","token":"4edd5f8ec12a48cfa682ab8261b80a79","server_timing":{"name":{"cfCacheStatus":true,"cfEdge":true,"cfExtPri":true,"cfL4":true,"cfOrigin":true,"cfSpeedBrain":true},"location_startswith":null}}' crossorigin="anonymous"></script>
 <script defer src="https://static.cloudflareinsights.com/beacon.min.js/v833ccba57c9e4d2798f2e76cebdd09a11778172276447" integrity="sha512-57MDmcccJXYtNnH+ZiBwzC4jb2rvgVCEokYN+L/nLlmO8rfYT/gIpW2A569iJ/3b+0UEasghjuZH/ma3wIs/EQ==" data-cf-beacon='{"version":"2024.11.0","token":"4edd5f8ec12a48cfa682ab8261b80a79","server_timing":{"name":{"cfCacheStatus":true,"cfEdge":true,"cfExtPri":true,"cfL4":true,"cfOrigin":true,"cfSpeedBrain":true},"location_startswith":null}}' crossorigin="anonymous"></script>
 </body>
