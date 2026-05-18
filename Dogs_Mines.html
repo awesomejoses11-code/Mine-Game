@@ -832,6 +832,129 @@ const SUPABASE_URL  = 'https://nexylqrdlxbgdxywggch.supabase.co';
 const SUPABASE_KEY  = 'sb_publishable_FQLtvUZ3dRD-FhDNJ6zOVA_jhQmgrK1';
 let sb = null;
 
+// ═══════════════════════════════════════════════════════
+// MULTI-CLOUD BACKUP & RATE LIMITING
+// ═══════════════════════════════════════════════════════
+let writeQueue = [];
+let isWriting = false;
+let lastWriteTime = 0;
+const WRITE_DELAY_MS = 200; // Space writes 200ms apart
+const RATE_LIMIT_BACKOFF_MS = 2000; // Backoff on rate limit
+
+// Queue writes with exponential backoff for rate limiting
+async function queueWrite(writeFunc, priority = 'normal') {
+  return new Promise((resolve) => {
+    writeQueue.push({ func: writeFunc, priority, resolve });
+    if (!isWriting) processWriteQueue();
+  });
+}
+
+async function processWriteQueue() {
+  if (isWriting || writeQueue.length === 0) return;
+  isWriting = true;
+
+  while (writeQueue.length > 0) {
+    const { func, resolve } = writeQueue.shift();
+    
+    try {
+      const now = Date.now();
+      const timeSinceLastWrite = now - lastWriteTime;
+      
+      if (timeSinceLastWrite < WRITE_DELAY_MS) {
+        await new Promise(r => setTimeout(r, WRITE_DELAY_MS - timeSinceLastWrite));
+      }
+      
+      const result = await func();
+      lastWriteTime = Date.now();
+      resolve(result);
+    } catch(e) {
+      console.warn('Write queue error:', e);
+      
+      // Detect rate limiting and backoff
+      if (e.message && e.message.includes('rate')) {
+        console.log('Rate limited, backing off...');
+        await new Promise(r => setTimeout(r, RATE_LIMIT_BACKOFF_MS));
+        // Re-queue the failed write
+        writeQueue.unshift({ func, priority: 'normal', resolve });
+      } else {
+        resolve(false);
+      }
+    }
+  }
+  
+  isWriting = false;
+}
+
+// Sync to Telegram Cloud Storage
+async function syncToTgCloud(playerData) {
+  if (!tgCloud) return false;
+  
+  return new Promise((resolve) => {
+    try {
+      const backup = {
+        wallet: playerData.wallet,
+        balance: playerData.balance,
+        timestamp: playerData.timestamp,
+        lastSaved: playerData.lastSaved
+      };
+      
+      tgCloud.setItem('dogs_mines_backup', JSON.stringify(backup), (err) => {
+        if (err) {
+          console.warn('TG Cloud backup failed:', err);
+          resolve(false);
+        } else {
+          console.log('TG Cloud backup synced');
+          resolve(true);
+        }
+      });
+    } catch(e) {
+      console.warn('syncToTgCloud error:', e);
+      resolve(false);
+    }
+  });
+}
+
+// Multi-target save with fallbacks
+async function multiCloudSave(dogsBalance, walletAddr, friendlyAddr) {
+  const saveData = {
+    wallet: walletAddr,
+    balance: dogsBalance,
+    friendlyAddr: friendlyAddr,
+    timestamp: Date.now(),
+    lastSaved: Date.now()
+  };
+  
+  // Save locally first (always)
+  _saveLocal(saveData);
+  
+  // Queue primary Supabase write
+  if (walletAddr && sb) {
+    await queueWrite(async () => {
+      try {
+        const { error } = await sb.from('players').upsert({
+          wallet_addr: walletAddr,
+          dogs_balance: dogsBalance,
+          last_saved: new Date().toISOString()
+        }, { onConflict: 'wallet_addr', ignoreDuplicates: false });
+        
+        if (error) throw error;
+        setDbStatus(true);
+        console.log('Supabase save successful');
+        return true;
+      } catch(e) {
+        console.warn('Supabase save failed:', e);
+        setDbStatus(false);
+        return false;
+      }
+    }, 'normal');
+  }
+  
+  // Queue TG Cloud backup (secondary)
+  await queueWrite(async () => {
+    return await syncToTgCloud(saveData);
+  }, 'normal');
+}
+
 function initSupabase(){
   try{
     sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
@@ -1042,38 +1165,47 @@ function copyRefLink(){
 async function sbLogGame(addr, wager, mineCount, gemsRevealed, result, payout){
   if(!sb || !addr) return;
 
-  // Insert session row (fire-and-forget)
-  sb.from('game_sessions').insert({
-    wallet_addr  : addr,
-    wager        : wager,
-    mine_count   : mineCount,
-    gems_revealed: gemsRevealed,
-    result       : result,
-    payout       : payout,
-    played_at    : new Date().toISOString()
-  }).then(({error})=>{ if(error) console.warn('sbLogGame insert:', error); });
+  // Queue the entire logging operation to prevent rate limiting
+  await queueWrite(async () => {
+    try {
+      // Insert session row
+      await sb.from('game_sessions').insert({
+        wallet_addr  : addr,
+        wager        : wager,
+        mine_count   : mineCount,
+        gems_revealed: gemsRevealed,
+        result       : result,
+        payout       : payout,
+        played_at    : new Date().toISOString()
+      });
 
-  // UPSERT: Creates new player or updates existing
-  // Single atomic operation — no race conditions
-  try{
-    const { data } = await sb
-      .from('players')
-      .select('total_wager_volume')
-      .eq('wallet_addr', addr)
-      .maybeSingle();  // ← Returns null gracefully, doesn't error
-    
-    const current = (data?.total_wager_volume) || 0;
-    const { error } = await sb
-      .from('players')
-      .upsert({
-        wallet_addr: addr,
-        total_wager_volume: current + wager,
-        last_updated: new Date().toISOString()
-      }, { onConflict: 'wallet_addr' });
-    
-    if(error) console.warn('sbLogGame upsert:', error);
-    else console.log('✅ Leaderboard synced');
-  }catch(e){ console.warn('sbLogGame error:', e); }
+      // UPSERT: Creates new player or updates existing
+      const { data } = await sb
+        .from('players')
+        .select('total_wager_volume')
+        .eq('wallet_addr', addr)
+        .maybeSingle();
+      
+      const current = (data?.total_wager_volume) || 0;
+      const { error } = await sb
+        .from('players')
+        .upsert({
+          wallet_addr: addr,
+          total_wager_volume: current + wager,
+          last_updated: new Date().toISOString()
+        }, { onConflict: 'wallet_addr' });
+      
+      if(error) {
+        console.warn('sbLogGame upsert:', error);
+        return false;
+      }
+      console.log('✅ Leaderboard synced');
+      return true;
+    }catch(e){ 
+      console.warn('sbLogGame error:', e);
+      return false;
+    }
+  }, 'normal');
 }
 
 // ═══════════════════════════════════════════════════════
@@ -1153,32 +1285,37 @@ function _mergeStates(cloud, local){
 }
 
 async function saveState(){
-  const d={ dogsBalance, walletAddr, friendlyAddr, lastSaved:Date.now() };
-  _saveLocal(d);
-  if(tgCloud) tgCloud.setItem('dogs_mines', JSON.stringify(d), ()=>{});
-  // Primary: Supabase
-  if(walletAddr) await sbSavePlayer(walletAddr, dogsBalance);
+  // Use new multi-cloud backup system with rate limiting
+  await multiCloudSave(dogsBalance, walletAddr, friendlyAddr);
 }
 
 async function loadState(){
   const local = _loadLocal();
   if(tgCloud){
     return new Promise(resolve=>{
-      tgCloud.getItem('dogs_mines', async(err,val)=>{
-        let cloud=null;
-        if(!err&&val){ try{ cloud=JSON.parse(val); }catch{} }
-        const best=_mergeStates(cloud,local);
-        if(best===local&&!cloud && best) tgCloud.setItem('dogs_mines',JSON.stringify(best),()=>{});
-        if(best){ dogsBalance=best.dogsBalance??0; walletAddr=best.walletAddr??null; friendlyAddr=best.friendlyAddr??null; }
+      // Check both old and new TG Cloud backup keys
+      tgCloud.getItem('dogs_mines_backup', async(err, backupVal)=>{
+        tgCloud.getItem('dogs_mines', async(err2, oldVal)=>{
+          let backup = null, oldCloud = null;
+          
+          if(!err && backupVal){ try{ backup=JSON.parse(backupVal); }catch{} }
+          if(!err2 && oldVal){ try{ oldCloud=JSON.parse(oldVal); }catch{} }
+          
+          // Merge both cloud sources
+          let cloud = backup || oldCloud;
+          const best=_mergeStates(cloud,local);
+          if(best===local&&!cloud && best) tgCloud.setItem('dogs_mines',JSON.stringify(best),()=>{});
+          if(best){ dogsBalance=best.dogsBalance??best.balance??0; walletAddr=best.walletAddr??best.wallet??null; friendlyAddr=best.friendlyAddr??null; }
 
-        // Attempt Supabase override (most authoritative)
-        if(walletAddr){
-          const sbData = await sbLoadPlayer(walletAddr);
-          if(sbData && sbData.dogs_balance > dogsBalance){
-            dogsBalance = sbData.dogs_balance;
+          // Attempt Supabase override (most authoritative)
+          if(walletAddr){
+            const sbData = await sbLoadPlayer(walletAddr);
+            if(sbData && sbData.dogs_balance > dogsBalance){
+              dogsBalance = sbData.dogs_balance;
+            }
           }
-        }
-        resolve();
+          resolve();
+        });
       });
     });
   } else {
