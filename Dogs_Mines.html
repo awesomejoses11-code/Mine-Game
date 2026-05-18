@@ -1211,8 +1211,8 @@ async function sbLogGame(addr, wager, mineCount, gemsRevealed, result, payout){
 // ═══════════════════════════════════════════════════════
 // TELEGRAM INIT
 // ═══════════════════════════════════════════════════════
-const tgApp    = window.Telegram?.WebApp   || null;
-const tgCloud  = tgApp?.CloudStorage       || null;
+let tgApp    = null;  // ✅ Changed to let (not const) - will be initialized in init()
+let tgCloud  = null;  // ✅ Changed to let (not const) - will be initialized in init()
 const tgHaptic = tgApp?.HapticFeedback     || null;
 if(tgApp){ tgApp.ready(); tgApp.expand(); }
 
@@ -1880,10 +1880,11 @@ function tileClick(e){
     playBombBuzzer();
     bombsHit++;
 
-    // Apply 25% balance penalty
-    const penalty = Math.floor(dogsBalance * BOMB_PENALTY);
-    dogsBalance = Math.max(0, dogsBalance - penalty);
-    updateDogsDisplay();
+    // ✅ FIX: Do NOT deduct from main balance
+    // Bombs reduce the multiplier/winnings via calcMultiplier() formula
+    // Main balance only changes at game end (loss) or cashout (win)
+    // Do NOT: const penalty = Math.floor(dogsBalance * BOMB_PENALTY);
+    // Do NOT: dogsBalance = Math.max(0, dogsBalance - penalty);
     updateLivesDisplay();
     updateMultiplier();
 
@@ -1893,7 +1894,7 @@ function tileClick(e){
       // Out of lives — end the game but cashout still available
       isGameActive = false;
       gameOver     = true;
-      showMsg('💥 Out of lives! −'+penalty.toLocaleString()+' DOGS. Cash out your '+gemsFound+' 💎 or start a new game.','error');
+      showMsg('💥 Out of lives! Your multiplier is reduced. Cash out your '+gemsFound+' 💎 or start a new game.','error');
       if(gemsFound > 0){
         document.getElementById('cashout-btn').disabled = false;
         document.getElementById('cashout-btn').classList.add('anim-cash-pulse');
@@ -1902,7 +1903,8 @@ function tileClick(e){
       _finaliseRound();
     } else {
       const livesLeft = MAX_BOMBS - bombsHit;
-      showMsg('💣 Bomb! −'+penalty.toLocaleString()+' DOGS (25%). '+livesLeft+' life'+( livesLeft!==1?'s':'')+' left — keep going or cash out!','error');
+      const currentMult = calcMultiplier().toFixed(2);
+      showMsg('💣 Bomb! Multiplier reduced to '+currentMult+'×. '+livesLeft+' life'+( livesLeft!==1?'s':'')+' left — keep going or cash out!','error');
       saveState();
     }
   } else {
@@ -1947,7 +1949,7 @@ function startGame(){
   placeMines(mines).then(()=>{
     updateMultiplier();
     buildStreak();
-    showMsg('Game on — '+MAX_BOMBS+' lives · find 💎 avoid 💣 · each bomb costs 25% balance','info');
+    showMsg('Game on — '+MAX_BOMBS+' lives · find 💎 avoid 💣 · each bomb reduces your multiplier','info');
   });
 }
 
@@ -2506,6 +2508,13 @@ function stopLeaderboardAutoRefresh(){
 // ═══════════════════════════════════════════════════════
 // INIT
 // ═══════════════════════════════════════════════════════
+// ✅ Initialize Telegram Web App now that page is ready
+tgApp = window.Telegram?.WebApp || null;
+if(tgApp) {
+  tgApp.ready();
+}
+tgCloud = tgApp?.CloudStorage || null;
+
 document.getElementById('ton-connect-btn').onclick=toggleWalletMenu;
 document.getElementById('start-btn').onclick=startGame;
 document.getElementById('cashout-btn').onclick=()=>endGame(true);
@@ -2517,6 +2526,8 @@ initSupabase();
   await loadState();
   updateDogsDisplay();
   if(friendlyAddr) setWalletUI(friendlyAddr);
+  // ✅ Restore history from TG Cloud after wallet connects
+  if(tgCloud) await _restoreHistFromCloud();
   initTonConnect();
 })();
 
