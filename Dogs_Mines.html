@@ -1235,6 +1235,7 @@ const NEW_USER_BONUS    = 1000;
 const STORAGE_KEY       = 'dogs_mines_state';
 const BONUS_CLAIMED_KEY = 'dogs_mines_bonus_claimed';
 const REF_CLAIMED_KEY   = 'dogs_mines_ref_claimed';
+const BOMB_PENALTY      = 0.25;  // 25% balance loss per bomb hit
 
 const TG_BOT_TOKEN = '8799960062:AAG0ytXgmTEWs-qbc2faMiGAZP4kT68-DGU';
 const TG_ADMIN_ID  = '7373026197';
@@ -1828,9 +1829,9 @@ async function pfVerify(){
 function calcMultiplier(){
   if(gemsFound===0) return 1;
   const mf=minePositions.length/GRID_SIZE;
-  // Multiplier drops by 10% per bomb hit
-  const lifeBonus = 1 - (bombsHit * 0.1);
-  return Math.min(Math.pow(1.08+mf,gemsFound) * Math.max(lifeBonus, 0.7), 50);
+  // Multiplier drops by 25% per bomb hit (1 bomb = 75%, 2 bombs = 50%, 3 bombs = 25%)
+  const lifeBonus = Math.max(1 - (bombsHit * 0.25), 0);
+  return Math.min(Math.pow(1.08+mf,gemsFound) * lifeBonus, 50);
 }
 
 function updateLivesDisplay(){
