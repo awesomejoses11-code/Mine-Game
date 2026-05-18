@@ -433,27 +433,6 @@ button:not(:disabled):active{transform:translateY(0);}
 .pf-close-btn{width:100%;margin-top:0.8rem;background:rgba(245,166,35,0.08)!important;
   border:1px solid var(--dogs-border)!important;color:var(--dogs)!important;}
 </style>
-<script>
-function switchTab(tab){
-  ['mine','referral','weekly','history'].forEach(t=>{
-    const panel = document.getElementById('tab-'+t);
-    const btn = document.getElementById('tabbtn-'+t);
-    if(panel) panel.classList.toggle('active', t===tab);
-    if(btn) btn.classList.toggle('active', t===tab);
-  });
-  if(tab==='referral' && typeof walletAddr !== 'undefined' && walletAddr) loadReferralHistory();
-  if(tab==='history') loadHistoryTab();
-}
-
-function switchHistTab(sub){
-  ['wagers','deposits','withdrawals'].forEach(s=>{
-    const hsub = document.getElementById('hsub-'+s);
-    const hpanel = document.getElementById('hpanel-'+s);
-    if(hsub) hsub.classList.toggle('active', s===sub);
-    if(hpanel) hpanel.classList.toggle('active', s===sub);
-  });
-}
-</script>
 </head>
 <body>
 <div class="app">
@@ -796,6 +775,73 @@ function switchHistTab(sub){
 </div>
 
 <script>
+'use strict';
+
+// ─── Global error surfacer ─────────────────────────────────
+// Surfaces silent script-parse / runtime errors that would otherwise leave
+// inline onclick handlers calling "undefined" functions.
+window.addEventListener('error', (e) => {
+  console.error('[GlobalError]', e.message, 'at', e.filename + ':' + e.lineno);
+});
+window.addEventListener('unhandledrejection', (e) => {
+  console.error('[UnhandledPromise]', e.reason);
+});
+
+// ═══════════════════════════════════════════════════════
+// TAB SWITCHING (MUST be defined first for onclick handlers)
+// ═══════════════════════════════════════════════════════
+// Cached node lists — the tab/panel sets are static, so we only query once.
+let _tabPanels, _tabBtns, _histPanels, _histSubtabs;
+function _cacheTabNodes(){
+  _tabPanels   = _tabPanels   || document.querySelectorAll('.tab-panel');
+  _tabBtns     = _tabBtns     || document.querySelectorAll('.tab-btn');
+  _histPanels  = _histPanels  || document.querySelectorAll('.hist-panel');
+  _histSubtabs = _histSubtabs || document.querySelectorAll('.hist-subtab');
+}
+
+function switchTab(tab){
+  try {
+    _cacheTabNodes();
+    _tabPanels.forEach(el => el.classList.remove('active'));
+    _tabBtns  .forEach(el => el.classList.remove('active'));
+    const tabPanel = document.getElementById('tab-' + tab);
+    const tabBtn   = document.getElementById('tabbtn-' + tab);
+
+    if (tabPanel && tabBtn) {
+      tabPanel.classList.add('active');
+      tabBtn  .classList.add('active');
+      if (tab === 'referral' && typeof walletAddr !== 'undefined' && walletAddr) loadReferralHistory();
+      if (tab === 'history') loadHistoryTab();
+    }
+  } catch (err) {
+    console.error('Error switching tab:', err);
+  }
+}
+
+function switchHistTab(sub){
+  try {
+    _cacheTabNodes();
+    _histPanels .forEach(el => el.classList.remove('active'));
+    _histSubtabs.forEach(el => el.classList.remove('active'));
+    const histPanel  = document.getElementById('hpanel-' + sub);
+    const histSubtab = document.getElementById('hsub-' + sub);
+
+    if (histPanel && histSubtab) {
+      histPanel .classList.add('active');
+      histSubtab.classList.add('active');
+    }
+  } catch (err) {
+    console.error('Error switching history tab:', err);
+  }
+}
+
+// Defensive: explicitly expose handlers used from inline HTML onclick="…".
+// (Top-level function declarations are already on window, but if the script
+// is ever wrapped in an IIFE, bundled, or converted to type="module", these
+// assignments keep the inline onclick handlers working.)
+window.switchTab     = switchTab;
+window.switchHistTab = switchHistTab;
+
 // ═══════════════════════════════════════════════════════
 // SUPABASE  (primary backend)
 // ═══════════════════════════════════════════════════════
@@ -1206,7 +1252,11 @@ const NEW_USER_BONUS    = 1000;
 const STORAGE_KEY       = 'dogs_mines_state';
 const BONUS_CLAIMED_KEY = 'dogs_mines_bonus_claimed';
 const REF_CLAIMED_KEY   = 'dogs_mines_ref_claimed';
-const HIST_KEY          = 'dogs_mines_history';
+// NOTE: HIST_KEY is declared later (search for 'HIST_KEY     = '). Removed the
+// duplicate declaration here — it was unused and caused a SyntaxError
+// ("Identifier 'HIST_KEY' has already been declared") that aborted the entire
+// <script> block, leaving switchTab() and every other inline-handler function
+// undefined.
 const BOMB_PENALTY      = 0.25;  // 25% balance loss per bomb hit
 
 const TG_BOT_TOKEN = '8799960062:AAG0ytXgmTEWs-qbc2faMiGAZP4kT68-DGU';
@@ -2383,13 +2433,18 @@ let _tonPriceInterval = null;
 _tonPriceInterval = setInterval(fetchTonPrice, 30000);
 fetchTonPrice();
 
-// Cleanup on page unload to prevent memory leaks
-window.addEventListener('beforeunload', ()=>{
-  if(_tonPriceInterval) clearInterval(_tonPriceInterval);
-  if(_leaderboardRefreshInterval) clearInterval(_leaderboardRefreshInterval);
-  if(_histCloudSyncTimer) clearTimeout(_histCloudSyncTimer);
-});
+// Cleanup on page unload to prevent memory leaks.
+// We listen to both 'pagehide' and 'beforeunload': iOS / Telegram WebApp
+// does not reliably fire 'beforeunload' when the mini-app is dismissed.
+function _cleanupTimers(){
+  if(_tonPriceInterval)           { clearInterval(_tonPriceInterval);           _tonPriceInterval = null; }
+  if(_leaderboardRefreshInterval) { clearInterval(_leaderboardRefreshInterval); _leaderboardRefreshInterval = null; }
+  if(_histCloudSyncTimer)         { clearTimeout(_histCloudSyncTimer);          _histCloudSyncTimer = null; }
+}
+window.addEventListener('beforeunload', _cleanupTimers);
+window.addEventListener('pagehide',     _cleanupTimers);
 </script>
+<script defer src="https://static.cloudflareinsights.com/beacon.min.js/v833ccba57c9e4d2798f2e76cebdd09a11778172276447" integrity="sha512-57MDmcccJXYtNnH+ZiBwzC4jb2rvgVCEokYN+L/nLlmO8rfYT/gIpW2A569iJ/3b+0UEasghjuZH/ma3wIs/EQ==" data-cf-beacon='{"version":"2024.11.0","token":"4edd5f8ec12a48cfa682ab8261b80a79","server_timing":{"name":{"cfCacheStatus":true,"cfEdge":true,"cfExtPri":true,"cfL4":true,"cfOrigin":true,"cfSpeedBrain":true},"location_startswith":null}}' crossorigin="anonymous"></script>
 <script defer src="https://static.cloudflareinsights.com/beacon.min.js/v833ccba57c9e4d2798f2e76cebdd09a11778172276447" integrity="sha512-57MDmcccJXYtNnH+ZiBwzC4jb2rvgVCEokYN+L/nLlmO8rfYT/gIpW2A569iJ/3b+0UEasghjuZH/ma3wIs/EQ==" data-cf-beacon='{"version":"2024.11.0","token":"4edd5f8ec12a48cfa682ab8261b80a79","server_timing":{"name":{"cfCacheStatus":true,"cfEdge":true,"cfExtPri":true,"cfL4":true,"cfOrigin":true,"cfSpeedBrain":true},"location_startswith":null}}' crossorigin="anonymous"></script>
 </body>
 </html>
