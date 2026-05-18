@@ -307,20 +307,20 @@ button:not(:disabled):active{transform:translateY(0);}
 .prize-rnk.gold{color:#fbbf24;}.prize-rnk.silver{color:#94a3b8;}.prize-rnk.bronze{color:#c47c3a;}
 .prize-dogs{font-family:'Bebas Neue',sans-serif;font-size:0.95rem;color:var(--dogs);}
 .prize-ton{font-family:'IBM Plex Mono',monospace;font-size:0.52rem;color:var(--muted2);}
-.leaderboard{background:var(--panel);border:1px solid var(--border);border-radius:12px;padding:1rem 1.1rem;overflow-x:hidden;}
+.leaderboard{background:var(--panel);border:1px solid var(--border);border-radius:12px;padding:1rem 1.1rem;}
 .lb-hd{display:flex;justify-content:space-between;align-items:center;margin-bottom:0.75rem;}
 .lb-title{font-family:'IBM Plex Mono',monospace;font-size:0.55rem;color:var(--muted2);letter-spacing:0.2em;text-transform:uppercase;}
 .lb-refresh{background:none;border:1px solid var(--border2)!important;color:var(--muted2);padding:0.2rem 0.55rem;font-size:0.52rem;letter-spacing:0.08em;border-radius:4px;}
 .lb-refresh:hover{border-color:var(--dogs-border)!important;color:var(--dogs);}
-.lb-row{display:flex;align-items:center;gap:0.6rem;padding:0.5rem 0.55rem;border-radius:8px;margin-bottom:0.3rem;width:100%;overflow:hidden;}
+.lb-row{display:flex;align-items:center;gap:0.6rem;padding:0.5rem 0.55rem;border-radius:8px;margin-bottom:0.3rem;}
 .lb-row:last-child{margin-bottom:0;}
 .lb-row.me{background:rgba(245,166,35,0.07);border:1px solid var(--dogs-border);}
-.lb-rnk{font-family:'Bebas Neue',sans-serif;font-size:1rem;color:var(--muted);min-width:1.6rem;max-width:1.6rem;flex-shrink:0;text-align:center;}
+.lb-rnk{font-family:'Bebas Neue',sans-serif;font-size:1rem;color:var(--muted);min-width:1.6rem;text-align:center;}
 .lb-row.rank-1 .lb-rnk{color:#fbbf24;}.lb-row.rank-2 .lb-rnk{color:#94a3b8;}.lb-row.rank-3 .lb-rnk{color:#c47c3a;}
-.lb-info{flex:1;min-width:0;overflow:hidden;}
+.lb-info{flex:1;min-width:0;}
 .lb-addr{font-family:'IBM Plex Mono',monospace;font-size:0.6rem;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
-.lb-wager{font-family:'IBM Plex Mono',monospace;font-size:0.5rem;color:var(--muted);margin-top:1px;overflow:hidden;text-overflow:ellipsis;}
-.lb-prize{font-family:'Bebas Neue',sans-serif;font-size:0.75rem;color:var(--dogs);white-space:nowrap;flex-shrink:0;max-width:90px;overflow:hidden;text-overflow:ellipsis;}
+.lb-wager{font-family:'IBM Plex Mono',monospace;font-size:0.5rem;color:var(--muted);margin-top:1px;}
+.lb-prize{font-family:'Bebas Neue',sans-serif;font-size:0.9rem;color:var(--dogs);white-space:nowrap;}
 .lb-empty{text-align:center;padding:1.5rem;color:var(--muted);font-family:'IBM Plex Mono',monospace;font-size:0.65rem;}
 .my-rank-box{background:var(--panel2);border:1px solid var(--dogs-border);border-radius:10px;padding:0.65rem 0.9rem;display:flex;justify-content:space-between;align-items:center;}
 .my-rank-label{font-family:'IBM Plex Mono',monospace;font-size:0.52rem;color:var(--muted2);letter-spacing:0.12em;}
@@ -1053,13 +1053,15 @@ async function sbLogGame(addr, wager, mineCount, gemsRevealed, result, payout){
     played_at    : new Date().toISOString()
   }).then(({error})=>{ if(error) console.warn('sbLogGame insert:', error); });
 
-  // UPSERT: Creates or updates player wager volume atomically
+  // UPSERT: Creates new player or updates existing
+  // Single atomic operation — no race conditions
   try{
     const { data } = await sb
       .from('players')
       .select('total_wager_volume')
       .eq('wallet_addr', addr)
-      .maybeSingle();
+      .maybeSingle();  // ← Returns null gracefully, doesn't error
+    
     const current = (data?.total_wager_volume) || 0;
     const { error } = await sb
       .from('players')
@@ -1068,9 +1070,10 @@ async function sbLogGame(addr, wager, mineCount, gemsRevealed, result, payout){
         total_wager_volume: current + wager,
         last_updated: new Date().toISOString()
       }, { onConflict: 'wallet_addr' });
-    if(error) console.error('Supabase upsert error:', error);
-    else console.log('✅ Synced to Supabase');
-  }catch(e){ console.error('sbLogGame sync:', e); }
+    
+    if(error) console.warn('sbLogGame upsert:', error);
+    else console.log('✅ Leaderboard synced');
+  }catch(e){ console.warn('sbLogGame error:', e); }
 }
 
 // ═══════════════════════════════════════════════════════
@@ -1688,9 +1691,9 @@ async function pfVerify(){
 function calcMultiplier(){
   if(gemsFound===0) return 1;
   const mf=minePositions.length/GRID_SIZE;
-  // More judicious: 1.05x base + 10% penalty per bomb hit
-  const lifeBonus = 1 - (bombsHit * 0.10);
-  return Math.min(Math.pow(1.05+mf,gemsFound) * Math.max(lifeBonus, 0.7), 50);
+  // Multiplier drops by 10% per bomb hit
+  const lifeBonus = 1 - (bombsHit * 0.1);
+  return Math.min(Math.pow(1.08+mf,gemsFound) * Math.max(lifeBonus, 0.7), 50);
 }
 
 function updateLivesDisplay(){
@@ -1827,7 +1830,7 @@ function _finaliseRound(){
   document.getElementById('wager').disabled=false;
   document.getElementById('pf-verify-btn').disabled=false;
   buildStreak();
-  // Delay leaderboard refresh to allow DB to catch up (2 seconds for Supabase sync)
+  // Delay leaderboard refresh to allow DB to catch up (500ms)
   if(document.getElementById('tab-weekly').classList.contains('active')){
     setTimeout(()=>loadWeeklyLeaderboard(), 2000);
   }
@@ -2259,122 +2262,89 @@ async function loadWeeklyLeaderboard(){
   if(!listEl) return;
   listEl.innerHTML = '<div class="lb-empty">Loading…</div>';
 
-  try{
-    let allWagers = {};
-    
-    // Try Supabase first
-    if(sb){
-      try{
-        const { data: top10, error } = await sb
-          .from('players')
-          .select('wallet_addr,total_wager_volume')
-          .order('total_wager_volume', { ascending: false })
-          .limit(10);
+  if(!sb){ 
+    listEl.innerHTML = '<div class="lb-empty">DB offline — connect to view leaderboard</div>'; 
+    return; 
+  }
 
-        if(!error && top10 && top10.length > 0){
-          // Supabase has data, use it
-          const rows = top10.map((p, i) => ({
-            html: `<div class="lb-row${i<=2?' rank-'+(i+1):''}${walletAddr && p.wallet_addr === walletAddr?' me':''}">
-              <div class="lb-rnk">${i+1}</div>
-              <div class="lb-info">
-                <div class="lb-addr">${p.wallet_addr.slice(0,6)}…${p.wallet_addr.slice(-4)}${walletAddr && p.wallet_addr === walletAddr?' (YOU)':''}</div>
-                <div class="lb-wager">${(p.total_wager_volume||0).toLocaleString()} DOGS wagered</div>
-              </div>
-              ${WEEKLY_PRIZES[i] ? '<div class="lb-prize">+'+WEEKLY_PRIZES[i].toLocaleString()+'</div>' : ''}
-            </div>`,
-            rank: i+1,
-            isMe: walletAddr && p.wallet_addr === walletAddr
-          }));
-          
-          listEl.innerHTML = rows.map(r => r.html).join('');
-          
-          const myRankBox = document.getElementById('my-rank-box');
-          const myRankVal = document.getElementById('my-rank-val');
-          if(myRankBox && myRankVal){
-            const meRow = rows.find(r => r.isMe);
-            if(meRow){
-              myRankVal.textContent = '#'+meRow.rank+' — '+WEEKLY_PRIZES[meRow.rank-1].toLocaleString()+' DOGS prize';
-            } else if(walletAddr){
-              myRankVal.textContent = 'Play to rank!';
-            }
-            myRankBox.style.display = 'flex';
-          }
-          return;
-        }
-      }catch(e){ console.warn('Supabase query failed:', e); }
-    }
-    
-    // Fallback: Calculate from localStorage game history
-    const h = _loadHistory();
-    if(h && h.wagers && h.wagers.length > 0){
-      // Sum wagers by current wallet
-      if(walletAddr){
-        const totalWager = h.wagers.reduce((sum, w) => sum + (w.wager || 0), 0);
-        if(totalWager > 0) allWagers[walletAddr] = totalWager;
-      }
+  try{
+    // Get top 10 by total_wager_volume
+    const { data: top10, error } = await sb
+      .from('players')
+      .select('wallet_addr,total_wager_volume')
+      .order('total_wager_volume', { ascending: false })
+      .limit(10);
+
+    if(error) throw error;
+    if(!top10 || top10.length === 0){
+      listEl.innerHTML = '<div class="lb-empty">No wagers yet this week — be the first!</div>';
       
-      // Try to get leaderboard from TG Cloud
-      try{
-        if(tgCloud){
-          allWagers = await new Promise(resolve=>{
-            tgCloud.getItem('wager_leaderboard', (err, val)=>{
-              if(!err && val) try{ resolve(JSON.parse(val)); }catch(){ resolve(allWagers); }
-              else resolve(allWagers);
-            });
-          });
-        }
-      }catch(e){ console.warn('TG Cloud load failed'); }
-    }
-    
-    if(!allWagers || Object.keys(allWagers).length === 0){
-      listEl.innerHTML = '<div class="lb-empty">No wagers yet — play to rank!</div>';
+      // Still show user's rank if connected but not wagered
       if(walletAddr){
         const myRankBox = document.getElementById('my-rank-box');
-        if(myRankBox){
-          document.getElementById('my-rank-val').textContent = 'Play your first game!';
+        const myRankVal = document.getElementById('my-rank-val');
+        if(myRankBox && myRankVal){
+          myRankVal.textContent = 'Start wagering to rank';
           myRankBox.style.display = 'flex';
         }
       }
       return;
     }
 
-    // Render leaderboard
-    const sorted = Object.entries(allWagers)
-      .map(([wallet, volume]) => ({ wallet, volume: volume || 0 }))
-      .sort((a, b) => b.volume - a.volume)
-      .slice(0, 10);
-
-    let userRank = null;
-    listEl.innerHTML = sorted.map((p, i) => {
+    // Rank the top 10
+    const rows = top10.map((p, i) => {
       const rank = i + 1;
-      const isMe = walletAddr && p.wallet === walletAddr;
-      if(isMe) userRank = rank;
-      const short = p.wallet.slice(0,6)+'…'+p.wallet.slice(-4);
+      const isMe = walletAddr && p.wallet_addr === walletAddr;
+      const short = p.wallet_addr.slice(0,6)+'…'+p.wallet_addr.slice(-4);
       const prize = WEEKLY_PRIZES[rank-1] || 0;
-      return `<div class="lb-row${rank<=3?' rank-'+rank:''}${isMe?' me':''}">
-        <div class="lb-rnk">${rank}</div>
-        <div class="lb-info">
-          <div class="lb-addr">${short}${isMe?' (YOU)':''}</div>
-          <div class="lb-wager">${(p.volume||0).toLocaleString()} DOGS wagered</div>
-        </div>
-        ${prize ? '<div class="lb-prize">+'+prize.toLocaleString()+'</div>' : ''}
-      </div>`;
-    }).join('');
+      const rankClass = rank<=3 ? ' rank-'+rank : '';
+      const meClass = isMe ? ' me' : '';
+      return {
+        html: `<div class="lb-row${rankClass}${meClass}">
+          <div class="lb-rnk">${rank}</div>
+          <div class="lb-info">
+            <div class="lb-addr">${short}${isMe?' (YOU)':''}</div>
+            <div class="lb-wager">${(p.total_wager_volume||0).toLocaleString()} DOGS wagered</div>
+          </div>
+          ${prize ? '<div class="lb-prize">+'+prize.toLocaleString()+'</div>' : ''}
+        </div>`,
+        rank: rank,
+        isMe: isMe
+      };
+    });
 
-    // Show user's rank
+    // Check if user is in top 10
+    let userInTop10 = rows.some(r => r.isMe);
+    let userRank = rows.find(r => r.isMe)?.rank || null;
+
+    // If user is connected but not in top 10, fetch their rank
+    if(walletAddr && !userInTop10){
+      userRank = await getUserRank(walletAddr);
+    }
+
+    // Render leaderboard
+    listEl.innerHTML = rows.map(r => r.html).join('');
+
+    // Show/update user's rank box
     const myRankBox = document.getElementById('my-rank-box');
     const myRankVal = document.getElementById('my-rank-val');
     if(myRankBox && myRankVal){
       if(userRank && userRank <= 10){
+        // User is in top 10
         myRankVal.textContent = '#'+userRank+' — '+WEEKLY_PRIZES[userRank-1].toLocaleString()+' DOGS prize';
+        myRankBox.style.display = 'flex';
+      } else if(walletAddr && userRank){
+        // User is ranked but outside top 10
+        myRankVal.textContent = '#'+userRank+' — Outside top 10';
+        myRankBox.style.display = 'flex';
       } else if(walletAddr){
-        myRankVal.textContent = 'Play more to rank!';
+        myRankVal.textContent = 'Not ranked yet — start wagering!';
+        myRankBox.style.display = 'flex';
       }
-      myRankBox.style.display = 'flex';
     }
   }catch(e){
-    listEl.innerHTML = '<div class="lb-empty">Leaderboard loading…</div>';
-    console.warn('loadWeeklyLeaderboard error:', e);
+    listEl.innerHTML = '<div class="lb-empty">Failed to load leaderboard</div>';
+    console.warn('loadWeeklyLeaderboard:', e);
   }
 }
 
