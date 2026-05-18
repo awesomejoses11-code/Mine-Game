@@ -292,24 +292,6 @@ button:not(:disabled):active{transform:translateY(0);}
 .ref-item-date{font-family:'IBM Plex Mono',monospace;font-size:0.52rem;color:var(--muted);margin-top:2px;}
 .ref-item-bonus{font-family:'Bebas Neue',sans-serif;font-size:0.95rem;color:var(--dogs);}
 .ref-empty{text-align:center;padding:1.5rem 1rem;color:var(--muted);font-family:'IBM Plex Mono',monospace;font-size:0.68rem;line-height:1.8;}
-/* ── WEEKLY TAB ── */
-.week-header{background:linear-gradient(135deg,rgba(245,166,35,0.06) 0%,transparent 70%);border:1px solid var(--dogs-border);border-radius:14px;padding:1.1rem 1.25rem;}
-.week-title{font-family:'Bebas Neue',sans-serif;font-size:1.4rem;letter-spacing:0.12em;color:var(--dogs);}
-.week-sub{font-family:'IBM Plex Mono',monospace;font-size:0.5rem;color:var(--muted2);letter-spacing:0.14em;margin-top:2px;margin-bottom:0.9rem;}
-.week-countdown{background:var(--panel2);border:1px solid var(--border2);border-radius:10px;padding:0.6rem 0.9rem;display:flex;align-items:center;justify-content:space-between;}
-.wc-label{font-family:'IBM Plex Mono',monospace;font-size:0.52rem;color:var(--muted2);letter-spacing:0.14em;}
-.wc-val{font-family:'Bebas Neue',sans-serif;font-size:1.1rem;color:var(--gem-col);letter-spacing:0.08em;}
-.prize-pool{background:var(--panel);border:1px solid var(--border);border-radius:12px;padding:1rem 1.1rem;}
-.prize-pool-title{font-family:'IBM Plex Mono',monospace;font-size:0.55rem;color:var(--muted2);letter-spacing:0.2em;margin-bottom:0.75rem;text-transform:uppercase;}
-.prize-row{display:flex;align-items:center;justify-content:space-between;padding:0.42rem 0.5rem;border-radius:6px;margin-bottom:2px;}
-.prize-row:nth-child(odd){background:rgba(255,255,255,0.02);}
-.prize-rnk{font-family:'IBM Plex Mono',monospace;font-size:0.6rem;color:var(--muted2);min-width:2.8rem;}
-.prize-rnk.gold{color:#fbbf24;}.prize-rnk.silver{color:#94a3b8;}.prize-rnk.bronze{color:#c47c3a;}
-.prize-dogs{font-family:'Bebas Neue',sans-serif;font-size:0.95rem;color:var(--dogs);}
-.prize-ton{font-family:'IBM Plex Mono',monospace;font-size:0.52rem;color:var(--muted2);}
-.my-rank-box{background:var(--panel2);border:1px solid var(--dogs-border);border-radius:10px;padding:0.65rem 0.9rem;display:flex;justify-content:space-between;align-items:center;}
-.my-rank-label{font-family:'IBM Plex Mono',monospace;font-size:0.52rem;color:var(--muted2);letter-spacing:0.12em;}
-.my-rank-val{font-family:'Bebas Neue',sans-serif;font-size:1rem;color:var(--dogs);}
 
 /* ── HISTORY TAB ── */
 .hist-header{background:linear-gradient(135deg,rgba(245,166,35,0.06) 0%,transparent 70%);border:1px solid var(--dogs-border);border-radius:14px;padding:1.1rem 1.25rem;}
@@ -591,39 +573,6 @@ button:not(:disabled):active{transform:translateY(0);}
 
   </div><!-- /tab-referral -->
 
-  <!-- ═══ TAB: WEEKLY ═══ -->
-  <div id="tab-weekly" class="tab-panel">
-
-    <div class="week-header">
-      <div class="week-title">🏆 Weekly Prize</div>
-      <div class="week-sub">TOP 10 WAGERERS SHARE THE POOL · RESETS EVERY SATURDAY 9PM UTC</div>
-      <div class="week-countdown">
-        <span class="wc-label">NEXT DISTRIBUTION IN</span>
-        <span class="wc-val" id="week-countdown">—</span>
-      </div>
-    </div>
-
-    <div class="prize-pool">
-      <div class="prize-pool-title">Prize Pool Breakdown (700k DOGS)</div>
-      <div class="prize-row"><span class="prize-rnk gold">🥇 RANK 1</span><span class="prize-dogs">150,000 DOGS</span><span class="prize-ton">≈ 6 TON</span></div>
-      <div class="prize-row"><span class="prize-rnk silver">🥈 RANK 2</span><span class="prize-dogs">120,000 DOGS</span><span class="prize-ton">≈ 4.8 TON</span></div>
-      <div class="prize-row"><span class="prize-rnk bronze">🥉 RANK 3</span><span class="prize-dogs">100,000 DOGS</span><span class="prize-ton">≈ 4 TON</span></div>
-      <div class="prize-row"><span class="prize-rnk">4TH</span><span class="prize-dogs">80,000 DOGS</span><span class="prize-ton">≈ 3.2 TON</span></div>
-      <div class="prize-row"><span class="prize-rnk">5TH</span><span class="prize-dogs">70,000 DOGS</span><span class="prize-ton">≈ 2.8 TON</span></div>
-      <div class="prize-row"><span class="prize-rnk">6TH</span><span class="prize-dogs">60,000 DOGS</span><span class="prize-ton">≈ 2.4 TON</span></div>
-      <div class="prize-row"><span class="prize-rnk">7TH</span><span class="prize-dogs">50,000 DOGS</span><span class="prize-ton">≈ 2 TON</span></div>
-      <div class="prize-row"><span class="prize-rnk">8TH</span><span class="prize-dogs">40,000 DOGS</span><span class="prize-ton">≈ 1.6 TON</span></div>
-      <div class="prize-row"><span class="prize-rnk">9TH</span><span class="prize-dogs">20,000 DOGS</span><span class="prize-ton">≈ 0.8 TON</span></div>
-      <div class="prize-row"><span class="prize-rnk">10TH</span><span class="prize-dogs">10,000 DOGS</span><span class="prize-ton">≈ 0.4 TON</span></div>
-    </div>
-
-    <div class="my-rank-box" id="my-rank-box" style="display:none">
-      <span class="my-rank-label">YOUR CURRENT RANK</span>
-      <span class="my-rank-val" id="my-rank-val">—</span>
-    </div>
-
-  </div><!-- /tab-weekly -->
-
   <!-- ═══ TAB: HISTORY ═══ -->
   <div id="tab-history" class="tab-panel">
 
@@ -708,9 +657,6 @@ button:not(:disabled):active{transform:translateY(0);}
     </button>
     <button class="tab-btn" id="tabbtn-referral" onclick="switchTab('referral')">
       <span class="ti">🐾</span>Refer
-    </button>
-    <button class="tab-btn" id="tabbtn-weekly" onclick="switchTab('weekly')">
-      <span class="ti">🏆</span>Weekly
     </button>
     <button class="tab-btn" id="tabbtn-history" onclick="switchTab('history')">
       <span class="ti">📋</span>History
@@ -824,55 +770,75 @@ function copySupportEmail() {
     setTimeout(() => {
       feedback.style.display = 'none';
     }, 2000);
+  }).catch(err => {
+    console.error('Failed to copy email:', err);
   });
 }
 
 // Tab switching
 function switchTab(tabName) {
-  document.querySelectorAll('.tab-panel').forEach(el => el.classList.remove('active'));
-  document.querySelectorAll('.tab-btn').forEach(el => el.classList.remove('active'));
-  document.getElementById('tab-' + tabName).classList.add('active');
-  document.getElementById('tabbtn-' + tabName).classList.add('active');
+  try {
+    document.querySelectorAll('.tab-panel').forEach(el => el.classList.remove('active'));
+    document.querySelectorAll('.tab-btn').forEach(el => el.classList.remove('active'));
+    const tabPanel = document.getElementById('tab-' + tabName);
+    const tabBtn = document.getElementById('tabbtn-' + tabName);
+    
+    if (tabPanel && tabBtn) {
+      tabPanel.classList.add('active');
+      tabBtn.classList.add('active');
+    } else {
+      console.error('Tab not found:', tabName);
+    }
+  } catch (err) {
+    console.error('Error switching tab:', err);
+  }
 }
 
 function switchHistTab(subTab) {
-  document.querySelectorAll('.hist-panel').forEach(el => el.classList.remove('active'));
-  document.querySelectorAll('.hist-subtab').forEach(el => el.classList.remove('active'));
-  document.getElementById('hpanel-' + subTab).classList.add('active');
-  document.getElementById('hsub-' + subTab).classList.add('active');
+  try {
+    document.querySelectorAll('.hist-panel').forEach(el => el.classList.remove('active'));
+    document.querySelectorAll('.hist-subtab').forEach(el => el.classList.remove('active'));
+    const histPanel = document.getElementById('hpanel-' + subTab);
+    const histSubtab = document.getElementById('hsub-' + subTab);
+    
+    if (histPanel && histSubtab) {
+      histPanel.classList.add('active');
+      histSubtab.classList.add('active');
+    } else {
+      console.error('History subtab not found:', subTab);
+    }
+  } catch (err) {
+    console.error('Error switching history tab:', err);
+  }
 }
 
-// Placeholder functions for game logic
+// Game functions - implement these with your actual game logic
 function startGame() {
-  console.log('Game started');
+  console.log('Game started - implement game logic');
 }
 
 function cashOut() {
-  console.log('Cash out');
+  console.log('Cash out - implement cash out logic');
 }
 
 function copyRefLink() {
-  console.log('Copy referral link');
-}
-
-function loadWeeklyLeaderboard() {
-  console.log('Load weekly leaderboard');
+  console.log('Copy referral link - implement referral logic');
 }
 
 function loadHistoryTab() {
-  console.log('Load history');
+  console.log('Load history - implement history loading logic');
 }
 
 function copyAddress() {
-  console.log('Copy wallet address');
+  console.log('Copy wallet address - implement wallet logic');
 }
 
 function disconnectWallet() {
-  console.log('Disconnect wallet');
+  console.log('Disconnect wallet - implement wallet disconnect logic');
 }
 
 function pfVerify() {
-  console.log('Verify provably fair');
+  console.log('Verify provably fair - implement verification logic');
 }
 </script>
 </body>
