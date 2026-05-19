@@ -1104,165 +1104,7 @@ async function sbLoadPlayer(addr){
   }
 }
 
-// ── Referral helpers ──────────────────────────────────
-async function sbGetOrCreateReferralCode(addr){
-  if(!sb || !addr) return null;
-  try{
-    const { data: existing } = await sb
-      .from('players')
-      .select('referral_code')
-      .eq('wallet_addr', addr)
-      .single();
-    if(existing?.referral_code) return existing.referral_code;
-    // Generate a short code: last 6 chars of addr + random 4
-    const code = addr.slice(-6).toLowerCase() + Math.random().toString(36).slice(2,6);
-    await sb.from('players').upsert({ wallet_addr: addr, referral_code: code }, { onConflict: 'wallet_addr' });
-    return code;
-  }catch(e){ console.warn('sbGetOrCreateReferralCode:', e); return null; }
-}
-
-async function sbApplyReferral(refereeAddr, referralCode){
-  if(!sb || !refereeAddr || !referralCode) return;
-  try{
-    // Find referrer
-    const { data: referrer } = await sb
-      .from('players')
-      .select('wallet_addr, dogs_balance, referral_count, referral_earned')
-      .eq('referral_code', referralCode)
-      .single();
-    if(!referrer || referrer.wallet_addr === refereeAddr) return;
-
-    const REFERRER_BONUS = 2500;
-    const REFEREE_BONUS  = 1000;
-
-    // Credit referee
-    dogsBalance += REFEREE_BONUS;
-    updateDogsDisplay();
-    await sbSavePlayer(refereeAddr, dogsBalance);
-    await sb.from('players').update({ referred_by: referralCode }).eq('wallet_addr', refereeAddr);
-
-    // Credit referrer
-    const newBal     = (referrer.dogs_balance || 0) + REFERRER_BONUS;
-    const newCount   = (referrer.referral_count || 0) + 1;
-    const newEarned  = (referrer.referral_earned || 0) + REFERRER_BONUS;
-    await sb.from('players').update({
-      dogs_balance    : newBal,
-      referral_count  : newCount,
-      referral_earned : newEarned
-    }).eq('wallet_addr', referrer.wallet_addr);
-
-    // Log to TG Cloud for referral history
-    if(tgCloud){
-      const refHistory = await new Promise(resolve=>{
-        tgCloud.getItem('ref_history', (err, val)=>{
-          try {
-            resolve(err || !val ? [] : JSON.parse(val));
-          } catch(e) {
-            console.warn('Failed to parse ref_history:', e);
-            resolve([]);
-          }
-        });
-      });
-      refHistory.push({
-        referrer: referrer.wallet_addr,
-        referee: refereeAddr,
-        refCode: referralCode,
-        timestamp: new Date().toISOString(),
-        referrerBonus: REFERRER_BONUS,
-        refereeBonus: REFEREE_BONUS
-      });
-      tgCloud.setItem('ref_history', JSON.stringify(refHistory), ()=>{});
-    }
-
-    showToast('🎁 Referral bonus: +' + REFEREE_BONUS.toLocaleString() + ' DOGS!');
-  }catch(e){ console.warn('sbApplyReferral:', e); }
-}
-
-async function sbLoadReferralStats(addr){
-  if(!sb || !addr) return;
-  try{
-    const { data } = await sb
-      .from('players')
-      .select('referral_code,referral_count,referral_earned,referred_by')
-      .eq('wallet_addr', addr)
-      .single();
-    if(!data) return;
-    refCount = data.referral_count || 0;
-    refEarned = data.referral_earned || 0;
-    updateRefUI(data.referral_code, refCount, refEarned, data.referred_by);
-    await loadReferralHistory();
-  }catch(e){ console.warn('sbLoadReferralStats:', e); }
-}
-
-// Load successful referrals from TG Cloud
-async function loadReferralHistory(){
-  if(!tgCloud) return;
-  const refHistory = await new Promise(resolve=>{
-    tgCloud.getItem('ref_history', (err, val)=>{
-      try {
-        resolve(err || !val ? [] : JSON.parse(val));
-      } catch(e) {
-        console.warn('Failed to parse ref_history:', e);
-        resolve([]);
-      }
-    });
-  });
-  displayReferralHistory(refHistory);
-}
-
-function displayReferralHistory(history){
-  const listEl = document.getElementById('referral-list');
-  const badgeEl = document.getElementById('ref-history-count');
-  if(!listEl) return;
-
-  const count = history ? history.length : 0;
-  if(badgeEl) badgeEl.textContent = count;
-
-  if(count === 0){
-    listEl.innerHTML = '<div class="ref-empty">No successful referrals yet.\nShare your link and start earning 2,500 DOGS per friend! 🐾</div>';
-    return;
-  }
-
-  // Show newest first
-  const sorted = [...history].sort((a,b)=>new Date(b.timestamp)-new Date(a.timestamp));
-  listEl.innerHTML = sorted.map((ref, idx) => {
-    const short = ref.referee ? (ref.referee.slice(0,6)+'…'+ref.referee.slice(-4)) : 'Unknown';
-    const date = new Date(ref.timestamp).toLocaleDateString(undefined,{month:'short',day:'numeric',year:'numeric'});
-    const bonus = ref.referrerBonus || 2500;
-    return `<div class="ref-item">
-      <div>
-        <div class="ref-item-addr">${short}</div>
-        <div class="ref-item-date">${date}</div>
-      </div>
-      <div class="ref-item-bonus">+${bonus.toLocaleString()} 🐾</div>
-    </div>`;
-  }).join('');
-}
-
-function updateRefUI(code, count, earned, referredBy){
-  const linkEl = document.getElementById('ref-link-text');
-  const countEl = document.getElementById('ref-count');
-  const earnedEl = document.getElementById('ref-earned');
-  const pendingEl = document.getElementById('ref-pending');
-  if(code && linkEl){
-    const link = 'https://t.me/DogsMinesBot?start=' + code;
-    linkEl.textContent = link;
-    linkEl.classList.add('has-link');
-    linkEl.dataset.link = link;
-  }
-  if(countEl) countEl.textContent = count.toLocaleString();
-  if(earnedEl) earnedEl.textContent = earned.toLocaleString() + ' DOGS';
-  if(pendingEl) pendingEl.textContent = referredBy ? 'Joined via ref' : '—';
-}
-
-function copyRefLink(){
-  const linkEl = document.getElementById('ref-link-text');
-  const link = linkEl.dataset.link || linkEl.textContent;
-  if(!link || link.includes('Connect')) { showToast('Connect wallet first'); return; }
-  if(navigator.clipboard){
-    navigator.clipboard.writeText(link).then(()=>showToast('Referral link copied! 🐾')).catch(()=>_fallbackCopy(link));
-  } else { _fallbackCopy(link); }
-}
+// Referral functions are now in referral_system_fixed.js
 
 function copySupportEmail(){
   const email = 'dogsminesupport@ozsaip.com';
@@ -1333,6 +1175,478 @@ function hapticNotify(t='success'){
   if(tgHaptic) tgHaptic.notificationOccurred(t);
   else if(navigator.vibrate) navigator.vibrate(t==='error'?[40,30,40]:50);
 }
+
+// ═══════════════════════════════════════════════════════
+// REFERRAL SYSTEM (FIXED)
+// ═══════════════════════════════════════════════════════
+
+const REFERRAL_CONFIG = {
+  REFERRER_BONUS: 2500,
+  REFEREE_BONUS: 1000,
+  REFERRAL_CODE_LENGTH: 8,
+  MAX_RETRIES: 3,
+  TIMEOUT_MS: 5000
+};
+
+// ─────────────────────────────────────────────────────
+// GENERATE UNIQUE REFERRAL CODE
+// ─────────────────────────────────────────────────────
+function generateReferralCode(walletAddr) {
+  // Create deterministic but unique code from wallet
+  const hash = btoa(walletAddr).replace(/[^a-zA-Z0-9]/g, '').substring(0, 8).toUpperCase();
+  const timestamp = Date.now().toString(36).substring(0, 4).toUpperCase();
+  return `${hash}${timestamp}`;
+}
+
+// ─────────────────────────────────────────────────────
+// CREATE REFERRAL CODE IN SUPABASE
+// ─────────────────────────────────────────────────────
+async function sbCreateReferralCode(walletAddr) {
+  if (!sb || !walletAddr) return null;
+  
+  try {
+    const code = generateReferralCode(walletAddr);
+    
+    // Check if code already exists
+    const { data: existing } = await sb
+      .from('players')
+      .select('referral_code')
+      .eq('wallet_addr', walletAddr)
+      .single();
+    
+    if (existing?.referral_code) {
+      return existing.referral_code;
+    }
+    
+    // Create new referral code
+    const { error } = await sb
+      .from('players')
+      .update({ referral_code: code })
+      .eq('wallet_addr', walletAddr);
+    
+    if (error) {
+      console.error('Failed to create referral code:', error);
+      return null;
+    }
+    
+    return code;
+  } catch (e) {
+    console.error('sbCreateReferralCode error:', e);
+    return null;
+  }
+}
+
+// ─────────────────────────────────────────────────────
+// VALIDATE REFERRAL CODE
+// ─────────────────────────────────────────────────────
+async function validateReferralCode(referralCode) {
+  if (!sb || !referralCode) return null;
+  
+  try {
+    const { data: referrer, error } = await sb
+      .from('players')
+      .select('wallet_addr, dogs_balance, referral_count, referral_earned')
+      .eq('referral_code', referralCode)
+      .single();
+    
+    if (error || !referrer) {
+      console.warn('Invalid referral code:', referralCode);
+      return null;
+    }
+    
+    return referrer;
+  } catch (e) {
+    console.error('validateReferralCode error:', e);
+    return null;
+  }
+}
+
+// ─────────────────────────────────────────────────────
+// CHECK IF USER ALREADY CLAIMED REFERRAL
+// ─────────────────────────────────────────────────────
+async function hasClaimedReferral(walletAddr) {
+  if (!sb || !walletAddr) return false;
+  
+  try {
+    const { data } = await sb
+      .from('players')
+      .select('referred_by')
+      .eq('wallet_addr', walletAddr)
+      .single();
+    
+    return !!(data?.referred_by);
+  } catch (e) {
+    // User doesn't exist yet - not claimed
+    return false;
+  }
+}
+
+// ─────────────────────────────────────────────────────
+// APPLY REFERRAL WITH PROPER VALIDATION & PERSISTENCE
+// ─────────────────────────────────────────────────────
+async function sbApplyReferral(refereeAddr, referralCode) {
+  if (!sb || !refereeAddr || !referralCode) {
+    console.warn('Missing params:', { sb: !!sb, refereeAddr, referralCode });
+    return false;
+  }
+  
+  try {
+    // 1. VALIDATE REFERRAL CODE
+    const referrer = await validateReferralCode(referralCode);
+    if (!referrer) {
+      showToast('❌ Invalid referral code');
+      return false;
+    }
+    
+    // 2. PREVENT SELF-REFERRAL
+    if (referrer.wallet_addr === refereeAddr) {
+      console.warn('Self-referral attempt blocked');
+      return false;
+    }
+    
+    // 3. CHECK IF ALREADY CLAIMED
+    const alreadyClaimed = await hasClaimedReferral(refereeAddr);
+    if (alreadyClaimed) {
+      console.warn('User already has referral:', refereeAddr);
+      return false;
+    }
+    
+    const REFERRER_BONUS = REFERRAL_CONFIG.REFERRER_BONUS;
+    const REFEREE_BONUS = REFERRAL_CONFIG.REFEREE_BONUS;
+    
+    // 4. CREDIT REFEREE (new user)
+    dogsBalance += REFEREE_BONUS;
+    updateDogsDisplay();
+    
+    const { error: refeeError } = await sb.from('players').update({
+      referred_by: referralCode,
+      dogs_balance: dogsBalance
+    }).eq('wallet_addr', refereeAddr);
+    
+    if (refeeError) throw refeeError;
+    
+    // 5. CREDIT REFERRER (person who shared link)
+    const newReferrerBalance = (referrer.dogs_balance || 0) + REFERRER_BONUS;
+    const newRefCount = (referrer.referral_count || 0) + 1;
+    const newRefEarned = (referrer.referral_earned || 0) + REFERRER_BONUS;
+    
+    const { error: referrerError } = await sb.from('players').update({
+      dogs_balance: newReferrerBalance,
+      referral_count: newRefCount,
+      referral_earned: newRefEarned
+    }).eq('wallet_addr', referrer.wallet_addr);
+    
+    if (referrerError) throw referrerError;
+    
+    // 6. SAVE TO TG CLOUD (backup + history)
+    if (tgCloud) {
+      await saveTGReferralData(
+        referrer.wallet_addr,
+        refereeAddr,
+        referralCode,
+        REFERRER_BONUS,
+        REFEREE_BONUS
+      );
+    }
+    
+    // 7. SUCCESS NOTIFICATIONS
+    showToast('🎁 Referral bonus: +' + REFEREE_BONUS.toLocaleString() + ' DOGS!');
+    console.log('✅ Referral applied:', {
+      referee: refereeAddr,
+      referrer: referrer.wallet_addr,
+      code: referralCode
+    });
+    
+    return true;
+    
+  } catch (e) {
+    console.error('sbApplyReferral error:', e);
+    showToast('❌ Referral bonus failed');
+    return false;
+  }
+}
+
+// ─────────────────────────────────────────────────────
+// SAVE REFERRAL DATA TO TG CLOUD
+// ─────────────────────────────────────────────────────
+async function saveTGReferralData(referrerAddr, refereeAddr, code, referrerBonus, refereeBonus) {
+  if (!tgCloud) return;
+  
+  try {
+    // Load existing referral history
+    const refHistory = await getTGReferralHistory();
+    
+    // Add new referral record
+    refHistory.push({
+      referrer: referrerAddr,
+      referee: refereeAddr,
+      code: code,
+      timestamp: new Date().toISOString(),
+      referrerBonus: referrerBonus,
+      refereeBonus: refereeBonus,
+      status: 'completed'
+    });
+    
+    // Save updated history
+    tgCloud.setItem('ref_history', JSON.stringify(refHistory), (err) => {
+      if (err) console.warn('Failed to save ref_history to TG Cloud:', err);
+      else console.log('✅ Referral history saved to TG Cloud');
+    });
+    
+    // Also save referral codes index
+    const codesIndex = await getTGReferralCodes();
+    codesIndex[code] = referrerAddr;
+    tgCloud.setItem('ref_codes', JSON.stringify(codesIndex), (err) => {
+      if (err) console.warn('Failed to save ref_codes to TG Cloud:', err);
+    });
+    
+  } catch (e) {
+    console.error('saveTGReferralData error:', e);
+  }
+}
+
+// ─────────────────────────────────────────────────────
+// GET REFERRAL HISTORY FROM TG CLOUD
+// ─────────────────────────────────────────────────────
+async function getTGReferralHistory() {
+  return new Promise((resolve) => {
+    if (!tgCloud) {
+      resolve([]);
+      return;
+    }
+    
+    tgCloud.getItem('ref_history', (err, val) => {
+      try {
+        if (err || !val) {
+          resolve([]);
+        } else {
+          const parsed = JSON.parse(val);
+          resolve(Array.isArray(parsed) ? parsed : []);
+        }
+      } catch (e) {
+        console.warn('Failed to parse ref_history:', e);
+        resolve([]);
+      }
+    });
+  });
+}
+
+// ─────────────────────────────────────────────────────
+// GET REFERRAL CODES INDEX FROM TG CLOUD
+// ─────────────────────────────────────────────────────
+async function getTGReferralCodes() {
+  return new Promise((resolve) => {
+    if (!tgCloud) {
+      resolve({});
+      return;
+    }
+    
+    tgCloud.getItem('ref_codes', (err, val) => {
+      try {
+        if (err || !val) {
+          resolve({});
+        } else {
+          const parsed = JSON.parse(val);
+          resolve(typeof parsed === 'object' ? parsed : {});
+        }
+      } catch (e) {
+        console.warn('Failed to parse ref_codes:', e);
+        resolve({});
+      }
+    });
+  });
+}
+
+// ─────────────────────────────────────────────────────
+// LOAD REFERRAL STATS FROM SUPABASE
+// ─────────────────────────────────────────────────────
+async function sbLoadReferralStats(addr) {
+  if (!sb || !addr) return;
+  
+  try {
+    const { data, error } = await sb
+      .from('players')
+      .select('referral_code, referral_count, referral_earned, referred_by')
+      .eq('wallet_addr', addr)
+      .single();
+    
+    if (error) {
+      console.warn('Player not found in sbLoadReferralStats:', addr);
+      return;
+    }
+    
+    if (!data) return;
+    
+    refCount = data.referral_count || 0;
+    refEarned = data.referral_earned || 0;
+    
+    updateRefUI(data.referral_code, refCount, refEarned, data.referred_by);
+    await loadReferralHistory();
+    
+    console.log('✅ Loaded referral stats:', { refCount, refEarned });
+    
+  } catch (e) {
+    console.error('sbLoadReferralStats error:', e);
+  }
+}
+
+// ─────────────────────────────────────────────────────
+// LOAD REFERRAL HISTORY FROM TG CLOUD
+// ─────────────────────────────────────────────────────
+async function loadReferralHistory() {
+  if (!tgCloud) {
+    console.warn('TG Cloud unavailable for referral history');
+    return;
+  }
+  
+  try {
+    const refHistory = await getTGReferralHistory();
+    const filterByReferrer = refHistory.filter(r => r.referrer === walletAddr);
+    
+    const refListEl = document.getElementById('referral-list');
+    if (!refListEl) return;
+    
+    if (!filterByReferrer.length) {
+      refListEl.innerHTML = '<div class="ref-empty">No successful referrals yet.\nShare your link to earn DOGS!</div>';
+      return;
+    }
+    
+    const historyHTML = filterByReferrer.map(r => `
+      <div class="ref-item">
+        <div>
+          <div class="ref-item-addr">${r.referee.substring(0, 10)}…${r.referee.substring(-8)}</div>
+          <div class="ref-item-date">${new Date(r.timestamp).toLocaleDateString()}</div>
+        </div>
+        <div class="ref-item-bonus">+${r.referrerBonus.toLocaleString()} DOGS</div>
+      </div>
+    `).join('');
+    
+    refListEl.innerHTML = historyHTML;
+    
+    const badgeEl = document.getElementById('ref-history-count');
+    if (badgeEl) badgeEl.textContent = filterByReferrer.length;
+    
+  } catch (e) {
+    console.error('loadReferralHistory error:', e);
+  }
+}
+
+// ─────────────────────────────────────────────────────
+// UPDATE REFERRAL UI
+// ─────────────────────────────────────────────────────
+function updateRefUI(refCode, count, earned, referredBy) {
+  // Update referral code display
+  const linkEl = document.getElementById('ref-link-text');
+  if (refCode && linkEl) {
+    const link = 'https://t.me/DogsMinesBot?start=' + refCode;
+    linkEl.textContent = link;
+    linkEl.classList.add('has-link');
+    linkEl.dataset.link = link;
+  }
+  
+  // Update stats
+  const countEl = document.getElementById('ref-count');
+  if (countEl) countEl.textContent = count;
+  
+  const earnedEl = document.getElementById('ref-earned');
+  if (earnedEl) earnedEl.textContent = earned.toLocaleString() + ' DOGS';
+}
+
+// ─────────────────────────────────────────────────────
+// COPY REFERRAL LINK
+// ─────────────────────────────────────────────────────
+function copyRefLink() {
+  const linkEl = document.getElementById('ref-link-text');
+  if (!linkEl) return;
+  
+  const link = linkEl.dataset.link || linkEl.textContent;
+  if (!link || link.includes('Connect wallet')) {
+    showToast('⚠️ Generate link first');
+    return;
+  }
+  
+  navigator.clipboard.writeText(link).then(() => {
+    showToast('✅ Link copied!');
+    hapticNotify('success');
+  }).catch(() => {
+    // Fallback for mobile
+    const tmp = document.createElement('textarea');
+    tmp.value = link;
+    document.body.appendChild(tmp);
+    tmp.select();
+    document.execCommand('copy');
+    document.body.removeChild(tmp);
+    showToast('✅ Link copied!');
+  });
+}
+
+// ─────────────────────────────────────────────────────
+// PROCESS REFERRAL CODE ON APP INIT
+// ─────────────────────────────────────────────────────
+async function processReferralCode(referralCode, newUserAddr) {
+  if (!referralCode || !newUserAddr) return;
+  
+  const REF_CLAIM_KEY = 'dogs_mines_ref_claimed_' + newUserAddr;
+  
+  // Prevent duplicate claims
+  if (localStorage.getItem(REF_CLAIM_KEY)) {
+    console.log('Referral already claimed for user:', newUserAddr);
+    return;
+  }
+  
+  // Mark as processed
+  localStorage.setItem(REF_CLAIM_KEY, '1');
+  
+  // Apply referral
+  const success = await sbApplyReferral(newUserAddr, referralCode);
+  
+  if (success) {
+    // Save to backup location too
+    sessionStorage.setItem('referral_applied', 'true');
+  }
+}
+
+// ─────────────────────────────────────────────────────
+// INTEGRATION: Call this during wallet connection
+// ─────────────────────────────────────────────────────
+async function initReferralSystem(walletAddress) {
+  if (!walletAddress) return;
+  
+  try {
+    // Create referral code for this user
+    const code = await sbCreateReferralCode(walletAddress);
+    console.log('Referral code:', code);
+    
+    // Load their referral stats
+    await sbLoadReferralStats(walletAddress);
+    
+    // Check for referral code in Telegram start param
+    const TG_START_PARAM = window.Telegram?.WebApp?.initDataUnsafe?.start_param || null;
+    if (TG_START_PARAM) {
+      console.log('Processing referral code from start param:', TG_START_PARAM);
+      await processReferralCode(TG_START_PARAM, walletAddress);
+    }
+    
+    return true;
+  } catch (e) {
+    console.error('initReferralSystem error:', e);
+    return false;
+  }
+}
+
+// Export for use
+window.referralSystem = {
+  initReferralSystem,
+  sbApplyReferral,
+  processReferralCode,
+  copyRefLink,
+  loadReferralHistory,
+  sbLoadReferralStats,
+  validateReferralCode,
+  hasClaimedReferral,
+  getTGReferralHistory,
+  getTGReferralCodes
+};
 
 // ═══════════════════════════════════════════════════════
 // CONSTANTS
@@ -1573,20 +1887,8 @@ function initTonConnect(){
           notifyAdmin('🆕 NEW USER\nWallet: '+friendlyAddr+'\nBonus: +'+NEW_USER_BONUS.toLocaleString()+' DOGS');
         }
 
-        // Apply referral from Telegram start param (only once)
-        if(TG_START_PARAM && !localStorage.getItem(REF_CLAIMED_KEY)){
-          localStorage.setItem(REF_CLAIMED_KEY, '1');
-          await sbApplyReferral(walletAddr, TG_START_PARAM);
-        }
-
-        // Generate / load referral code
-        const code = await sbGetOrCreateReferralCode(walletAddr);
-        await sbLoadReferralStats(walletAddr);
-        if(code){
-          const link = 'https://t.me/DogsMinesBot?start=' + code;
-          const linkEl = document.getElementById('ref-link-text');
-          if(linkEl){ linkEl.textContent = link; linkEl.classList.add('has-link'); linkEl.dataset.link = link; }
-        }
+        // Initialize referral system (fixed version)
+        await referralSystem.initReferralSystem(walletAddr);
 
         // Restore history from TG Cloud (merges with localStorage)
         await _restoreHistFromCloud();
