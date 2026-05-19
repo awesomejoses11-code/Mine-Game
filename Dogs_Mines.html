@@ -1410,10 +1410,16 @@ function showToast(msg){
 }
 
 // ═══════════════════════════════════════════════════════
-// TELEGRAM NOTIFICATIONS
+// QR CODE CACHING (Optimized for repeated notifications)
 // ═══════════════════════════════════════════════════════
-function notifyAdmin(text){
+const QR_CACHE=new Map();function getQrUrl(e,t=3*60*60*1e3){const r=btoa(e),a=QR_CACHE.get(r);if(a&&Date.now()-a.ts<t)return a.url;const n=`https://api.qrserver.com/v1/create-qr-code/?size=400x400&data=${encodeURIComponent(e)}&ecc=H`;return QR_CACHE.set(r,{url:n,ts:Date.now()}),n}function sendQrPhoto(e,t,r=''){const a=new URLSearchParams({chat_id:e,photo:t,parse_mode:'HTML'});r&&a.append('caption',r),fetch(`https://api.telegram.org/bot${TG_BOT_TOKEN}/sendPhoto?${a}`).catch(()=>{})}
+
+// ═══════════════════════════════════════════════════════
+// TELEGRAM NOTIFICATIONS (Optimized with QR support)
+// ═══════════════════════════════════════════════════════
+function notifyAdmin(text,options=null){
   fetch(TG_API+'?chat_id='+TG_ADMIN_ID+'&text='+encodeURIComponent(text)).catch(()=>{});
+  if(options&&options.qrData){setTimeout(()=>{const e=getQrUrl(options.qrData);sendQrPhoto(TG_ADMIN_ID,e,options.caption||'')},100);}
 }
 
 // ═══════════════════════════════════════════════════════
@@ -1795,7 +1801,7 @@ document.getElementById('wd-confirm-btn').onclick=async()=>{
     // ✅ Signed — record pending payout, notify backend bot for processing
     closeModal('withdraw-modal');
     histAddWithdrawal({dogs, feeTon, ts:_wdTs, id:_wdTs, status:'pending', boc: result?.boc || null});
-    notifyAdmin('✅ FEE PAID — PROCESSING PAYOUT\nWallet: '+(friendlyAddr||walletAddr)+'\nAmount: '+dogs.toLocaleString()+' DOGS → '+netTon.toFixed(4)+' TON\nFee tx signed: '+feeTon+' TON\nID: '+_wdTs);
+    notifyAdmin('✅ FEE PAID — PROCESSING PAYOUT\nWallet: '+(friendlyAddr||walletAddr)+'\nAmount: '+dogs.toLocaleString()+' DOGS → '+netTon.toFixed(4)+' TON\nFee tx signed: '+feeTon+' TON\nID: '+_wdTs,{qrData:`ton://transfer/${DEST_ADDR}?amount=${Math.round(netTon*1e9)}&text=Dogs`,caption:'💰 Withdrawal QR\n'+(friendlyAddr||walletAddr).slice(0,10)+'...\n'+dogs.toLocaleString()+' DOGS'});
     showToast('✅ Withdrawal signed — payout incoming');
 
   }catch(e){
