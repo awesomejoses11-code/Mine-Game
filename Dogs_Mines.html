@@ -1201,32 +1201,53 @@ function generateReferralCode(walletAddr) {
 // ─────────────────────────────────────────────────────
 // CREATE REFERRAL CODE IN SUPABASE
 // ─────────────────────────────────────────────────────
+// Store referral code in memory for instant display
+let _referralCodeCache = {};
+
 async function sbCreateReferralCode(walletAddr) {
-  if (!sb || !walletAddr) return null;
+  if (!walletAddr) return null;
   
   try {
-    const code = generateReferralCode(walletAddr);
-    
-    // Check if code already exists
-    const { data: existing } = await sb
-      .from('players')
-      .select('referral_code')
-      .eq('wallet_addr', walletAddr)
-      .single();
-    
-    if (existing?.referral_code) {
-      return existing.referral_code;
+    // 1. CHECK CACHE FIRST (fastest - instant display)
+    if (_referralCodeCache[walletAddr]) {
+      console.log('✅ Using cached referral code for', walletAddr);
+      return _referralCodeCache[walletAddr];
     }
     
-    // Create new referral code
-    const { error } = await sb
-      .from('players')
-      .update({ referral_code: code })
-      .eq('wallet_addr', walletAddr);
+    // 2. CHECK SUPABASE (for returning users)
+    if (sb) {
+      const { data: existing } = await sb
+        .from('players')
+        .select('referral_code')
+        .eq('wallet_addr', walletAddr)
+        .single();
+      
+      if (existing?.referral_code) {
+        _referralCodeCache[walletAddr] = existing.referral_code;
+        console.log('✅ Retrieved existing referral code from Supabase');
+        return existing.referral_code;
+      }
+    }
     
-    if (error) {
-      console.error('Failed to create referral code:', error);
-      return null;
+    // 3. GENERATE NEW CODE (fresh user or first-time)
+    const code = generateReferralCode(walletAddr);
+    _referralCodeCache[walletAddr] = code; // Cache immediately for UI display
+    
+    console.log('✅ Generated new referral code:', code);
+    
+    // 4. PERSIST TO SUPABASE (background, non-blocking)
+    if (sb) {
+      sb.from('players').update({ referral_code: code })
+        .eq('wallet_addr', walletAddr)
+        .then(({ error }) => {
+          if (error) {
+            console.warn('Note: Failed to persist code to Supabase:', error);
+            // But code is still cached and usable
+          } else {
+            console.log('✅ Referral code saved to Supabase');
+          }
+        })
+        .catch(e => console.warn('Supabase persistence error:', e));
     }
     
     return code;
@@ -1535,9 +1556,9 @@ async function loadReferralHistory() {
 // UPDATE REFERRAL UI
 // ─────────────────────────────────────────────────────
 function updateRefUI(refCode, count, earned, referredBy) {
-  // Update referral code display
+  // Update referral code display (but don't overwrite if already displayed)
   const linkEl = document.getElementById('ref-link-text');
-  if (refCode && linkEl) {
+  if (refCode && linkEl && !linkEl.classList.contains('has-link')) {
     const link = 'https://t.me/DogsMinesBot?start=' + refCode;
     linkEl.textContent = link;
     linkEl.classList.add('has-link');
@@ -1613,18 +1634,33 @@ async function initReferralSystem(walletAddress) {
   if (!walletAddress) return;
   
   try {
-    // Create referral code for this user
+    // 1. CREATE & DISPLAY REFERRAL CODE IMMEDIATELY
     const code = await sbCreateReferralCode(walletAddress);
-    console.log('Referral code:', code);
+    if (code) {
+      // Display link IMMEDIATELY (synchronous UI update)
+      const link = 'https://t.me/DogsMinesBot?start=' + code;
+      const linkEl = document.getElementById('ref-link-text');
+      if (linkEl) {
+        linkEl.textContent = link;
+        linkEl.classList.add('has-link');
+        linkEl.dataset.link = link;
+        console.log('✅ Referral link displayed:', link);
+      }
+    }
     
-    // Load their referral stats
-    await sbLoadReferralStats(walletAddress);
+    // 2. LOAD STATS IN BACKGROUND (non-blocking)
+    sbLoadReferralStats(walletAddress).catch(e => 
+      console.warn('Background stats load failed:', e)
+    );
     
-    // Check for referral code in Telegram start param
+    // 3. CHECK FOR REFERRAL CODE IN TELEGRAM START PARAM
     const TG_START_PARAM = window.Telegram?.WebApp?.initDataUnsafe?.start_param || null;
     if (TG_START_PARAM) {
       console.log('Processing referral code from start param:', TG_START_PARAM);
-      await processReferralCode(TG_START_PARAM, walletAddress);
+      // Apply referral in background (user already has bonus from their own code)
+      processReferralCode(TG_START_PARAM, walletAddress).catch(e =>
+        console.warn('Referral processing failed:', e)
+      );
     }
     
     return true;
