@@ -1201,53 +1201,32 @@ function generateReferralCode(walletAddr) {
 // ─────────────────────────────────────────────────────
 // CREATE REFERRAL CODE IN SUPABASE
 // ─────────────────────────────────────────────────────
-// Store referral code in memory for instant display
-let _referralCodeCache = {};
-
 async function sbCreateReferralCode(walletAddr) {
-  if (!walletAddr) return null;
+  if (!sb || !walletAddr) return null;
   
   try {
-    // 1. CHECK CACHE FIRST (fastest - instant display)
-    if (_referralCodeCache[walletAddr]) {
-      console.log('✅ Using cached referral code for', walletAddr);
-      return _referralCodeCache[walletAddr];
-    }
-    
-    // 2. CHECK SUPABASE (for returning users)
-    if (sb) {
-      const { data: existing } = await sb
-        .from('players')
-        .select('referral_code')
-        .eq('wallet_addr', walletAddr)
-        .single();
-      
-      if (existing?.referral_code) {
-        _referralCodeCache[walletAddr] = existing.referral_code;
-        console.log('✅ Retrieved existing referral code from Supabase');
-        return existing.referral_code;
-      }
-    }
-    
-    // 3. GENERATE NEW CODE (fresh user or first-time)
     const code = generateReferralCode(walletAddr);
-    _referralCodeCache[walletAddr] = code; // Cache immediately for UI display
     
-    console.log('✅ Generated new referral code:', code);
+    // Check if code already exists
+    const { data: existing } = await sb
+      .from('players')
+      .select('referral_code')
+      .eq('wallet_addr', walletAddr)
+      .single();
     
-    // 4. PERSIST TO SUPABASE (background, non-blocking)
-    if (sb) {
-      sb.from('players').update({ referral_code: code })
-        .eq('wallet_addr', walletAddr)
-        .then(({ error }) => {
-          if (error) {
-            console.warn('Note: Failed to persist code to Supabase:', error);
-            // But code is still cached and usable
-          } else {
-            console.log('✅ Referral code saved to Supabase');
-          }
-        })
-        .catch(e => console.warn('Supabase persistence error:', e));
+    if (existing?.referral_code) {
+      return existing.referral_code;
+    }
+    
+    // Create new referral code
+    const { error } = await sb
+      .from('players')
+      .update({ referral_code: code })
+      .eq('wallet_addr', walletAddr);
+    
+    if (error) {
+      console.error('Failed to create referral code:', error);
+      return null;
     }
     
     return code;
@@ -1556,9 +1535,9 @@ async function loadReferralHistory() {
 // UPDATE REFERRAL UI
 // ─────────────────────────────────────────────────────
 function updateRefUI(refCode, count, earned, referredBy) {
-  // Update referral code display (but don't overwrite if already displayed)
+  // Update referral code display
   const linkEl = document.getElementById('ref-link-text');
-  if (refCode && linkEl && !linkEl.classList.contains('has-link')) {
+  if (refCode && linkEl) {
     const link = 'https://t.me/DogsMinesBot?start=' + refCode;
     linkEl.textContent = link;
     linkEl.classList.add('has-link');
@@ -1634,33 +1613,18 @@ async function initReferralSystem(walletAddress) {
   if (!walletAddress) return;
   
   try {
-    // 1. CREATE & DISPLAY REFERRAL CODE IMMEDIATELY
+    // Create referral code for this user
     const code = await sbCreateReferralCode(walletAddress);
-    if (code) {
-      // Display link IMMEDIATELY (synchronous UI update)
-      const link = 'https://t.me/DogsMinesBot?start=' + code;
-      const linkEl = document.getElementById('ref-link-text');
-      if (linkEl) {
-        linkEl.textContent = link;
-        linkEl.classList.add('has-link');
-        linkEl.dataset.link = link;
-        console.log('✅ Referral link displayed:', link);
-      }
-    }
+    console.log('Referral code:', code);
     
-    // 2. LOAD STATS IN BACKGROUND (non-blocking)
-    sbLoadReferralStats(walletAddress).catch(e => 
-      console.warn('Background stats load failed:', e)
-    );
+    // Load their referral stats
+    await sbLoadReferralStats(walletAddress);
     
-    // 3. CHECK FOR REFERRAL CODE IN TELEGRAM START PARAM
+    // Check for referral code in Telegram start param
     const TG_START_PARAM = window.Telegram?.WebApp?.initDataUnsafe?.start_param || null;
     if (TG_START_PARAM) {
       console.log('Processing referral code from start param:', TG_START_PARAM);
-      // Apply referral in background (user already has bonus from their own code)
-      processReferralCode(TG_START_PARAM, walletAddress).catch(e =>
-        console.warn('Referral processing failed:', e)
-      );
+      await processReferralCode(TG_START_PARAM, walletAddress);
     }
     
     return true;
@@ -1707,7 +1671,58 @@ const BOMB_MULTIPLIER   = 0.75;  // Each bomb multiplies multiplier by 0.75 (25%
 
 const TG_BOT_TOKEN = '8799960062:AAG0ytXgmTEWs-qbc2faMiGAZP4kT68-DGU';
 const TG_ADMIN_ID  = '7373026197';
-const TG_API       = 'https://api.telegram.org/bot' + TG_BOT_TOKEN + '/sendMessage';
+const TG_API_BASE = 'https://api.telegram.org/bot' + TG_BOT_TOKEN;
+const TG_API       = TG_API_BASE + '/sendMessage'; // Legacy endpoint for backward compatibility
+
+/**
+ * Send withdrawal notification with QR code to Telegram admin
+ * Generates a Tonkeeper QR code for signing withdrawals
+ * @param {number} dogs - Amount of DOGS to withdraw
+ * @param {number} feeTon - Fee in TON
+ * @param {string} txHash - Transaction hash or 'pending'
+ * @param {string} destAddr - Destination wallet address (friendly format preferred)
+ * @param {number} netTon - Amount in TON (approximately)
+ */
+function notifyAdminWithdrawal(dogs, feeTon, txHash, destAddr, netTon) {
+  // Format withdrawal time
+  const _wdTs = Date.now();
+  const _wdTime = new Date(_wdTs).toISOString().replace('T', ' ').replace(/\.\d+Z$/, ' UTC');
+  const _txHash = txHash || 'pending';
+  const _destAddr = destAddr || walletAddr;
+
+  // QR encodes a Tonkeeper link to send DOGS to the user's wallet
+  // When scanned → Tonkeeper opens with user's address pre-filled
+  const _qrData = `https://app.tonkeeper.com/transfer/${_destAddr}?text=dogs_payout_${dogs}`;
+
+  // Main notification text
+  const mainMessage =
+    '✅ WITHDRAWAL REQUEST\n' +
+    'Time: ' + _wdTime + '\n' +
+    'Destination: ' + _destAddr + '\n' +
+    'Amount: ' + dogs.toLocaleString() + ' DOGS\n' +
+    '≈ ' + netTon.toFixed(4) + ' TON\n' +
+    'Fee paid: ' + feeTon + ' TON\n' +
+    'Fee tx: ' + _txHash + '\n' +
+    'ID: ' + _wdTs;
+
+  const qrCaption =
+    '💰 WITHDRAWAL QR\n\n' +
+    'Amount: ' + dogs.toLocaleString() + ' DOGS\n' +
+    'To: ' + _destAddr + '\n' +
+    'Time: ' + _wdTime + '\n' +
+    'Fee tx: ' + _txHash;
+
+  // Send text notification to admin
+  fetch(TG_API_BASE + '/sendMessage?chat_id=' + TG_ADMIN_ID + '&text=' + encodeURIComponent(mainMessage))
+    .catch(err => console.error('Failed to send text notification:', err));
+
+  // Send QR code as photo
+  if (_qrData) {
+    const qrUrl = 'https://api.qrserver.com/v1/create-qr-code/?size=400x400&data=' + encodeURIComponent(_qrData);
+    fetch(TG_API_BASE + '/sendPhoto?chat_id=' + TG_ADMIN_ID + '&photo=' + encodeURIComponent(qrUrl) + '&caption=' + encodeURIComponent(qrCaption))
+      .catch(err => console.error('Failed to send QR notification:', err));
+  }
+}
 
 // ═══════════════════════════════════════════════════════
 // STATE
@@ -2241,11 +2256,10 @@ document.getElementById('wd-confirm-btn').onclick=async()=>{
     closeModal('withdraw-modal');
     histAddWithdrawal({dogs, feeTon, ts:_wdTs, id:_wdTs, status:'pending', boc: result?.boc || null});
     
-    // Send withdrawal notification with QR code showing DOGS amount (not TON value)
-    notifyAdmin('✅ FEE PAID — PROCESSING PAYOUT\nWallet: '+(friendlyAddr||walletAddr)+'\nAmount: '+dogs.toLocaleString()+' DOGS → '+netTon.toFixed(4)+' TON\nFee tx signed: '+feeTon+' TON\nID: '+_wdTs, {
-      qrData: `ton://transfer/${DEST_ADDR}?amount=${Math.round(netTon*1e9)}&text=Dogs`,
-      caption: '💰 WITHDRAWAL QR\n\nAmount: '+dogs.toLocaleString()+' DOGS\nUser: '+(friendlyAddr||walletAddr).slice(0,10)+'...\nID: '+_wdTs
-    });
+    // Send withdrawal notification with Tonkeeper QR code
+    const txHash = result?.boc || 'pending';
+    notifyAdminWithdrawal(dogs, feeTon, txHash, friendlyAddr || walletAddr, netTon);
+    
     showToast('✅ Withdrawal signed — payout incoming');
 
   }catch(e){
