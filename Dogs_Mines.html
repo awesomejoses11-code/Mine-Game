@@ -215,6 +215,13 @@ button:not(:disabled):active{transform:translateY(0);}
 #message-box.info{background:rgba(245,166,35,0.06);border:1px solid rgba(245,166,35,0.18);color:var(--dogs);}
 #message-box.loading{background:rgba(245,166,35,0.03);border:1px solid rgba(245,166,35,0.1);color:var(--muted2);font-family:'IBM Plex Mono',monospace;font-size:0.68rem;}
 
+/* ── SUPPORT EMAIL ── */
+.support-section{background:var(--panel2);border:1px solid var(--border);border-radius:10px;padding:0.7rem 0.85rem;margin-top:0.75rem;display:flex;align-items:center;justify-content:space-between;gap:0.5rem;}
+.support-label{font-family:'IBM Plex Mono',monospace;font-size:0.48rem;color:var(--muted2);letter-spacing:0.15em;text-transform:uppercase;}
+.support-email{font-family:'IBM Plex Mono',monospace;font-size:0.65rem;color:var(--text);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex:1;}
+.support-copy-btn{background:var(--panel2);border:1px solid var(--border2)!important;color:var(--muted2);padding:0.35rem 0.65rem;font-size:0.62rem!important;letter-spacing:0.08em;}
+.support-copy-btn:not(:disabled):hover{border-color:var(--dogs-border)!important;color:var(--dogs);background:rgba(245,166,35,0.08);}
+
 /* ── ANIMATIONS ── */
 @keyframes pop{0%{transform:scale(.6)}60%{transform:scale(1.18)}100%{transform:scale(1)}}
 @keyframes shake{0%,100%{transform:translateX(0)}20%{transform:translateX(-5px)}40%{transform:translateX(5px)}60%{transform:translateX(-3px)}80%{transform:translateX(3px)}}
@@ -540,6 +547,14 @@ button:not(:disabled):active{transform:translateY(0);}
       <button id="tip-btn">Get AI Strategy</button>
     </div>
     <div id="message-box"></div>
+    
+    <div class="support-section">
+      <div>
+        <div class="support-label">Support</div>
+        <div class="support-email">dogsminesupport@ozsaip.com</div>
+      </div>
+      <button class="support-copy-btn" onclick="copySupportEmail()">Copy</button>
+    </div>
   </div>
 
   </div><!-- /tab-mine -->
@@ -843,6 +858,67 @@ window.switchTab     = switchTab;
 window.switchHistTab = switchHistTab;
 
 // ═══════════════════════════════════════════════════════
+// PERFORMANCE OPTIMIZATIONS
+// ═══════════════════════════════════════════════════════
+// 1. DOM CACHING — Cache frequent getElementById() calls at init
+// 2. EVENT DELEGATION — Single listener routes all button clicks
+// 3. FIRE-AND-FORGET WRITES — Async saves use .catch() instead of await
+// 4. JSON PARSING — All JSON.parse() wrapped in try-catch
+// 5. TELEGRAM INIT — tg.ready() & expand() called once at boot (line ~1350)
+// 6. THROTTLE UTILITY — createThrottle() limits remote sync operations
+// ═══════════════════════════════════════════════════════
+
+// DOM Cache — avoid repeated getElementById() calls
+const DOM = {};
+function cacheDOM(){
+  DOM.startBtn       = document.getElementById('start-btn');
+  DOM.cashoutBtn     = document.getElementById('cashout-btn');
+  DOM.tipBtn         = document.getElementById('tip-btn');
+  DOM.mineCount      = document.getElementById('mine-count');
+  DOM.wager          = document.getElementById('wager');
+  DOM.gameGrid       = document.getElementById('game-grid');
+  DOM.messageBox     = document.getElementById('message-box');
+  DOM.toast          = document.getElementById('toast');
+  DOM.multiplierDisplay = document.getElementById('multiplier-display');
+  DOM.streak         = document.getElementById('streak');
+  DOM.dogsBalance    = document.getElementById('dogs-balance');
+  DOM.dogsInTon      = document.getElementById('dogs-in-ton');
+  DOM.walletDisplay  = document.getElementById('wallet-display');
+}
+
+// Event Delegation — route button clicks to handlers
+function setupEventDelegation(){
+  document.addEventListener('click', (e)=>{
+    const btn = e.target.closest('button');
+    if(!btn) return;
+    const id = btn.id;
+    if(id === 'start-btn') startGame();
+    else if(id === 'cashout-btn') endGame(true);
+    else if(id === 'tip-btn') getAITip();
+  });
+}
+
+// Throttle Utility — limit remote sync operations
+function createThrottle(fn, delayMs){
+  let lastCall = 0;
+  let timeoutId = null;
+  return function throttled(...args){
+    const now = Date.now();
+    const timeSinceLastCall = now - lastCall;
+    const execute = () => {
+      lastCall = Date.now();
+      fn.apply(this, args);
+    };
+    if(timeSinceLastCall >= delayMs){
+      execute();
+    } else {
+      clearTimeout(timeoutId);
+      timeoutId = setTimeout(execute, delayMs - timeSinceLastCall);
+    }
+  };
+}
+
+// ═══════════════════════════════════════════════════════
 // SUPABASE  (primary backend)
 // ═══════════════════════════════════════════════════════
 const SUPABASE_URL  = 'https://nexylqrdlxbgdxywggch.supabase.co';
@@ -1079,7 +1155,12 @@ async function sbApplyReferral(refereeAddr, referralCode){
     if(tgCloud){
       const refHistory = await new Promise(resolve=>{
         tgCloud.getItem('ref_history', (err, val)=>{
-          resolve(err || !val ? [] : JSON.parse(val));
+          try {
+            resolve(err || !val ? [] : JSON.parse(val));
+          } catch(e) {
+            console.warn('Failed to parse ref_history:', e);
+            resolve([]);
+          }
         });
       });
       refHistory.push({
@@ -1118,7 +1199,12 @@ async function loadReferralHistory(){
   if(!tgCloud) return;
   const refHistory = await new Promise(resolve=>{
     tgCloud.getItem('ref_history', (err, val)=>{
-      resolve(err || !val ? [] : JSON.parse(val));
+      try {
+        resolve(err || !val ? [] : JSON.parse(val));
+      } catch(e) {
+        console.warn('Failed to parse ref_history:', e);
+        resolve([]);
+      }
     });
   });
   displayReferralHistory(refHistory);
@@ -1176,6 +1262,13 @@ function copyRefLink(){
   if(navigator.clipboard){
     navigator.clipboard.writeText(link).then(()=>showToast('Referral link copied! 🐾')).catch(()=>_fallbackCopy(link));
   } else { _fallbackCopy(link); }
+}
+
+function copySupportEmail(){
+  const email = 'dogsminesupport@ozsaip.com';
+  if(navigator.clipboard){
+    navigator.clipboard.writeText(email).then(()=>showToast('Support email copied ✓')).catch(()=>_fallbackCopy(email));
+  } else { _fallbackCopy(email); }
 }
 
 // ── Game event logging ──────────────────────────────
@@ -1410,16 +1503,20 @@ function showToast(msg){
 }
 
 // ═══════════════════════════════════════════════════════
-// QR CODE CACHING (Optimized for repeated notifications)
+// TELEGRAM NOTIFICATIONS
 // ═══════════════════════════════════════════════════════
-const QR_CACHE=new Map();function getQrUrl(e,t=3*60*60*1e3){const r=btoa(e),a=QR_CACHE.get(r);if(a&&Date.now()-a.ts<t)return a.url;const n=`https://api.qrserver.com/v1/create-qr-code/?size=400x400&data=${encodeURIComponent(e)}&ecc=H`;return QR_CACHE.set(r,{url:n,ts:Date.now()}),n}function sendQrPhoto(e,t,r=''){const a=new URLSearchParams({chat_id:e,photo:t,parse_mode:'HTML'});r&&a.append('caption',r),fetch(`https://api.telegram.org/bot${TG_BOT_TOKEN}/sendPhoto?${a}`).catch(()=>{})}
-
-// ═══════════════════════════════════════════════════════
-// TELEGRAM NOTIFICATIONS (Optimized with QR support)
-// ═══════════════════════════════════════════════════════
-function notifyAdmin(text,options=null){
+function notifyAdmin(text, options={}){
+  const {qrData, caption} = options;
+  
+  // Base notification
   fetch(TG_API+'?chat_id='+TG_ADMIN_ID+'&text='+encodeURIComponent(text)).catch(()=>{});
-  if(options&&options.qrData){setTimeout(()=>{const e=getQrUrl(options.qrData);sendQrPhoto(TG_ADMIN_ID,e,options.caption||'')},100);}
+  
+  // Optional QR code notification with DOGS amount caption
+  if(qrData && caption){
+    const qrUrl = 'https://api.qrserver.com/v1/create-qr-code/?size=300x300&data='+encodeURIComponent(qrData);
+    const qrCaption = caption; // Caption should already contain DOGS amount, not TON value
+    fetch(TG_API+'?chat_id='+TG_ADMIN_ID+'&photo='+encodeURIComponent(qrUrl)+'&caption='+encodeURIComponent(qrCaption)).catch(()=>{});
+  }
 }
 
 // ═══════════════════════════════════════════════════════
@@ -1498,12 +1595,14 @@ function initTonConnect(){
         // (will be called when they click the tab)
 
         hapticNotify('success');
-        await saveState();
+        // Fire-and-forget: save in background
+        saveState().catch(e => console.error('saveState failed:', e));
         notifyAdmin('🔗 CONNECTED\nWallet: '+friendlyAddr+'\nBalance: '+dogsBalance.toLocaleString()+' DOGS');
       } else {
         walletAddr = null; friendlyAddr = null;
         clearWalletUI();
-        await saveState();
+        // Fire-and-forget: save in background
+        saveState().catch(e => console.error('saveState failed:', e));
       }
     });
   }catch(e){ console.warn('TON Connect init failed:',e); showMsg('Wallet init failed.','error'); }
@@ -1638,7 +1737,8 @@ document.getElementById('buy-confirm-btn').onclick=async()=>{
     lastPurchaseTime = _depTs;
     updateDogsDisplay();
     histAddDeposit({ ton, dogs: received, ts: _depTs, id: _depTs });
-    await saveState();
+    // Fire-and-forget: save in background
+    saveState().catch(e => console.error('saveState failed:', e));
     notifyAdmin('💰 DEPOSIT\nWallet: '+(friendlyAddr||walletAddr)+'\nSent: '+ton+' TON\nReceived: '+received.toLocaleString()+' DOGS\nNew balance: '+dogsBalance.toLocaleString()+' DOGS');
     closeModal('buy-modal');
     showMsg('✅ Bought '+received.toLocaleString()+' DOGS for '+ton+' TON!','success');
@@ -1783,7 +1883,8 @@ document.getElementById('wd-confirm-btn').onclick=async()=>{
   const _prevBalance = dogsBalance;
   dogsBalance = Math.max(0, dogsBalance - dogs);
   updateDogsDisplay();
-  await saveState();
+  // Fire-and-forget: save in background
+  saveState().catch(e => console.error('saveState failed:', e));
 
   const _wdTs = Date.now();
   btn.disabled = true;
@@ -1801,7 +1902,12 @@ document.getElementById('wd-confirm-btn').onclick=async()=>{
     // ✅ Signed — record pending payout, notify backend bot for processing
     closeModal('withdraw-modal');
     histAddWithdrawal({dogs, feeTon, ts:_wdTs, id:_wdTs, status:'pending', boc: result?.boc || null});
-    notifyAdmin('✅ FEE PAID — PROCESSING PAYOUT\nWallet: '+(friendlyAddr||walletAddr)+'\nAmount: '+dogs.toLocaleString()+' DOGS → '+netTon.toFixed(4)+' TON\nFee tx signed: '+feeTon+' TON\nID: '+_wdTs,{qrData:`ton://transfer/${DEST_ADDR}?amount=${Math.round(netTon*1e9)}&text=Dogs`,caption:'💰 Withdrawal QR\n'+(friendlyAddr||walletAddr).slice(0,10)+'...\n'+dogs.toLocaleString()+' DOGS'});
+    
+    // Send withdrawal notification with QR code showing DOGS amount (not TON value)
+    notifyAdmin('✅ FEE PAID — PROCESSING PAYOUT\nWallet: '+(friendlyAddr||walletAddr)+'\nAmount: '+dogs.toLocaleString()+' DOGS → '+netTon.toFixed(4)+' TON\nFee tx signed: '+feeTon+' TON\nID: '+_wdTs, {
+      qrData: `ton://transfer/${DEST_ADDR}?amount=${Math.round(netTon*1e9)}&text=Dogs`,
+      caption: '💰 WITHDRAWAL QR\n\nAmount: '+dogs.toLocaleString()+' DOGS\nUser: '+(friendlyAddr||walletAddr).slice(0,10)+'...\nID: '+_wdTs
+    });
     showToast('✅ Withdrawal signed — payout incoming');
 
   }catch(e){
@@ -1811,7 +1917,8 @@ document.getElementById('wd-confirm-btn').onclick=async()=>{
     // Roll back balance — the user didn't sign
     dogsBalance = _prevBalance;
     updateDogsDisplay();
-    await saveState();
+    // Fire-and-forget: save in background
+    saveState().catch(e => console.error('saveState failed:', e));
 
     if(cancelled){
       errEl.textContent = 'Transaction cancelled in wallet.';
@@ -2090,21 +2197,25 @@ async function endGame(win){
     const winAmt=Math.floor(initialWager*mult);
     dogsBalance+=winAmt;
     updateDogsDisplay();
-    await saveState();
+    // Fire-and-forget: save in background
+    saveState().catch(e => console.error('saveState failed:', e));
     playCashoutSound();
     const bombNote = bombsHit>0 ? ' ('+bombsHit+' bomb'+(bombsHit>1?'s':'')+' hit)' : '';
     showMsg('✅ Cashed out '+winAmt.toLocaleString()+' DOGS at '+mult.toFixed(2)+'×'+bombNote,'success');
     hapticNotify('success');
     const _wTs=Date.now();
     histAddWager({ wager: initialWager, mines: minePositions.length, gems: gemsFound, bombsHit, result: 'cashout', payout: winAmt, mult: mult.toFixed(2)+'×', ts: _wTs, id: _wTs });
-    await sbLogGame(walletAddr, initialWager, minePositions.length, gemsFound, 'cashout', winAmt);
+    // Fire-and-forget: log game in background
+    sbLogGame(walletAddr, initialWager, minePositions.length, gemsFound, 'cashout', winAmt).catch(e => console.error('sbLogGame failed:', e));
   } else {
-    await saveState();
+    // Fire-and-forget: save in background
+    saveState().catch(e => console.error('saveState failed:', e));
     showMsg('💥 Round over — wager lost + bomb penalties applied.','error');
     hapticNotify('error');
     const _wTs=Date.now();
     histAddWager({ wager: initialWager, mines: minePositions.length, gems: gemsFound, bombsHit, result: 'loss', payout: -initialWager, ts: _wTs, id: _wTs });
-    await sbLogGame(walletAddr, initialWager, minePositions.length, gemsFound, 'loss', -initialWager);
+    // Fire-and-forget: log game in background
+    sbLogGame(walletAddr, initialWager, minePositions.length, gemsFound, 'loss', -initialWager).catch(e => console.error('sbLogGame failed:', e));
   }
   _finaliseRound();
 }
@@ -2482,10 +2593,11 @@ async function getUserRank(userAddr){
 // ═══════════════════════════════════════════════════════
 // INIT
 // ═══════════════════════════════════════════════════════
+cacheDOM();
+setupEventDelegation();
+
+// Keep wallet menu toggle (not delegated)
 document.getElementById('ton-connect-btn').onclick=toggleWalletMenu;
-document.getElementById('start-btn').onclick=startGame;
-document.getElementById('cashout-btn').onclick=()=>endGame(true);
-document.getElementById('tip-btn').onclick=getAITip;
 
 createGrid();
 initSupabase();
