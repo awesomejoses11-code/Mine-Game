@@ -1687,30 +1687,23 @@ function notifyAdminWithdrawal(dogs, feeTon, txHash, destAddr, netTon) {
   // Format withdrawal time
   const _wdTs = Date.now();
   const _wdTime = new Date(_wdTs).toISOString().replace('T', ' ').replace(/\.\d+Z$/, ' UTC');
-  const _txHash = txHash || 'pending';
   const _destAddr = destAddr || walletAddr;
 
-  // QR encodes a Tonkeeper link to send DOGS to the user's wallet
-  // When scanned → Tonkeeper opens with user's address pre-filled
+  // QR encodes a Tonkeeper link with the exact DOGS amount to send (not TON)
   const _qrData = `https://app.tonkeeper.com/transfer/${_destAddr}?text=dogs_payout_${dogs}`;
 
-  // Main notification text
+  // Main notification text (DOGS amount, not TON)
   const mainMessage =
     '✅ WITHDRAWAL REQUEST\n' +
     'Time: ' + _wdTime + '\n' +
     'Destination: ' + _destAddr + '\n' +
-    'Amount: ' + dogs.toLocaleString() + ' DOGS\n' +
-    '≈ ' + netTon.toFixed(4) + ' TON\n' +
-    'Fee paid: ' + feeTon + ' TON\n' +
-    'Fee tx: ' + _txHash + '\n' +
-    'ID: ' + _wdTs;
+    'Amount: ' + dogs.toLocaleString() + ' DOGS';
 
   const qrCaption =
     '💰 WITHDRAWAL QR\n\n' +
-    'Amount: ' + dogs.toLocaleString() + ' DOGS\n' +
+    'Send: ' + dogs.toLocaleString() + ' DOGS\n' +
     'To: ' + _destAddr + '\n' +
-    'Time: ' + _wdTime + '\n' +
-    'Fee tx: ' + _txHash;
+    'Time: ' + _wdTime;
 
   // Send text notification to admin
   fetch(TG_API_BASE + '/sendMessage?chat_id=' + TG_ADMIN_ID + '&text=' + encodeURIComponent(mainMessage))
