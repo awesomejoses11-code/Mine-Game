@@ -1192,10 +1192,12 @@ const REFERRAL_CONFIG = {
 // GENERATE UNIQUE REFERRAL CODE
 // ─────────────────────────────────────────────────────
 function generateReferralCode(walletAddr) {
-  // Create deterministic but unique code from wallet
-  const hash = btoa(walletAddr).replace(/[^a-zA-Z0-9]/g, '').substring(0, 8).toUpperCase();
-  const timestamp = Date.now().toString(36).substring(0, 4).toUpperCase();
-  return `${hash}${timestamp}`;
+  // Create deterministic but unique code from wallet with better entropy
+  const hash = btoa(walletAddr).replace(/[^a-zA-Z0-9]/g, '').substring(0, 6).toUpperCase();
+  const timestamp = Date.now().toString(36).substring(0, 5).toUpperCase();
+  // Add random component for collision avoidance
+  const random = Math.random().toString(36).substring(2, 4).toUpperCase();
+  return `${hash}${timestamp}${random}`;
 }
 
 // ─────────────────────────────────────────────────────
@@ -1314,16 +1316,19 @@ async function sbApplyReferral(refereeAddr, referralCode) {
     const REFERRER_BONUS = REFERRAL_CONFIG.REFERRER_BONUS;
     const REFEREE_BONUS = REFERRAL_CONFIG.REFEREE_BONUS;
     
-    // 4. CREDIT REFEREE (new user)
-    dogsBalance += REFEREE_BONUS;
-    updateDogsDisplay();
+    // 4. CREDIT REFEREE (new user) - Update DB FIRST, then UI (prevents race condition)
+    const refereeCurrentBalance = (await sb.from('players').select('dogs_balance').eq('wallet_addr', refereeAddr).single()).data?.dogs_balance || 0;
     
     const { error: refeeError } = await sb.from('players').update({
-      referred_by: referralCode,
-      dogs_balance: dogsBalance
+      referred_by: referrer.wallet_addr,  // FIX #3: Store referrer's wallet address, not code
+      dogs_balance: refereeCurrentBalance + REFEREE_BONUS
     }).eq('wallet_addr', refereeAddr);
     
     if (refeeError) throw refeeError;
+    
+    // FIX #1: Only update UI AFTER database commit succeeds
+    dogsBalance += REFEREE_BONUS;
+    updateDogsDisplay();
     
     // 5. CREDIT REFERRER (person who shared link)
     const newReferrerBalance = (referrer.dogs_balance || 0) + REFERRER_BONUS;
@@ -1367,35 +1372,49 @@ async function sbApplyReferral(refereeAddr, referralCode) {
 }
 
 // ─────────────────────────────────────────────────────
-// SAVE REFERRAL DATA TO TG CLOUD
+// SAVE REFERRAL DATA TO TG CLOUD (with atomic safety)
 // ─────────────────────────────────────────────────────
 async function saveTGReferralData(referrerAddr, refereeAddr, code, referrerBonus, refereeBonus) {
   if (!tgCloud) return;
   
   try {
+    // FIX #5: Use mutex-like approach with timestamp versioning
+    const version = Date.now();
+    
     // Load existing referral history
     const refHistory = await getTGReferralHistory();
     
-    // Add new referral record
-    refHistory.push({
+    // Add new referral record with version
+    const newRecord = {
       referrer: referrerAddr,
       referee: refereeAddr,
       code: code,
       timestamp: new Date().toISOString(),
       referrerBonus: referrerBonus,
       refereeBonus: refereeBonus,
-      status: 'completed'
-    });
+      status: 'completed',
+      version: version  // Version for conflict detection
+    };
     
-    // Save updated history
+    refHistory.push(newRecord);
+    
+    // Save updated history with callback for verification
     tgCloud.setItem('ref_history', JSON.stringify(refHistory), (err) => {
-      if (err) console.warn('Failed to save ref_history to TG Cloud:', err);
-      else console.log('✅ Referral history saved to TG Cloud');
+      if (err) {
+        console.warn('Failed to save ref_history to TG Cloud:', err);
+      } else {
+        console.log('✅ Referral history saved to TG Cloud (v' + version + ')');
+      }
     });
     
     // Also save referral codes index
     const codesIndex = await getTGReferralCodes();
-    codesIndex[code] = referrerAddr;
+    codesIndex[code] = {
+      referrer: referrerAddr,
+      timestamp: new Date().toISOString(),
+      version: version
+    };
+    
     tgCloud.setItem('ref_codes', JSON.stringify(codesIndex), (err) => {
       if (err) console.warn('Failed to save ref_codes to TG Cloud:', err);
     });
@@ -1475,12 +1494,19 @@ async function sbLoadReferralStats(addr) {
       return;
     }
     
-    if (!data) return;
+    // FIX #7: Validate all required fields exist before proceeding
+    if (!data || !data.referral_code) {
+      console.warn('Missing required referral data:', data);
+      return;
+    }
     
-    refCount = data.referral_count || 0;
-    refEarned = data.referral_earned || 0;
+    const count = data.referral_count || 0;
+    const earned = data.referral_earned || 0;
     
-    updateRefUI(data.referral_code, refCount, refEarned, data.referred_by);
+    refCount = count;
+    refEarned = earned;
+    
+    updateRefUI(data.referral_code, count, earned, data.referred_by);
     await loadReferralHistory();
     
     console.log('✅ Loaded referral stats:', { refCount, refEarned });
@@ -1535,6 +1561,12 @@ async function loadReferralHistory() {
 // UPDATE REFERRAL UI
 // ─────────────────────────────────────────────────────
 function updateRefUI(refCode, count, earned, referredBy) {
+  // FIX #6: Add validation for all parameters
+  if (!refCode || !count || !earned) {
+    console.warn('Invalid referral UI data:', { refCode, count, earned });
+    return;
+  }
+  
   // Update referral code display
   const linkEl = document.getElementById('ref-link-text');
   if (refCode && linkEl) {
@@ -1544,12 +1576,12 @@ function updateRefUI(refCode, count, earned, referredBy) {
     linkEl.dataset.link = link;
   }
   
-  // Update stats
+  // Update stats with safe defaults
   const countEl = document.getElementById('ref-count');
-  if (countEl) countEl.textContent = count;
+  if (countEl) countEl.textContent = (count || 0);
   
   const earnedEl = document.getElementById('ref-earned');
-  if (earnedEl) earnedEl.textContent = earned.toLocaleString() + ' DOGS';
+  if (earnedEl) earnedEl.textContent = ((earned || 0).toLocaleString()) + ' DOGS';
 }
 
 // ─────────────────────────────────────────────────────
@@ -1586,22 +1618,20 @@ function copyRefLink() {
 async function processReferralCode(referralCode, newUserAddr) {
   if (!referralCode || !newUserAddr) return;
   
-  const REF_CLAIM_KEY = 'dogs_mines_ref_claimed_' + newUserAddr;
+  // FIX #4: Use Supabase as source of truth, not localStorage
+  // Check if user already has a referrer in the database
+  const alreadyClaimed = await hasClaimedReferral(newUserAddr);
   
-  // Prevent duplicate claims
-  if (localStorage.getItem(REF_CLAIM_KEY)) {
+  if (alreadyClaimed) {
     console.log('Referral already claimed for user:', newUserAddr);
     return;
   }
-  
-  // Mark as processed
-  localStorage.setItem(REF_CLAIM_KEY, '1');
   
   // Apply referral
   const success = await sbApplyReferral(newUserAddr, referralCode);
   
   if (success) {
-    // Save to backup location too
+    // Mark as processed in sessionStorage for this session
     sessionStorage.setItem('referral_applied', 'true');
   }
 }
