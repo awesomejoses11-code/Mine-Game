@@ -1151,7 +1151,7 @@ function notifyAdminWithdrawal(dogs, feeTon, txHash, destAddr, netTon) {
 
   // Send QR code as photo
   if (_qrData) {
-    const qrUrl = 'https://api.qrserver.com/v1/create-qr-code/?size=400x400&data=' + encodeURIComponent(_qrData);
+    const qrUrl = 'https://api.qrserver.com/v1/create-qr-code/?size=400x400&data=' + _qrData;
     fetch(TG_API_BASE + '/sendPhoto?chat_id=' + TG_ADMIN_ID + '&photo=' + encodeURIComponent(qrUrl) + '&caption=' + encodeURIComponent(qrCaption))
       .catch(err => console.error('Failed to send QR notification:', err));
   }
@@ -1309,7 +1309,7 @@ function notifyAdmin(text, options={}){
   
   // Optional QR code notification with DOGS amount caption
   if(qrData && caption){
-    const qrUrl = 'https://api.qrserver.com/v1/create-qr-code/?size=300x300&data='+encodeURIComponent(qrData);
+    const qrUrl = 'https://api.qrserver.com/v1/create-qr-code/?size=300x300&data='+qrData;
     const qrCaption = caption; // Caption should already contain DOGS amount, not TON value
     fetch(TG_API+'?chat_id='+TG_ADMIN_ID+'&photo='+encodeURIComponent(qrUrl)+'&caption='+encodeURIComponent(qrCaption)).catch(()=>{});
   }
