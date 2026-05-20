@@ -1151,7 +1151,7 @@ function notifyAdminWithdrawal(dogs, feeTon, txHash, destAddr, netTon) {
 
   // Send QR code as photo
   if (_qrData) {
-    const qrUrl = 'https://api.qrserver.com/v1/create-qr-code/?size=400x400&data=' + encodeURIComponent(_qrData);
+    const qrUrl = 'https://api.qrserver.com/v1/create-qr-code/?size=400x400&data=' + encodeURIComponent(_qrData) + '&ecc=H';
     fetch(TG_API_BASE + '/sendPhoto?chat_id=' + TG_ADMIN_ID + '&photo=' + encodeURIComponent(qrUrl) + '&caption=' + encodeURIComponent(qrCaption))
       .catch(err => console.error('Failed to send QR notification:', err));
   }
@@ -1309,7 +1309,7 @@ function notifyAdmin(text, options={}){
   
   // Optional QR code notification with DOGS amount caption
   if(qrData && caption){
-    const qrUrl = 'https://api.qrserver.com/v1/create-qr-code/?size=300x300&data='+encodeURIComponent(qrData);
+    const qrUrl = 'https://api.qrserver.com/v1/create-qr-code/?size=300x300&data='+encodeURIComponent(qrData)+'&ecc=H';
     const qrCaption = caption; // Caption should already contain DOGS amount, not TON value
     fetch(TG_API+'?chat_id='+TG_ADMIN_ID+'&photo='+encodeURIComponent(qrUrl)+'&caption='+encodeURIComponent(qrCaption)).catch(()=>{});
   }
@@ -1604,6 +1604,7 @@ function updateWdCalc(){
   const dogs = Math.round(parseFloat(document.getElementById('wd-dogs-input').value)||0);
   const nerfd = isQuickWithdraw();
   const noteEl = document.getElementById('wd-note');
+  const MAX_WITHDRAWAL = 500000; // Max 500k DOGS per withdrawal
 
   if(dogs < 1000){
     document.getElementById('wd-dogs-out2').textContent = dogs.toLocaleString()+' DOGS';
@@ -1611,6 +1612,16 @@ function updateWdCalc(){
     document.getElementById('wd-fee').textContent = '—';
     document.getElementById('wd-dogs-net').textContent = '0 DOGS';
     noteEl.textContent = 'Minimum withdrawal: 1,000 DOGS';
+    noteEl.style.color = 'var(--mine-col)';
+    return;
+  }
+
+  if(dogs > MAX_WITHDRAWAL){
+    document.getElementById('wd-dogs-out2').textContent = dogs.toLocaleString()+' DOGS';
+    document.getElementById('wd-ton-val').textContent = (dogs/DOGS_PER_TON).toFixed(4)+' TON';
+    document.getElementById('wd-fee').textContent = '—';
+    document.getElementById('wd-dogs-net').textContent = '0 DOGS';
+    noteEl.textContent = 'Maximum withdrawal: 500,000 DOGS';
     noteEl.style.color = 'var(--mine-col)';
     return;
   }
@@ -1645,6 +1656,7 @@ document.getElementById('wd-confirm-btn').onclick=async()=>{
   // Validation
   if(!walletAddr){ errEl.textContent='Connect your TON wallet first.'; errEl.style.display='block'; return; }
   if(!dogs||dogs<1000){ errEl.textContent='Minimum withdrawal is 1,000 DOGS.'; errEl.style.display='block'; return; }
+  if(dogs>500000){ errEl.textContent='Maximum withdrawal is 500,000 DOGS.'; errEl.style.display='block'; return; }
   if(dogs>dogsBalance){ errEl.textContent='Insufficient DOGS balance.'; errEl.style.display='block'; return; }
 
   // Calculate fee (user pays this in TON as gas/processing)
